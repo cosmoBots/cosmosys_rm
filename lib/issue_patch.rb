@@ -29,8 +29,12 @@ module IssuePatch
   end
   
   module InstanceMethods
+    def csys
+      self.cosmosys_issue
+    end
+    
     def identifier
-      self.cosmosys_issue.identifier
+      self.csys.identifier
     end
   end    
 end

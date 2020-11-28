@@ -12,6 +12,12 @@ module UserPatch
       unloadable # Send unloadable so it will not be unloaded in development
       
       has_one :cosmosys_user
+      
+      after_save :init_csys
+      
+      def init_csys
+        cp = CosmosysUser.create!(user: self)
+      end
     end
 
   end
@@ -20,6 +26,12 @@ module UserPatch
   end
   
   module InstanceMethods
+    def csys
+      self.cosmosys_user
+    end    
+    def gen_rpt
+      self.csys.gen_rpt
+    end
   end    
 end
 # Add module to User

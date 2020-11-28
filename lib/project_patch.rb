@@ -12,6 +12,12 @@ module ProjectPatch
       unloadable # Send unloadable so it will not be unloaded in development
 
       has_one :cosmosys_project
+      
+      after_save :init_csys
+      
+      def init_csys
+        cp = CosmosysProject.create!(project: self)
+      end           
     end
 
   end
@@ -20,9 +26,17 @@ module ProjectPatch
   end
   
   module InstanceMethods
+    def csys
+      self.cosmosys_project
+    end    
     def prefix
-      self.cosmosys_project.prefix
+      self.csys.prefix
     end
+    
+    def id_counter 
+      self.csys.id_counter
+    end
+    
   end    
 end
 # Add module to Project
