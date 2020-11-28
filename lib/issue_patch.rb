@@ -10,17 +10,8 @@ module IssuePatch
     # Same as typing in the class 
     base.class_eval do
       unloadable # Send unloadable so it will not be unloaded in development
-      #before_save :check_identifier
-      #before_validation :check_identifier
-      #after_save :check_chapter
       
       has_one :cosmosys_issue
-      
-      after_save :init_csys
-      
-      def init_csys
-        cp = CosmosysIssue.create!(issue:self)
-      end        
     end
 
   end
@@ -29,13 +20,53 @@ module IssuePatch
   end
   
   module InstanceMethods
+    def reenumerate_children
+      # chs = self.children.where.not(cosmosys_issue_id: nil)
+      chs = []
+      self.children.each{|c|
+        csys = CosmosysIssue.find_by_issue_id(c)
+        if (csys != nil) then
+          chs += [csys]
+        end
+      }
+      chs2 = chs.sort_by{|obj| obj.chapter_order}
+      i = 1
+      chs2.each{|ch|
+        if (ch.chapter_order != i) then
+          ch.chapter_order = i
+          ch.save
+        end
+        i += 1
+      }
+      return i   
+    end
+    
+    def reenumerate_group
+      if (self.parent) then
+        next_chapter = self.parent.reenumerate_children
+      else
+        next_chapter = self.project.reenumerate_children
+      end
+      return next_chapter
+    end
+    
     def csys
+      if self.cosmosys_issue == nil then
+        chapter = self.reenumerate_group
+        CosmosysIssue.create!(issue:self,chapter_order:chapter)
+      end      
       self.cosmosys_issue
     end
     
     def identifier
       self.csys.identifier
     end
+    def chapter_order
+      self.csys.chapter_order
+    end
+    def chapter_str
+      self.csys.chapter_str
+    end    
   end    
 end
 # Add module to Issue

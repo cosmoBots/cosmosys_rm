@@ -12,12 +12,6 @@ module ProjectPatch
       unloadable # Send unloadable so it will not be unloaded in development
 
       has_one :cosmosys_project
-      
-      after_save :init_csys
-      
-      def init_csys
-        cp = CosmosysProject.create!(project: self)
-      end           
     end
 
   end
@@ -26,9 +20,43 @@ module ProjectPatch
   end
   
   module InstanceMethods
+    def reenumerate_children
+      # chs = self.children.where.not(cosmosys_issue_id: nil)
+      chs = []
+      self.issues.where(parent_id: nil).each{|c|
+        csys = CosmosysIssue.find_by_issue_id(c)
+        if (csys != nil) then
+          chs += [csys]
+        end
+      }
+      puts("antes de reordenar")
+      chs.each{|ch|
+        puts(ch.identifier+' '+ch.chapter_order.to_s)
+      }
+      chs2 = chs.sort_by{|obj| obj.chapter_order}
+      puts("despues de reordenar")
+      chs2.each{|ch|
+        puts(ch.identifier+' '+ch.chapter_order.to_s)
+      }
+      i = 1
+      chs2.each{|ch|
+        puts('Antes: '+i.to_s+' '+ch.identifier+' '+ch.chapter_order.to_s)
+        if (ch.chapter_order.floor != i) then
+          ch.chapter_order = i
+          ch.save
+          puts('Despues: '+i.to_s+' '+ch.identifier+' '+ch.chapter_order.to_s)          
+        end
+        i += 1
+      }
+      return i   
+    end
     def csys
+      if self.cosmosys_project == nil then
+        CosmosysProject.create!(project: self)
+      end
       self.cosmosys_project
-    end    
+    end
+    
     def prefix
       self.csys.prefix
     end

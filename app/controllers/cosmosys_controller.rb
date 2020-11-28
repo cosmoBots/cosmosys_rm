@@ -6,7 +6,27 @@ class CosmosysController < ApplicationController
 
   def show
   end
-
+  
+  def up
+    puts "empiezo " + @issue.csys.chapter_order.to_s
+    @issue.csys.chapter_order -= 1.1
+    puts "sigo " + @issue.csys.chapter_order.to_s
+    @issue.csys.save
+    @issue.reenumerate_group
+    puts "acabo " + @issue.csys.chapter_order.to_s
+    redirect_to :action => 'show', :method => :get, :id => @project.id 
+  end
+  
+  def down
+    puts "empiezo " + @issue.csys.chapter_order.to_s
+    @issue.csys.chapter_order += 1.1
+    puts "sigo " + @issue.csys.chapter_order.to_s
+    @issue.csys.save
+    @issue.reenumerate_group
+    puts "acabo " + @issue.csys.chapter_order.to_s
+    redirect_to :action => 'show', :method => :get, :id => @project.id 
+  end
+  
   def tree
   end
   

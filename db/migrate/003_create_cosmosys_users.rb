@@ -5,9 +5,5 @@ class CreateCosmosysUsers < ActiveRecord::Migration[5.2]
       t.references :user, foreign_key: true
     end
     #add_index :cosmosys_users, :user_id
-    
-		User.all.each{|u|
-      cu = CosmosysUser.create!(user: u)
-		}    
   end
 end

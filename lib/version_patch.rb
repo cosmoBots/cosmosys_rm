@@ -12,12 +12,7 @@ module VersionPatch
       unloadable # Send unloadable so it will not be unloaded in development
       
       has_one :cosmosys_version
-      
-      after_save :init_csys
-      
-      def init_csys
-        cp = CosmosysVersion.create!(version: self)
-      end
+
     end
 
   end
@@ -27,6 +22,9 @@ module VersionPatch
   
   module InstanceMethods
     def csys
+      if self.cosmosys_version == nil then
+        CosmosysVersion.create!(version: self)
+      end        
       self.cosmosys_version
     end    
     def cosmosys_version_type

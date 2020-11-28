@@ -5,9 +5,5 @@ class CreateCosmosysTrackers < ActiveRecord::Migration[5.2]
       t.string :diag_shape
     end
     #add_index :cosmosys_trackers, :tracker_id
-    
-		Tracker.all.each{|tr|
-      ct = CosmosysTracker.create!(tracker: tr)
-		}    
   end
 end

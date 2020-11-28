@@ -13,11 +13,6 @@ module UserPatch
       
       has_one :cosmosys_user
       
-      after_save :init_csys
-      
-      def init_csys
-        cp = CosmosysUser.create!(user: self)
-      end
     end
 
   end
@@ -27,6 +22,9 @@ module UserPatch
   
   module InstanceMethods
     def csys
+      if self.cosmosys_user == nil then
+        CosmosysUser.create!(user: self)
+      end      
       self.cosmosys_user
     end    
     def gen_rpt
