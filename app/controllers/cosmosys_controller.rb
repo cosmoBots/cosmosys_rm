@@ -28,6 +28,49 @@ class CosmosysController < ApplicationController
   end
   
   def tree
+    tree_inner
+  end
+  
+  def tree_inner
+    require 'json'
+
+    splitted_url = request.fullpath.split('/cosmosys')
+    root_url = request.base_url+splitted_url[0]
+
+    if request.get? then
+      print("GET!!!!!")
+      if (params[:node_id]) then
+        print("NODO!!!\n")
+        treedata = @project.csys.show_as_json(params[:node_id],root_url)
+      else
+        print("PROYECTO!!!\n")
+        treedata = @project.csys.show_as_json(nil,root_url)
+      end
+
+      respond_to do |format|
+        format.html {
+          @to_json = treedata.to_json
+        }
+        format.json { 
+          require 'json'
+          ActiveSupport.escape_html_entities_in_json = false
+          render json: treedata
+          ActiveSupport.escape_html_entities_in_json = true        
+        }
+      end
+    else
+      print("POST!!!!!")
+      structure = params[:structure]
+      json_params_wrapper = JSON.parse(request.body.read())
+      structure = json_params_wrapper['structure']
+      #print ("structure: \n\n")
+      #print structure
+      rootnode = structure[0]
+      structure.each { |n|
+        Cosmosys.update_node(n,nil,"",1)
+      }
+      redirect_to :action => 'tree', :method => :get, :id => @project.id 
+    end
   end
   
   def find_project
