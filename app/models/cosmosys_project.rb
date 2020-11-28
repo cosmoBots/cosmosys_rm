@@ -84,7 +84,7 @@ class CosmosysProject < ActiveRecord::Base
     }
     roots.each { |r|
       thisnode=r
-      tree_node = thisnode.csys.create_json(root_url,true)
+      tree_node = thisnode.csys.to_treeview_json(root_url,true)
       treedata[:issues] << tree_node
     }
     return treedata
