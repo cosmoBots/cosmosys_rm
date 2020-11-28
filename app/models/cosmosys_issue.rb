@@ -26,6 +26,30 @@ class CosmosysIssue < ActiveRecord::Base
     return prev_str + self.chapter_order.floor.to_s + '.'
   end
 
+  def self.update_node(n,p,ord)
+    # n is node, p is parent
+    node = Issue.find(n['id'])
+    if (node != nil) then
+      node.csys.chapter_order = ord
+      node.csys.save
+      if (p != nil) then
+        parent = Issue.find(p)
+        node.parent = parent
+      else
+        node.parent = nil
+      end
+      node.save
+      ch = n['children']
+      chord = 1
+      if (ch != nil) then
+         ch.each { |c| 
+          #puts("* llamamos a"+c.to_s)           
+          update_node(c,node.id,chord)
+          chord += 1
+        }
+      end
+    end
+  end
 
   def create_json(root_url, include_doc_children)
     tree_node = self.issue.attributes.slice("id","tracker_id","subject","description","status_id","fixed_version_id","parent_id","root_id","assigned_to_id","due_date","start_date","done_ratio")

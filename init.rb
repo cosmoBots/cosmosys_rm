@@ -8,12 +8,14 @@ Redmine::Plugin.register :cosmosys do
 
   permission :csys_menu, :cosmosys => :menu
   permission :csys_tree, :cosmosys => :tree
+  permission :csys_treeview, :cosmosys => :treeview
   permission :csys_show, :cosmosys => :show
   permission :csys_up, :cosmosys => :up
   permission :csys_down, :cosmosys => :down  
 
   menu :project_menu, :cosmosys, {:controller => 'cosmosys', :action => 'menu' }, :caption => 'cosmoSys', :after => :activity, :param => :id
   menu :project_menu, :cosmosys_tree, {:controller => 'cosmosys', :action => 'tree' }, :caption => 'cSysTree', :after => :issues, :param => :id
+  menu :project_menu, :cosmosys_treeview, {:controller => 'cosmosys', :action => 'treeview' }, :caption => 'cSysTreeView', :after => :issues, :param => :id
   menu :project_menu, :cosmosys_show, {:controller => 'cosmosys', :action => 'show' }, :caption => 'cSysShow', :after => :issues, :param => :id
 
   require 'cosmosys'
