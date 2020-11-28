@@ -2,5 +2,5 @@
 - root_url = request.base_url+splitted_url[0]
 - issue_csys_content = "## Identifier: " + @issue.identifier
 - if issue_csys_content.present?
-  .project-content.csysIssueContent.wiki.box
+  .issue-content.csysIssueContent.wiki.box
     = textilizable(issue_csys_content)

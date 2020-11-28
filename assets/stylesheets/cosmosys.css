@@ -1,0 +1,121 @@
+td.cf_1.string {
+    font-weight: bold;
+}
+td.description {
+    font-size: 100%;
+    font-weight: bold;
+}
+
+.cSysRootIssue {
+    border: 1px solid darkgrey;
+    padding-left: 4px;
+}
+
+.cSysParentIssue {
+    /* border-top: 1px darkgrey; */
+    padding-left: 3px;
+    margin-left: 3px;
+    border-style: ridge;
+    border-bottom: hidden;
+    border-left: hidden;
+    border-right: hidden;
+    border: 1px solid darkgrey;
+    margin-bottom: 6px;
+    margin-top: 5px;
+}
+
+.cSysParentIssue h2, .cSysParentIssue h3,
+.cSysParentIssue h4, .cSysParentIssue h5,
+.cSysParentIssue h6, .cSysParentIssue h7,
+.cSysParentIssue h8, .cSysParentIssue h9{
+    padding-left: 4px;
+}
+
+.cSysParentIssuedescr {
+    padding-left: 3px;
+    padding: 0 18px;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.2s ease-out;
+    background-color: #f1f1f1;    
+}
+
+.cSysIssue {
+    border-top: 1px darkgrey;
+    padding-left: 3px;
+    margin-left: 4px;
+    border-style: dotted;
+    border-bottom: hidden;
+    border-left: hidden;
+    border-right: hidden;
+}
+
+h1 { 
+  display: block;
+  font-size: 2em;
+  margin-top: 0.67em;
+  margin-bottom: 0.67em;
+  margin-left: 0;
+  margin-right: 0;
+  font-weight: bold;
+}
+
+h2 {
+  display: block;
+  font-size: 1.5em;
+  margin-top: 0.83em;
+  margin-bottom: 0.83em;
+  margin-left: 0;
+  margin-right: 0;
+  font-weight: bold;
+}
+
+h3 { 
+  display: block;
+  font-size: 1.17em;
+  margin-top: 1em;
+  margin-bottom: 1em;
+  margin-left: 0;
+  margin-right: 0;
+  font-weight: bold;
+}
+
+h4 { 
+  display: block;
+  font-size: 1em;
+  margin-top: 1.33em;
+  margin-bottom: 1.33em;
+  margin-left: 0;
+  margin-right: 0;
+  font-weight: bold;
+}
+
+h5 { 
+  display: block;
+  font-size: .83em;
+  margin-top: 1.67em;
+  margin-bottom: 1.67em;
+  margin-left: 0;
+  margin-right: 0;
+  font-weight: bold;
+}
+
+h6 { 
+  display: block;
+  font-size: .67em;
+  margin-top: 2.33em;
+  margin-bottom: 2.33em;
+  margin-left: 0;
+  margin-right: 0;
+  font-weight: bold;
+}
+
+h6 { 
+  display: block;
+  font-size: .60em;
+  margin-top: 2.50em;
+  margin-bottom: 2.50em;
+  margin-left: 0;
+  margin-right: 0;dd
+  font-weight: bold;
+}

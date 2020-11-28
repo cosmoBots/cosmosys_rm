@@ -1,0 +1,145 @@
+<% content_for :header_tags do %>
+    <%= stylesheet_link_tag 'cosmosys', :plugin => 'cosmosys' %>
+<% end %>
+
+<div class="<%= "cSysRootIssue" %>">
+<h1><strong><%= @project.identifier %>: </strong><%= @project.name %></h1>
+<% roots = @project.issues.where(:parent => nil).sort_by{|obj| obj.identifier}
+	roots.each { |i| 
+          if (i.children.size >= 1) then
+		classdiv = "cSysParentIssue"
+		chapstr = i.identifier
+          else
+		classdiv = "cSysIssue"
+		chapstr = i.identifier
+          end          
+	  title = i.subject
+	%>
+<div class="<%= classdiv %>">
+<h1><strong><%= link_to chapstr, issue_path(i.id) %>: </strong><%= title %></h1>
+<div class="<%= classdiv %>descr"><%= textilizable i, :description %></div>
+<% i.children.sort_by{|obj| obj.identifier}.each { |i2| 
+          if (i2.children.size >= 1) then 
+		classdiv = "cSysParentIssue"
+		chapstr = i2.identifier
+          else
+		classdiv = "cSysIssue"
+		chapstr = i2.identifier
+          end          
+	  title = i2.subject
+
+	%>
+<div class="<%= classdiv %>">
+<h2><strong><%= link_to chapstr, issue_path(i2.id) %>: </strong><%= title %></h2>
+<div class="<%= classdiv %>descr"><%= textilizable i2, :description %></div>
+<% i2.children.sort_by{|obj| obj.identifier}.each { |i3| 
+          if (i3.children.size >= 1) then 
+		classdiv = "cSysParentIssue"
+		chapstr = i3.identifier
+          else
+		classdiv = "cSysIssue"
+		chapstr = i3.identifier
+          end          
+	  title = i3.subject
+
+	%>
+<div class="<%= classdiv %>">
+<h3><strong><%= link_to chapstr, issue_path(i3.id) %>: </strong><%= title %></h3>
+<div class="<%= classdiv %>descr"><%= textilizable i3, :description %></div>
+<% i3.children.sort_by{|obj| obj.identifier}.each { |i4| 
+          if (i4.children.size >= 1) then 
+		classdiv = "cSysParentIssue"
+		chapstr = i4.identifier
+          else
+		classdiv = "cSysIssue"
+		chapstr = i4.identifier
+          end          
+	  title = i4.subject
+	%>
+<div class="<%= classdiv %>">
+<h4><strong><%= link_to chapstr, issue_path(i4.id) %>: </strong><%= title %></h4>
+<div class="<%= classdiv %>descr"><%= textilizable i4, :description %></div>
+<% i4.children.sort_by{|obj| obj.identifier}.each { |i5| 
+          if (i5.children.size >= 1) then 
+		classdiv = "cSysParentIssue"
+		chapstr = i5.identifier
+          else
+		classdiv = "cSysIssue"
+		chapstr = i5.identifier
+          end          
+	  title = i5.subject
+	%>
+<div class="<%= classdiv %>">
+<h5><strong><%= link_to chapstr, issue_path(i5.id) %>: </strong><%= title %></h5>
+<div class="<%= classdiv %>descr"><%= textilizable i5, :description %></div>
+<% i5.children.sort_by{|obj| obj.identifier}.each { |i6| 
+          if (i6.children.size >= 1) then 
+		classdiv = "cSysParentIssue"
+		chapstr = i6.identifier
+          else
+		classdiv = "cSysIssue"
+		chapstr = i6.identifier
+          end          
+		title = i6.subject	
+	%>
+<div class="<%= classdiv %>">
+<h6><strong><%= link_to chapstr, issue_path(i6.id) %>: </strong><%= title %></h6>
+<div class="<%= classdiv %>descr"><%= textilizable i6, :description %></div>
+<% i6.children.sort_by{|obj| obj.identifier}.each { |i7| 
+          if (i7.children.size >= 1) then 
+		classdiv = "cSysParentIssue"
+		chapstr = i7.identifier     
+          else
+		classdiv = "cSysIssue"
+		chapstr = i7.identifier
+          end          
+		title = i7.subject	
+	%>
+<div class="<%= classdiv %>">
+<h7><strong><%= link_to chapstr, issue_path(i7.id) %>: </strong><%= title %></h7>
+<div class="<%= classdiv %>descr"><%= textilizable i7, :description %></div>
+<% i7.children.sort_by{|obj| obj.identifier}.each { |i8| 
+          if (i8.children.size >= 1) then 
+		classdiv = "cSysParentIssue"
+		chapstr = i8.identifier
+          else
+		classdiv = "cSysIssue"
+		chapstr = i8.identifier
+          end          
+		title = i8.subject	
+	%>
+<div class="<%= classdiv %>">
+<h8><strong><%= link_to chapstr, issue_path(i8.id) %>: </strong><%= title %></h8>
+<div class="<%= classdiv %>descr"><%= textilizable i8, :description %></div>
+<% i8.children.sort_by{|obj| obj.identifier}.each { |i9| 
+          if (i9.children.size >= 1) then 
+		classdiv = "cSysParentIssue"
+		chapstr = i9.identifier
+          else
+		classdiv = "cSysIssue"
+		chapstr = i9.identifier
+          end          
+		title = i9.subject	
+	%>
+<div class="<%= classdiv %>">
+<h9><strong><%= link_to chapstr, issue_path(i9.id) %>: </strong><%= title %></h8>
+<div class="<%= classdiv %>descr"><%= textilizable i9, :description %></div>
+</div>
+<% } %>
+</div>
+<% } %>
+</div>
+<% } %>
+</div>
+<% } %>
+</div>
+<% } %>
+</div>
+<% } %>	
+</div>
+<% } %>
+</div>
+<% } %>
+</div>
+<% } %>
+</div>

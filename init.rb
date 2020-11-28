@@ -6,6 +6,14 @@ Redmine::Plugin.register :cosmosys do
   url 'http://cosmobots.eu'
   author_url 'http://cosmobots.eu'
 
+  permission :csys_menu, :cosmosys => :menu
+  permission :csys_tree, :cosmosys => :tree
+  permission :csys_show, :cosmosys => :show
+
+  menu :project_menu, :cosmosys, {:controller => 'cosmosys', :action => 'menu' }, :caption => 'cosmoSys', :after => :activity, :param => :id
+  menu :project_menu, :cosmosys_tree, {:controller => 'cosmosys', :action => 'tree' }, :caption => 'cSysTree', :after => :issues, :param => :id
+  menu :project_menu, :cosmosys_show, {:controller => 'cosmosys', :action => 'show' }, :caption => 'cSysShow', :after => :issues, :param => :id
+
   require 'cosmosys'
   # Patches to the Redmine core.
   require 'tracker_patch'
