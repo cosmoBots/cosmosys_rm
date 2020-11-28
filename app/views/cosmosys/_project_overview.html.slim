@@ -1,0 +1,6 @@
+- splitted_url = request.fullpath.split('/projects')
+- root_url = request.base_url+splitted_url[0]
+- project_overview_content = "## Prefix: "+@project.prefix
+- if project_overview_content.present?
+  .project-content.csysProjectCtnt.wiki.box
+    = textilizable(project_overview_content)
