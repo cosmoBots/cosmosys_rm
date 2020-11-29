@@ -3,12 +3,6 @@ class CosmosysProject < ActiveRecord::Base
   
   before_create :init_attr
 
-  def self.word_wrap( text, line_width: 80, break_sequence: "\n")
-    text.split("\n").collect! do |line|
-      line.length > line_width ? line.gsub(/(.{1,#{line_width}})(\s+|$)/, "\\1#{break_sequence}").rstrip : line
-    end * break_sequence
-  end
-
   def get_descendents
     result = []
     self.project.children.each{|c|
@@ -89,6 +83,51 @@ class CosmosysProject < ActiveRecord::Base
     }
     return treedata
   end
+
+
+  def show_graphs_pr(root_url)
+    # Create a new hierarchy graph
+    hg = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "9.5,30", :strict => true )
+    hcl = hg.add_graph(:clusterD, :label => 'Hierarchy', :labeljust => 'l', :labelloc=>'t', :margin=> '5') 
+
+    # Create a new hierarchy graph
+    dg = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "9.5,30", :strict => true )
+    dcl = dg.add_graph(:clusterD, :label => 'Dependences', :labeljust => 'l', :labelloc=>'t', :margin=> '5') 
+
+    self.project.issues.each{|n|
+      colorstr = 'black'
+      if n.children.size > 0 then
+        shapestr = "note"
+        labelstr = n.identifier+"\n----\n"+n.csys.class.word_wrap(n.subject, line_width: 12)
+        fontnamestr = 'times italic'            
+      else
+        shapestr = 'Mrecord'
+        labelstr = "{"+n.identifier+"|"+n.csys.class.word_wrap(n.subject, line_width: 12) + "}"      
+        fontnamestr = 'times'
+      end
+      hn_node = hcl.add_nodes( n.id.to_s, :label => labelstr, :fontname => fontnamestr, 
+        :style => 'filled', :color => colorstr, :fillcolor => 'grey', :shape => shapestr,
+        :URL => root_url + "/issues/" + n.id.to_s)
+      n.children.each{|c|
+        hcl.add_edges(hn_node, c.id.to_s)
+      }
+      if (n.relations.size>0) then
+        dn_node = dcl.add_nodes( n.id.to_s, :label => labelstr, :fontname => fontnamestr,   
+          :style => 'filled', :color => colorstr, :fillcolor => 'grey', :shape => shapestr,
+          :URL => root_url + "/issues/" + n.id.to_s)
+        n.relations_from.each {|r|
+          colorstr = CosmosysIssue.get_relation_color(r)
+          dcl.add_edges(dn_node, r.issue_to_id.to_s, :color => colorstr)
+        }
+      end
+    }
+
+    result="{{graphviz_link()\n" + hg.to_s + "\n}}"
+    result+=" {{graphviz_link()\n" + dg.to_s + "\n}}"
+
+    return result
+  end
+
 
 
   private

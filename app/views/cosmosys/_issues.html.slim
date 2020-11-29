@@ -1,6 +1,7 @@
 - splitted_url = request.fullpath.split('/issues')
 - root_url = request.base_url+splitted_url[0]
-- issue_csys_content = "## Identifier: " + @issue.identifier
-- if issue_csys_content.present?
-  .issue-content.csysIssueContent.wiki.box
-    = textilizable(issue_csys_content)
+.issue-content.csysIssueContent.wiki.box
+	= textilizable("### Identifier: "+ @issue.identifier)
+	= textilizable("## Diagrams")
+	= textilizable(@issue.csys.show_graphs(root_url))
+
