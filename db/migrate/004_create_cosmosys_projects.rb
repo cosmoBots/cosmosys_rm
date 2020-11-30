@@ -3,7 +3,8 @@ class CreateCosmosysProjects < ActiveRecord::Migration[5.2]
     create_table :cosmosys_projects do |t|
       t.string :prefix
       t.integer :id_counter, null: false, default: 0
-      t.references :project, foreign_key: true
+      t.integer :project_id, foreign_key: true
     end
+    add_index :cosmosys_projects, :project_id
   end
 end
