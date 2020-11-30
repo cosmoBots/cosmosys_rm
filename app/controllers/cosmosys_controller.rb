@@ -1,5 +1,5 @@
 class CosmosysController < ApplicationController
-  before_action :find_project, :authorize
+  before_action :find_project#, :authorize, :except => [:find_project, :treeview]
 
   def menu
   end
