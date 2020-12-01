@@ -64,6 +64,7 @@ class CosmosysIssue < ActiveRecord::Base
     tree_node[:url] = root_url+'/cosmosys/'+self.issue.id.to_s,    
     tree_node[:return_url] = root_url+'/cosmosys/'+self.issue.id.to_s+'/tree.json',    
 =begin
+    # TODO: check if supervisor should be included in treeview
     tree_node[:supervisor] = ""
     if @@cfsupervisor != nil then
       cvsupervisor = self.custom_values.find_by_custom_field_id(@@cfsupervisor.id)
@@ -78,6 +79,8 @@ class CosmosysIssue < ActiveRecord::Base
       end
     end
 =end
+=begin
+    # TODO: check if assigned should be included in treeview
     tree_node[:assigned_to] = []
     if (self.issue.assigned_to != nil) then
       if self.issue.assigned_to.class == Group then
@@ -89,6 +92,7 @@ class CosmosysIssue < ActiveRecord::Base
         tree_node[:assigned_to] = [self.issue.assigned_to.login]
       end
     end
+=end
     if self.issue.children.size == 0 then
       tree_node[:type] = 'Issue'
     else
@@ -405,7 +409,7 @@ class CosmosysIssue < ActiveRecord::Base
       :URL => root_url + "/issues/" + upn.id.to_s)
     cl.add_edges(upn_node, n_node)
     if (upn.parent != nil) then
-      cl,torecalc=self.to_graphviz_hieupn(cl,upn_node,upn,upn.parent,isfirst,torecalc,root_url)
+      cl,torecalc=self.to_graphviz_hieupn(cl,upn_node,upn.parent,isfirst,torecalc,root_url)
     end
     if (isfirst) then
       torecalc[upn.id.to_s.to_sym] = upn.id
@@ -429,7 +433,7 @@ class CosmosysIssue < ActiveRecord::Base
       :URL => root_url + "/issues/" + dwn.id.to_s)
     cl.add_edges(n_node, dwn_node)
     dwn.children.each {|dwn2|
-      cl,torecalc=self.to_graphviz_hiedwn(cl,dwn_node,dwn,dwn2,isfirst,torecalc,root_url)
+      cl,torecalc=self.to_graphviz_hiedwn(cl,dwn_node,dwn2,isfirst,torecalc,root_url)
     }
     if (isfirst) then
       torecalc[dwn.id.to_s.to_sym] = dwn.id
