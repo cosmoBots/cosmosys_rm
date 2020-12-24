@@ -1,5 +1,5 @@
 class CosmosysController < ApplicationController
-  before_action :find_project#, :authorize, :except => [:find_project, :treeview]
+  before_action :find_this_project#, :authorize, :except => [:find_project, :treeview]
 
   def menu
   end
@@ -21,21 +21,21 @@ class CosmosysController < ApplicationController
     redirect_to :action => 'show', :method => :get, :id => @project.id 
   end
   
-  def create_tree(current_issue, root_url, is_project)
+  def create_tree(current_issue, root_url, is_project, thisproject)
     if (is_project) then
       output = ""
-      output += ("\project: " + current_issue.project.name)
-      issue_url = root_url + '/projects/' + current_issue.project.identifier
+      output += ("\project: " + thisproject.name)
+      issue_url = root_url + '/projects/' + thisproject.identifier
       output += ("\nissue_url: " + issue_url.to_s)
-      issue_new_url = root_url + '/projects/' + current_issue.project.identifier + '/issues/new'
+      issue_new_url = root_url + '/projects/' + thisproject.identifier + '/issues/new'
       output += ("\nissue_new_url: " + issue_new_url.to_s)
-      cfprefixvalue = current_issue.project.prefix
+      cfprefixvalue = thisproject.prefix
 
-      tree_node = {'title':  cfprefixvalue + ". " + current_issue.project.identifier  + ": " + current_issue.project.name,
-       'subtitle': current_issue.project.description,
+      tree_node = {'title':  cfprefixvalue + ". " + thisproject.identifier  + ": " + thisproject.name,
+       'subtitle': thisproject.description,
        'expanded': true,
-       'id': current_issue.project.id.to_s,
-       'return_url': root_url+'/cosmosys/'+current_issue.project.id.to_s+'/treeview.json',
+       'id': thisproject.id.to_s,
+       'return_url': root_url+'/cosmosys/'+thisproject.id.to_s+'/treeview.json',
        'issue_show_url': issue_url,
        'issue_new_url': issue_new_url,
        'issue_edit_url': issue_url+"/edit",
@@ -46,7 +46,7 @@ class CosmosysController < ApplicationController
     output += ("\nissue: " + current_issue.subject)
     issue_url = root_url + '/issues/' + current_issue.id.to_s
     output += ("\nissue_url: " + issue_url.to_s)
-    issue_new_url = root_url + '/projects/' + current_issue.project.identifier + '/issues/new?issue[parent_issue_id]=' + current_issue.id.to_s + '&issue[tracker_id]=' + "Feature"
+    issue_new_url = root_url + '/projects/' + thisproject.identifier + '/issues/new?issue[parent_issue_id]=' + current_issue.id.to_s + '&issue[tracker_id]=' + "Feature"
     output += ("\nissue_new_url: " + issue_new_url.to_s)
     cftitlevalue = current_issue.subject
       cfchapterstring = current_issue.chapter_str
@@ -54,7 +54,7 @@ class CosmosysController < ApplicationController
        'subtitle': current_issue.description,
        'expanded': true,
        'id': current_issue.id.to_s,
-       'return_url': root_url+'/cosmosys/'+current_issue.project.id.to_s+'/treeview.json',
+       'return_url': root_url+'/cosmosys/'+thisproject.id.to_s+'/treeview.json?issue_id='+current_issue.id.to_s,
        'issue_show_url': issue_url,
        'issue_new_url': issue_new_url,
        'issue_edit_url': issue_url+"/edit",
@@ -65,12 +65,12 @@ class CosmosysController < ApplicationController
     #print tree_node
     #print "children: " + tree_node[:children].to_s + "++++\n"
     if (is_project) then
-      childrenitems = current_issue.project.issues.where(:parent => nil).sort_by {|obj| obj.csys.chapter_order}
+      childrenitems = thisproject.issues.where(:parent => nil).sort_by {|obj| obj.csys.chapter_order}
     else
       childrenitems = current_issue.children.sort_by {|obj| obj.csys.chapter_order}
     end
     childrenitems.each{|c|
-      child_node = create_tree(c,root_url,false)
+      child_node = create_tree(c,root_url,false,thisproject)
       tree_node[:children] << child_node
     }
 
@@ -84,17 +84,25 @@ class CosmosysController < ApplicationController
     is_project = false
     if request.get? then
       print("GET!!!!!")
-      if (params[:node_id]) then
+      treedata = []      
+      if (@issue) then
         print("NODO!!!\n")
-        thisnodeid = params[:node_id]
+        thisnodeid = params[:issue_id]
       else
-        print("PROYECTO!!!\n")     
+        print("PROYECTO!!!\n")
+        puts(params[:id])
+        puts(params[:issue_id])
         res = @project.issues.where(:parent => nil).limit(1)
-        thisnodeid = res.first.id
+        if res.size > 0 then
+          thisnodeid = res.first.id
+        else
+          thisnodeid = nil
+        end
         is_project = true
       end
-      thisnode=Issue.find(thisnodeid)
-
+      if (thisnodeid != nil) then
+        thisnode=Issue.find(thisnodeid)
+      end
       splitted_url = request.fullpath.split('/cosmosys')
       print("\nsplitted_url: ",splitted_url)
       root_url = splitted_url[0]
@@ -115,14 +123,10 @@ class CosmosysController < ApplicationController
       print("\nhost ",request.host)
       print("\nremote_host ",request.remote_host)
 
-      treedata = []
-
-      tree_node = create_tree(thisnode,root_url,is_project)
-
-      treedata << tree_node
+      tree_node = create_tree(thisnode,root_url,is_project,@project)
 
       #print treedata
-
+      treedata << tree_node
 
       respond_to do |format|
         format.html {
@@ -171,9 +175,9 @@ class CosmosysController < ApplicationController
 
     if request.get? then
       print("GET tree ")
-      if (params[:node_id]) then
-        puts("nodo" + params[:node_id].to_s)
-        treedata = @project.csys.show_as_json(params[:node_id],root_url)
+      if (params[:issue_id]) then
+        puts("nodo" + params[:issue_id].to_s)
+        treedata = @project.csys.show_as_json(params[:issue_id],root_url)
       else
         puts("proyecto" + @project.id.to_s)
         treedata = @project.csys.show_as_json(nil,root_url)
@@ -203,10 +207,10 @@ class CosmosysController < ApplicationController
     end
   end
   
-  def find_project
+  def find_this_project
     # @project variable must be set before calling the authorize filter
-    if (params[:node_id]) then
-      @issue = Issue.find(params[:node_id])
+    if (params[:issue_id]) then
+      @issue = Issue.find(params[:issue_id])
       @project = @issue.project
     else
       if(params[:id]) then

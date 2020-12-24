@@ -22,15 +22,15 @@ class CosmosysProject < ActiveRecord::Base
 	  return roots
   end
 
-  def show_as_json(node_id,root_url)
-	return self.show_as_json_inner(node_id, root_url, true)
+  def show_as_json(issue_id,root_url)
+	return self.show_as_json_inner(issue_id, root_url, true)
   end
 
-  def show_as_json_inner(node_id,root_url,include_subprojects)
+  def show_as_json_inner(issue_id,root_url,include_subprojects)
     require 'json'
 
-    if (node_id != nil) then
-      thisnode = Issue.find(node_id)
+    if (issue_id != nil) then
+      thisnode = Issue.find(issue_id)
       roots = [thisnode]
     else    
       roots = self.get_project_root_issues(include_subprojects)
