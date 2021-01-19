@@ -39,7 +39,7 @@ class CosmosysIssuesController < ApplicationController
   helper :repositories
   helper :timelog
   helper :issues
-  helper :issues_tags
+#  helper :issues_tags
   
   before_action :find_this_project, :only => [:index]
 
