@@ -680,7 +680,7 @@ else:
 print("INFORMES")
 for person in data['byperson'].keys():
     print("Generando infome de ",person)
-    if (data['byperson'][person]['gen_report']):
+    if True: #(data['byperson'][person]['gen_report']):
         success = execute_js('./plugins/cosmosys/assets/pythons/lib/launch_carbone.js', reporting_path
             + " " + person + " " + person + " "+"1"
             + " " + period + " " + nextPeriod

@@ -79,6 +79,7 @@ class CosmosysIssue < ActiveRecord::Base
     tree_node = self.issue.attributes.slice("id","tracker_id","subject","description","status_id","fixed_version_id","parent_id","root_id","assigned_to_id","due_date","start_date","done_ratio")
     tree_node[:chapter] = self.chapter_str
     tree_node[:title] = self.issue.subject
+    tree_node[:identifier] = self.identifier
     tree_node[:url] = root_url+'/cosmosys/'+self.issue.id.to_s,    
     tree_node[:return_url] = root_url+'/cosmosys/'+self.issue.id.to_s+'/tree.json',    
 
