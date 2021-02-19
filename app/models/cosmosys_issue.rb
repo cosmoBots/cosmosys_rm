@@ -6,6 +6,24 @@ class CosmosysIssue < ActiveRecord::Base
 
   ## Generic utilities
 
+  @@cfsupervisor = IssueCustomField.find_by_name('Supervisor')
+  def vsupervisor_id
+    if self.supervisor_id == nil then
+      ret = nil
+      supid = self.issue.custom_values.find_by_custom_field_id(@@cfsupervisor.id)
+      if supid != nil then
+        sup = supid.value
+        if sup != nil then
+          ret = sup.to_i
+        end
+      else
+        return ret
+      end
+    else
+      return self.supervisor_id
+    end
+  end
+
   def is_root
     self.issue.parent == nil
   end
@@ -63,24 +81,15 @@ class CosmosysIssue < ActiveRecord::Base
     tree_node[:title] = self.issue.subject
     tree_node[:url] = root_url+'/cosmosys/'+self.issue.id.to_s,    
     tree_node[:return_url] = root_url+'/cosmosys/'+self.issue.id.to_s+'/tree.json',    
-=begin
-    # TODO: check if supervisor should be included in treeview
+
     tree_node[:supervisor] = ""
-    if @@cfsupervisor != nil then
-      cvsupervisor = self.custom_values.find_by_custom_field_id(@@cfsupervisor.id)
-      if cvsupervisor != nil then
-        tree_node[:supervisor_id] = cvsupervisor.value
-        if (cvsupervisor.value != nil) then
-          supervisor_id = cvsupervisor.value.to_i
-          if (supervisor_id > 0) then  
-            tree_node[:supervisor] = User.find(supervisor_id).login
-          end
-        end
+    tree_node[:supervisor_id] = self.vsupervisor_id
+    if (tree_node[:supervisor_id] != nil) then
+      if (tree_node[:supervisor_id] > 0) then  
+        tree_node[:supervisor] = User.find(tree_node[:supervisor_id]).login
       end
     end
-=end
-=begin
-    # TODO: check if assigned should be included in treeview
+
     tree_node[:assigned_to] = []
     if (self.issue.assigned_to != nil) then
       if self.issue.assigned_to.class == Group then
@@ -92,7 +101,7 @@ class CosmosysIssue < ActiveRecord::Base
         tree_node[:assigned_to] = [self.issue.assigned_to.login]
       end
     end
-=end
+
     if self.issue.children.size == 0 then
       tree_node[:type] = 'Issue'
     else

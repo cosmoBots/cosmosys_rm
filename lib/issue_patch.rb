@@ -66,7 +66,10 @@ module IssuePatch
     end
     def chapter_str
       self.csys.chapter_str
-    end    
+    end
+    def supervisor
+      self.csys.supervisor
+    end
   end    
 end
 # Add module to Issue

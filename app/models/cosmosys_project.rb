@@ -73,8 +73,11 @@ class CosmosysProject < ActiveRecord::Base
       treedata[:targets][v.id.to_s][:name] = v.name
       treedata[:targets][v.id.to_s][:due_date] = v.due_date
       treedata[:targets][v.id.to_s][:status] = v.status
-      treedata[:targets][v.id.to_s][:start_date] = v.csys.start_date
-      #TODO: treedata[:targets][v.id.to_s][:working_days] = v.csys.working_days
+
+      # TODO: REMEMBER TO REMOVE VSTART_DATE
+      treedata[:targets][v.id.to_s][:start_date] = v.csys.vstart_date
+      # TODO: REMEMBER TO REMOVE THE WORKING DAYS WHEN YOU WILL NOT NEED THEM
+      treedata[:targets][v.id.to_s][:working_days] = v.csys.vworking_days
     }
     roots.each { |r|
       thisnode=r

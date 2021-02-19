@@ -1,0 +1,9 @@
+<h2>CosmosysController#report</h2>
+
+<p>THIS WILL CREATE THE REPORTS OF THE PROJECT ISSUES IN THE REPO DIRECTORY.
+IT WILL ALSO UPDATE THE DEPENDENCE AND HIERARCHY DIAGRAMS OF THE REDMINE</p>
+<%= form_tag({:controller => 'cosmosys', :action => 'report'}, :class => "tabular", :multipart => true) do %>
+
+<%= submit_tag l(:button_report) %>
+
+<% end %>

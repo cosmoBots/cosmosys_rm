@@ -33,7 +33,10 @@ module VersionPatch
     def start_date
       self.csys.start_date
     end
-  end    
+    def working_days
+      self.csys.working_days
+    end
+  end
 end
 # Add module to Version
 Version.send(:include, VersionPatch)
