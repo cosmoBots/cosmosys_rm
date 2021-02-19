@@ -18,9 +18,9 @@ def tree_to_list(tree,parentNode):
         if 'type' in node.keys():
             if (node['type'] == "Info"):
                 # Nos encontramos en un nodo del tipo informacion, para el que no vamos a 
-                # querer, posiblemente, generar tablas de atributos.  Para que Carbone
+                # querer, posiblemente, generar tablas de atributos.  Para que Carbone
                 # pueda filtrar facilmente este tipo de datos, le anyadiremos la propiedad
-                # infoType = 1.
+                # infoType = 1.
                 node['infoType'] = 1
                 if (parentNode != None):
                     parentNode['chapters'].append(node)
@@ -188,9 +188,9 @@ def generate_diagrams(node,diagrams,ancestors,server_url,dependents):
         # En nuestro propio grafo añadiremos una arista hacia el nodo dependiente
         diagrams[str(node['id'])]['self_d'].edge(str(node['id']), str(r['issue_to_id']), color="blue")
 
-        # Ahora propagaremos el cambio hacia abajo para que en los diagramas de los dependientes
+        # Ahora propagaremos el cambio hacia abajo para que en los diagramas de los dependientes
         # a más de un nivel aparezca el nodo actual y la dependencia con la relacion de primer 
-        # nivel
+        # nivel
         propagate_dependence_down(node,r['issue_to_id'],r['issue_to_id'],server_url,issueslist)
 
 
@@ -277,8 +277,8 @@ if (len(sys.argv) > 5):
 
 if (tmpfilepath is None):
     import json,urllib.request
-    urlfordata = root_url+"/cosmosys/"+pr_id_str+".json?key="+issues_key_txt
-    print("urlfordata: ",urlfordata)
+    urlfordata = root_url+"/cosmosys_issues/"+pr_id_str+".json?key="+issues_key_txt
+    #print("urlfordata: ",urlfordata)
     datafromurl = urllib.request.urlopen(urlfordata).read().decode('utf-8')
     data = json.loads(datafromurl)
 
@@ -292,7 +292,7 @@ my_project = data['project']
 my_project['chapters'] = []
 my_project['issues'] = []
 
-print ("Obtenemos proyecto: ", my_project['id'], " | ", my_project['name'])
+#print ("Obtenemos proyecto: ", my_project['id'], " | ", my_project['name'])
 
 issues = data['issues']
 targets = data['targets']
@@ -308,6 +308,11 @@ data['issueslist'] = issueslist
 data['issuesclean'] = []
 data['byperson'] = {}
 
+lower_reporting_period = None
+upper_reporting_period = None
+lower_reporting_period_id = None
+upper_reporting_period_id = None
+
 for tk in data['targets']:
     t = data['targets'][tk]
     t['issues'] = []
@@ -320,6 +325,43 @@ for tk in data['targets']:
         t['start_date_int'] = int(datetime.strptime(t['start_date'], '%Y-%m-%d').timestamp())
     if 'due_date' in t.keys():
         t['due_date_int'] = int(datetime.strptime(t['due_date'], '%Y-%m-%d').timestamp())
+
+    # Lets know the reporting periods
+    if t['status'] == "open":
+        if lower_reporting_period is None:
+            # First open period
+            # The first is considered the first "lower"
+            lower_reporting_period = t
+            lower_reporting_period_id = tk
+        else:
+            if upper_reporting_period is None:
+                # Second open period
+                if t['due_date_int'] < lower_reporting_period['due_date_int']:
+                    # It is lower than the lowest, so this will be the new
+                    # lowest, and the previous lowest will be the second lowest
+                    upper_reporting_period = lower_reporting_period
+                    upper_reporting_period_id = lower_reporting_period_id
+                    lower_reporting_period = t
+                    lower_reporting_period_id = tk
+                else:
+                    # It is higher, so it is considered the second lowest
+                    upper_reporting_period = t
+                    upper_reporting_period_id = tk
+                
+            else:
+                # 3... open period
+                if t['due_date_int'] < lower_reporting_period['due_date_int']:
+                    # It is the new lowest, so the lowest will now be the 
+                    # second lowest
+                    upper_reporting_period = lower_reporting_period
+                    upper_reporting_period_id = lower_reporting_period_id
+                    lower_reporting_period = t
+                    lower_reporting_period_id = tk
+                else:
+                    if t['due_date_int'] < upper_reporting_period['due_date_int']:
+                        # It is not the lowest but the second lowest
+                        upper_reporting_period = t
+                        upper_reporting_period_id = tk
 
 
 for r in issueslist:
@@ -390,8 +432,13 @@ for r in issueslist:
                         personkey = "nobody"
                     if personkey not in data['byperson'].keys():
                         data['byperson'][personkey] = {}
+                        if personkey in data['members'].keys():
+                            data['byperson'][personkey]['gen_report'] = data['members'][personkey]['gen_report']
+                        else:
+                            data['byperson'][personkey]['gen_report'] = False
+
                         data['byperson'][personkey]['targets'] = {}
-                        for p in periods:
+                        for p in data['targets']:
                             data['byperson'][personkey]['targets'][p] = {}
                             data['byperson'][personkey]['targets'][p]['assigned'] = []
                             data['byperson'][personkey]['targets'][p]['supervised'] = []
@@ -416,8 +463,13 @@ for r in issueslist:
                     personkey = "nobody"
                 if personkey not in data['byperson'].keys():
                     data['byperson'][personkey] = {}
+                    if personkey in data['members'].keys():
+                        data['byperson'][personkey]['gen_report'] = data['members'][personkey]['gen_report']
+                    else:
+                        data['byperson'][personkey]['gen_report'] = False
+
                     data['byperson'][personkey]['targets'] = {}
-                    for p in periods:
+                    for p in data['targets']:
                         data['byperson'][personkey]['targets'][p] = {}
                         data['byperson'][personkey]['targets'][p]['assigned'] = []
                         data['byperson'][personkey]['targets'][p]['supervised'] = []
@@ -434,6 +486,140 @@ for r in issueslist:
 
                     data['byperson'][personkey]['targets'][p]['supervised'].append(r)
 
+
+
+#print("len(issueslist)",len(issueslist))
+
+# Ahora recorremos el proyecto y sacamos los diagramas completos de jerarquía y dependencias, y guardamos los ficheros de esos diagramas en la carpeta doc.
+
+# In[ ]:
+diagrams = {}
+
+from graphviz import Digraph
+
+path_root = img_path + "/" + my_project['identifier'] + "_"
+
+parent_g_h = Digraph(name=path_root + "h", format='svg', strict=True,
+                           graph_attr={'ratio': 'compress', 'size': '9,5,30', 'margin': '0'}, engine='dot',
+                           node_attr={'shape': 'record', 'style': 'filled', 'URL': my_project['url']})
+self_g_h = Digraph(name="clusterH",
+                    graph_attr={'labeljust': 'l', 'labelloc': 't', 'label': 'Hierarchy', 'margin': '5'}, engine='dot',
+                    node_attr={'shape': 'record', 'style': 'filled', 'URL': my_project['url']})
+parent_g_d = Digraph(name=path_root + "d", format='svg', strict=True,
+                            graph_attr={'ratio': 'compress', 'size': '9.5,30', 'margin': '0'}, engine='dot',
+                            node_attr={'shape': 'record', 'style': 'filled', 'URL': my_project['url']})
+self_g_d = Digraph(name="clusterD",
+                     graph_attr={'labeljust': 'l', 'labelloc': 't', 'label': 'Dependences', 'margin': '5'},
+                     engine='dot', node_attr={'shape': 'record', 'style': 'filled', 'URL': my_project['url']})
+
+url_base = root_url+"/projects/"+pr_id_str+"/repository/rq/revisions/master/raw/reporting/doc/"+"./img/" + my_project['identifier'] + "_"
+url_sufix = ".gv.svg"
+url_h = url_base +"h"+url_sufix
+url_d = url_base +"d"+url_sufix
+my_project['url_h'] = url_h
+my_project['url_d'] = url_d
+diagrams['project'] = {'url_h':url_h, 'url_d':url_d, 'parent_h': parent_g_h, 'self_h': self_g_h, 'parent_d': parent_g_d, 'self_d': self_g_d, }
+
+import os
+
+#print(issueslist)
+# Generamos los diagramas correspondientes a los issues del proyecto
+for my_issue in issueslist:
+    #print("\n\n---------- Diagrama ----------", my_issue['subject'])
+    path_root = img_path + "/" + str(my_issue['id']) + "_"
+
+    parent_h = Digraph(name=path_root + "h", format='svg',
+                                graph_attr={'ratio': 'compress', 'size': '9.5,30', 'margin': '0'}, engine='dot',
+                                node_attr={'shape': 'record', 'style': 'filled', 'URL': my_project['url']})
+
+    self_h = Digraph(name="clusterH",
+                         graph_attr={'labeljust': 'l', 'labelloc': 't', 'label': 'Hierarchy', 'margin': '5'},
+                         engine='dot', node_attr={'shape': 'record', 'style': 'filled', 'URL': my_project['url']})
+    
+    parent_d = Digraph(name=path_root + "d", format='svg',
+                                graph_attr={'ratio': 'compress', 'size': '9.5,30', 'margin': '0'}, engine='dot',
+                                node_attr={'shape': 'record', 'style': 'filled', 'URL': my_project['url']})
+    self_d = Digraph(name="clusterD",
+                         graph_attr={'labeljust': 'l', 'labelloc': 't', 'label': 'Dependences', 'margin': '5'},
+                         engine='dot', node_attr={'shape': 'record', 'style': 'filled', 'URL': my_project['url']})
+    url_base = root_url+"/projects/"+pr_id_str+"/repository/rq/revisions/master/raw/reporting/doc/"+"./img/" + str(my_issue['id']) + "_"
+    url_sufix = ".gv.svg"
+    url_h = url_base +"h"+url_sufix
+    url_d = url_base +"d"+url_sufix
+    my_issue['url_h'] = url_h
+    my_issue['url_d'] = url_d
+
+    # Pinto cada nodo en su diagrama
+    #print("Creo los diagrama con id ",my_issue['id'])
+    diagrams[str(my_issue['id'])] = {'url_h':url_h, 'url_d':url_d, 'parent_h': parent_h, 'self_h': self_h, 'parent_d': parent_d, 'self_d': self_d, }
+
+    if 'valid' in my_issue.keys():
+        if (my_issue['valid']):
+            colorstr = "black"
+        else:
+            colorstr = "red"
+    else:
+        colorstr = "black"
+    
+
+    nodelabel = "{" + my_issue['subject'] + "|" + my_issue['title'] + "}"
+    self_h.node(str(my_issue['id']), nodelabel, URL=my_project['url'] + '/issues/' + str(my_issue['id']),
+                    fillcolor='green', tooltip=my_issue['description'], color=colorstr)
+    
+
+    title_str = my_issue['title']
+
+    nodelabel = "{" + my_issue['subject'] + "|" + title_str + "}"
+    self_d.node(str(my_issue['id']), nodelabel, URL=my_project['url'] + '/issues/' + str(my_issue['id']), fillcolor='green',
+                    tooltip=my_issue['description'], color=colorstr)
+
+
+# Ahora recorrere todo el arbol rellenando los nodos en cada diagrama
+
+#print(diagrams)
+
+for rq in issues:
+    generate_diagrams(rq,diagrams,[],my_project['url'],data['dependents'])
+
+for my_issue in issueslist:
+    prj_graphc_parent = diagrams[str(my_issue['id'])]['parent_h']
+    prj_graphc = diagrams[str(my_issue['id'])]['self_h']
+    prj_graphc_parent.subgraph(prj_graphc)
+    prj_graphc_parent.render()
+    '''
+    symlink_path = img_path + "/" + my_issue['subject'] + "_" + "h.gv.svg"
+    #print("file: ", path_root + "h.gv.svg")
+    #print("symlink: ", symlink_path)
+    if (os.path.islink(symlink_path)):
+        os.remove(symlink_path)
+
+    os.symlink(path_root + "h.gv.svg", symlink_path)
+    '''
+
+    prj_graphd_parent = diagrams[str(my_issue['id'])]['parent_d']
+    prj_graphd = diagrams[str(my_issue['id'])]['self_d']
+    prj_graphd_parent.subgraph(prj_graphd)
+    prj_graphd_parent.render()
+
+    '''
+    symlink_path = img_path + "/" + my_issue['subject'] + "_" + "d.gv.svg"
+    #print("file: ", path_root + "d.gv.svg")
+    #print("symlink: ", symlink_path)
+    if (os.path.islink(symlink_path)):
+        os.remove(symlink_path)
+
+    os.symlink(path_root + "d.gv.svg", symlink_path)
+    '''
+
+parent_g_h.subgraph(self_g_h)
+parent_g_h.render()
+parent_g_d.subgraph(self_g_d)
+parent_g_d.render()
+
+#print("project hierarchy diagram file: ", path_root + "h.gv.svg")
+#print("project dependence diagram file: ", path_root + "d.gv.svg")
+
+#print("Acabamos")
 
 # Vamos a grabar el fichero JSON intermedio para generar los reportes
 
@@ -458,8 +644,9 @@ with open(reporting_path + '/doc/issues.json', 'w') as outfile:
 
 from Naked.toolshed.shell import execute_js
 
-period='5'
-nextPeriod='6'
+
+period = lower_reporting_period_id
+nextPeriod = upper_reporting_period_id
 
 datelim11 = int(datetime.strptime(data['targets'][period]['start_date'], '%Y-%m-%d').timestamp())
 datelim12 = int(datetime.strptime(data['targets'][period]['due_date'], '%Y-%m-%d').timestamp())
@@ -471,7 +658,7 @@ print("Datelim21: ",data['targets'][nextPeriod]['start_date']," ",datelim21)
 print("Datelim22: ",data['targets'][nextPeriod]['due_date']," ",datelim22)
 
 
-success = execute_js('./plugins/cosmosys/assets/pythons/lib/launch_carbone.js', reporting_path
+success = execute_js('./plugins/cosmosys_issues/assets/pythons/lib/launch_carbone.js', reporting_path
     + " " + data['project']['identifier'] + " \'" + data['project']['name'] + "\' "+"0"
     + " " + period + " " + nextPeriod
     + " " + str(datelim11) + " " + str(datelim12)
@@ -490,25 +677,28 @@ else:
 # js_command = 'node ' + file_path + " " + arguments
 #print(reqdocs.keys())
 
-print("************* EMPEZAMOS CON LAS PERSONAS ****************")
+print("INFORMES")
 for person in data['byperson'].keys():
-    print(person)
-    success = execute_js('./plugins/cosmosys/assets/pythons/lib/launch_carbone.js', reporting_path
-        + " " + person + " " + person + " "+"1"
-        + " " + period + " " + nextPeriod
-        + " " + str(datelim11) + " " + str(datelim12)
-        + " " + str(datelim21) + " " + str(datelim22)
-        )
-    #print(success)
+    print("Generando infome de ",person)
+    if (data['byperson'][person]['gen_report']):
+        success = execute_js('./plugins/cosmosys_issues/assets/pythons/lib/launch_carbone.js', reporting_path
+            + " " + person + " " + person + " "+"1"
+            + " " + period + " " + nextPeriod
+            + " " + str(datelim11) + " " + str(datelim12)
+            + " " + str(datelim21) + " " + str(datelim22)
+            )
+        #print(success)
 
-    if success:
-        # handle success of the JavaScript
-        print("Todo fue bien")
+        if success:
+            # handle success of the JavaScript
+            print("Todo fue bien")
+
+        else:
+            # handle failure of the JavaScript
+            print("todo fue mal")
 
     else:
-        # handle failure of the JavaScript
-        print("todo fue mal")
-
+        print("skipping",person)
 # Vamos a generar el archivo JSON para crear el árbol
 
 # In[ ]:
