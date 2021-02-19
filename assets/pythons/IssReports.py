@@ -277,7 +277,7 @@ if (len(sys.argv) > 5):
 
 if (tmpfilepath is None):
     import json,urllib.request
-    urlfordata = root_url+"/cosmosys_issues/"+pr_id_str+".json?key="+issues_key_txt
+    urlfordata = root_url+"/cosmosys/"+pr_id_str+".json?key="+issues_key_txt
     #print("urlfordata: ",urlfordata)
     datafromurl = urllib.request.urlopen(urlfordata).read().decode('utf-8')
     data = json.loads(datafromurl)
@@ -658,7 +658,7 @@ print("Datelim21: ",data['targets'][nextPeriod]['start_date']," ",datelim21)
 print("Datelim22: ",data['targets'][nextPeriod]['due_date']," ",datelim22)
 
 
-success = execute_js('./plugins/cosmosys_issues/assets/pythons/lib/launch_carbone.js', reporting_path
+success = execute_js('./plugins/cosmosys/assets/pythons/lib/launch_carbone.js', reporting_path
     + " " + data['project']['identifier'] + " \'" + data['project']['name'] + "\' "+"0"
     + " " + period + " " + nextPeriod
     + " " + str(datelim11) + " " + str(datelim12)
@@ -681,7 +681,7 @@ print("INFORMES")
 for person in data['byperson'].keys():
     print("Generando infome de ",person)
     if (data['byperson'][person]['gen_report']):
-        success = execute_js('./plugins/cosmosys_issues/assets/pythons/lib/launch_carbone.js', reporting_path
+        success = execute_js('./plugins/cosmosys/assets/pythons/lib/launch_carbone.js', reporting_path
             + " " + person + " " + person + " "+"1"
             + " " + period + " " + nextPeriod
             + " " + str(datelim11) + " " + str(datelim12)
