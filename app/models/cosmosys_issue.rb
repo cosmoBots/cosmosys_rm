@@ -7,6 +7,7 @@ class CosmosysIssue < ActiveRecord::Base
   ## Generic utilities
 
   @@cfsupervisor = IssueCustomField.find_by_name('Supervisor')
+  @@cfoldcode = IssueCustomField.find_by_name('OldCode')
   def vsupervisor_id
     if self.supervisor_id == nil then
       ret = nil
@@ -22,6 +23,15 @@ class CosmosysIssue < ActiveRecord::Base
     else
       return self.supervisor_id
     end
+  end
+
+  def oldcode
+    ret = nil
+    supid = self.issue.custom_values.find_by_custom_field_id(@@cfoldcode.id)
+    if supid != nil then
+      ret = supid.value
+    end
+    return ret
   end
 
   def is_root
@@ -80,6 +90,7 @@ class CosmosysIssue < ActiveRecord::Base
     tree_node[:chapter] = self.chapter_str
     tree_node[:title] = self.issue.subject
     tree_node[:identifier] = self.identifier
+    tree_node[:oldcode] = self.oldcode
     tree_node[:url] = root_url+'/cosmosys/'+self.issue.id.to_s,    
     tree_node[:return_url] = root_url+'/cosmosys/'+self.issue.id.to_s+'/tree.json',    
 
