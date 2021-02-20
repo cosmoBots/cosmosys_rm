@@ -108,15 +108,16 @@ class CosmosysProject < ActiveRecord::Base
         labelstr = "{"+n.identifier+"|"+n.csys.class.word_wrap(n.subject, line_width: 12) + "}"      
         fontnamestr = 'times'
       end
+      fillstr = CosmosysIssue.get_fill_color(n)
       hn_node = hcl.add_nodes( n.id.to_s, :label => labelstr, :fontname => fontnamestr, 
-        :style => 'filled', :color => colorstr, :fillcolor => 'grey', :shape => shapestr,
+        :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
         :URL => root_url + "/issues/" + n.id.to_s)
       n.children.each{|c|
         hcl.add_edges(hn_node, c.id.to_s)
       }
       if (n.relations.size>0) then
         dn_node = dcl.add_nodes( n.id.to_s, :label => labelstr, :fontname => fontnamestr,   
-          :style => 'filled', :color => colorstr, :fillcolor => 'grey', :shape => shapestr,
+          :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
           :URL => root_url + "/issues/" + n.id.to_s)
         n.relations_from.each {|r|
           colorstr = CosmosysIssue.get_relation_color(r)

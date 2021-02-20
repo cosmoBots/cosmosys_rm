@@ -173,6 +173,20 @@ class CosmosysIssue < ActiveRecord::Base
     return colorstr
   end
   
+  def self.get_fill_color(i)
+    colorstr = 'pink'
+    if i.status.is_closed then
+      colorstr = 'white'
+    else
+      if i.done_ratio > 0 then
+        colorstr = 'lightblue'
+      else
+        colorstr = 'grey'
+      end
+    end
+    return colorstr
+  end
+
   
   # -----------------------------------
 
@@ -192,13 +206,14 @@ class CosmosysIssue < ActiveRecord::Base
 
     if not(force_end) then
       colorstr = 'black'
+      fillstr = CosmosysIssue.get_fill_color(upn)
       upn_node = cl.add_nodes( upn.id.to_s, :label => labelstr,
-        :style => stylestr, :color => colorstr, :fillcolor => 'grey', :shape => shapestr,
+        :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
         :URL => root_url + "/issues/" + upn.id.to_s)
     else
       colorstr = 'blue'
       upn_node = cl.add_nodes( upn.id.to_s, :label => "{ ... }",
-        :style => stylestr, :color => colorstr, :fillcolor => 'grey', :shape => shapestr,
+        :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
         :URL => root_url + "/issues/" + upn.id.to_s)
       
     end
@@ -243,13 +258,14 @@ class CosmosysIssue < ActiveRecord::Base
     end
     if not(force_end) then
       colorstr = 'black'
+      fillstr = CosmosysIssue.get_fill_color(dwn)
       dwn_node = cl.add_nodes( dwn.id.to_s, :label => labelstr,
-        :style => stylestr, :color => colorstr, :fillcolor => 'grey', :shape => shapestr,
+        :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
         :URL => root_url + "/issues/" + dwn.id.to_s)
     else
       colorstr = 'blue'
       dwn_node = cl.add_nodes( dwn.id.to_s, :label => "{ ... }",
-        :style => stylestr, :color => colorstr, :fillcolor => 'grey', :shape => shapestr,
+        :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
         :URL => root_url + "/issues/" + dwn.id.to_s)
     end
     cl.add_edges(n_node, dwn_node, :color => colordep)
@@ -300,9 +316,10 @@ class CosmosysIssue < ActiveRecord::Base
             end 
           }
           if anyrel then
-            labelstr = "{"+e.identifier+"|"+self.class.word_wrap(e.subject, line_width: 12) + "}"      
+            labelstr = "{"+e.identifier+"|"+self.class.word_wrap(e.subject, line_width: 12) + "}"
+            fillstr = CosmosysIssue.get_fill_color(e)
             e_node = cl.add_nodes(e.id.to_s, :label => labelstr,  
-              :style => 'filled', :color => 'black', :fillcolor => 'grey', :shape => shapestr,
+              :style => 'filled', :color => 'black', :fillcolor => fillstr, :shape => shapestr,
               :URL => root_url + "/issues/" + e.id.to_s)
             e.relations_from.each {|r|
               if (not(desc.include?(r.issue_to))) then
@@ -325,8 +342,9 @@ class CosmosysIssue < ActiveRecord::Base
           dwnrel += [dwn.issue_to]
         }
         colorstr = 'black'
+        fillstr = CosmosysIssue.get_fill_color(self.issue)
         n_node = cl.add_nodes( self.issue.id.to_s, :label => self.identifier+"\n----\n"+self.class.word_wrap(self.issue.subject, line_width: 12),
-          :style => 'filled', :color => colorstr, :fillcolor => 'green', :shape => 'note',
+          :style => 'filled', :color => colorstr, :fillcolor => fillcolor, :shape => 'note', :penwidth => 3,
           :URL => root_url + "/issues/" + self.issue.id.to_s)
         siblings_counter = 0
         self.issue.relations_from.each{|dwn|
@@ -358,8 +376,9 @@ class CosmosysIssue < ActiveRecord::Base
       return cl,torecalc
     else
       colorstr = 'black'
+      fillstr = CosmosysIssue.get_fill_color(self.issue)
       n_node = cl.add_nodes( self.issue.id.to_s, :label => "{"+self.identifier+"|"+self.class.word_wrap(self.issue.subject, line_width: 12) + "}",  
-        :style => 'filled', :color => colorstr, :fillcolor => 'green', :shape => 'Mrecord',
+        :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => 'Mrecord', :penwidth => 3,
         :URL => root_url + "/issues/" + self.issue.id.to_s)
       downrel = []
       self.issue.relations_from.each{|dwn|
@@ -425,8 +444,9 @@ class CosmosysIssue < ActiveRecord::Base
       labelstr = "{"+upn.identifier+"|"+self.class.word_wrap(upn.subject, line_width: 12) + "}"      
       fontnamestr = 'times'
     end
+    fillstr = CosmosysIssue.get_fill_color(upn)
     upn_node = cl.add_nodes( upn.id.to_s, :label => labelstr, :fontname => fontnamestr,
-      :style => 'filled', :color => colorstr, :fillcolor => 'grey', :shape => shapestr,
+      :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
       :URL => root_url + "/issues/" + upn.id.to_s)
     cl.add_edges(upn_node, n_node)
     if (upn.parent != nil) then
@@ -449,8 +469,9 @@ class CosmosysIssue < ActiveRecord::Base
       labelstr = "{"+dwn.identifier+"|"+self.class.word_wrap(dwn.subject, line_width: 12) + "}"      
       fontnamestr = 'times'
     end
+    fillstr = CosmosysIssue.get_fill_color(dwn)
     dwn_node = cl.add_nodes( dwn.id.to_s, :label => labelstr, :fontname => fontnamestr, 
-      :style => 'filled', :color => colorstr, :fillcolor => 'grey', :shape => shapestr,
+      :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
       :URL => root_url + "/issues/" + dwn.id.to_s)
     cl.add_edges(n_node, dwn_node)
     dwn.children.each {|dwn2|
@@ -474,9 +495,9 @@ class CosmosysIssue < ActiveRecord::Base
       labelstr = "{"+self.identifier+"|"+self.class.word_wrap(self.issue.subject, line_width: 12) + "}"      
       fontnamestr = 'times'
     end
-
+    fillstr = CosmosysIssue.get_fill_color(self.issue)
     n_node = cl.add_nodes( self.issue.id.to_s, :label => labelstr, :fontname => fontnamestr, 
-      :style => 'filled', :color => colorstr, :fillcolor => 'green', :shape => shapestr,
+      :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr, :penwidth => 3,
       :URL => root_url + "/issues/" + self.issue.id.to_s)
     self.issue.children.each{|dwn|
       cl,torecalc=self.to_graphviz_hiedwn(cl,n_node,dwn,isfirst,torecalc,root_url)
