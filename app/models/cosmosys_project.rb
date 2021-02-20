@@ -98,7 +98,7 @@ class CosmosysProject < ActiveRecord::Base
     dcl = dg.add_graph(:clusterD, :label => 'Dependences', :labeljust => 'l', :labelloc=>'t', :margin=> '5') 
 
     self.project.issues.each{|n|
-      colorstr = 'black'
+      colorstr = CosmosysIssue.get_border_color(n)
       if n.children.size > 0 then
         shapestr = "note"
         labelstr = n.identifier+"\n----\n"+n.csys.class.word_wrap(n.subject, line_width: 12)

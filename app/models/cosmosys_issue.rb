@@ -178,11 +178,33 @@ class CosmosysIssue < ActiveRecord::Base
     if i.status.is_closed then
       colorstr = 'white'
     else
-      if i.done_ratio > 0 then
-        colorstr = 'lightblue'
-      else
-        colorstr = 'grey'
+      expired = false
+      if i.due_date then
+        if i.due_date < Date.today then
+          expired = true
+        end
       end
+      if not(expired) then
+        if i.done_ratio > 0 then
+          colorstr = 'lightblue'
+        else
+          colorstr = 'grey'
+        end
+      else
+        if i.done_ratio > 0 then
+          colorstr = 'orange'
+        else
+          colorstr = 'red'
+        end
+      end
+    end
+    return colorstr
+  end
+
+  def self.get_border_color(i)
+    colorstr = 'black'
+    if i.assigned_to == User.current then
+      colorstr = 'blue'
     end
     return colorstr
   end
@@ -205,13 +227,13 @@ class CosmosysIssue < ActiveRecord::Base
     end
 
     if not(force_end) then
-      colorstr = 'black'
+      colorstr = CosmosysIssue.get_border_color(upn)
       fillstr = CosmosysIssue.get_fill_color(upn)
       upn_node = cl.add_nodes( upn.id.to_s, :label => labelstr,
         :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
         :URL => root_url + "/issues/" + upn.id.to_s)
     else
-      colorstr = 'blue'
+      colorstr = CosmosysIssue.get_border_color(upn)
       upn_node = cl.add_nodes( upn.id.to_s, :label => "{ ... }",
         :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
         :URL => root_url + "/issues/" + upn.id.to_s)
@@ -257,13 +279,13 @@ class CosmosysIssue < ActiveRecord::Base
       labelstr =  "{ "+dwn.identifier+"|"+self.class.word_wrap(dwn.subject, line_width: 12) + "}"
     end
     if not(force_end) then
-      colorstr = 'black'
+      colorstr = CosmosysIssue.get_border_color(dwn)
       fillstr = CosmosysIssue.get_fill_color(dwn)
       dwn_node = cl.add_nodes( dwn.id.to_s, :label => labelstr,
         :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
         :URL => root_url + "/issues/" + dwn.id.to_s)
     else
-      colorstr = 'blue'
+      colorstr = CosmosysIssue.get_border_color(dwn)
       dwn_node = cl.add_nodes( dwn.id.to_s, :label => "{ ... }",
         :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
         :URL => root_url + "/issues/" + dwn.id.to_s)
@@ -341,10 +363,10 @@ class CosmosysIssue < ActiveRecord::Base
         self.issue.relations_from.each{|dwn|
           dwnrel += [dwn.issue_to]
         }
-        colorstr = 'black'
+        colorstr = CosmosysIssue.get_border_color(self.issue)
         fillstr = CosmosysIssue.get_fill_color(self.issue)
         n_node = cl.add_nodes( self.issue.id.to_s, :label => self.identifier+"\n----\n"+self.class.word_wrap(self.issue.subject, line_width: 12),
-          :style => 'filled', :color => colorstr, :fillcolor => fillcolor, :shape => 'note', :penwidth => 3,
+          :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => 'note', :penwidth => 3,
           :URL => root_url + "/issues/" + self.issue.id.to_s)
         siblings_counter = 0
         self.issue.relations_from.each{|dwn|
@@ -375,7 +397,7 @@ class CosmosysIssue < ActiveRecord::Base
       end
       return cl,torecalc
     else
-      colorstr = 'black'
+      colorstr = CosmosysIssue.get_border_color(self.issue)
       fillstr = CosmosysIssue.get_fill_color(self.issue)
       n_node = cl.add_nodes( self.issue.id.to_s, :label => "{"+self.identifier+"|"+self.class.word_wrap(self.issue.subject, line_width: 12) + "}",  
         :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => 'Mrecord', :penwidth => 3,
@@ -434,7 +456,7 @@ class CosmosysIssue < ActiveRecord::Base
 
 
   def to_graphviz_hieupn(cl,n_node,upn,isfirst,torecalc,root_url)
-    colorstr = 'black'
+    colorstr = CosmosysIssue.get_border_color(upn)
     if upn.children.size > 0 then
       shapestr = "note"
       labelstr = upn.identifier+"\n----\n"+self.class.word_wrap(upn.subject, line_width: 12)
@@ -459,7 +481,7 @@ class CosmosysIssue < ActiveRecord::Base
   end
 
   def to_graphviz_hiedwn(cl,n_node,dwn,isfirst,torecalc,root_url)
-    colorstr = 'black'
+    colorstr = CosmosysIssue.get_border_color(dwn)
     if dwn.children.size > 0 then
       shapestr = "note"
       labelstr = dwn.identifier+"\n----\n"+self.class.word_wrap(dwn.subject, line_width: 12)
@@ -485,7 +507,7 @@ class CosmosysIssue < ActiveRecord::Base
 
 
   def to_graphviz_hiecluster(cl,isfirst,torecalc,root_url)
-    colorstr = 'black'
+    colorstr = CosmosysIssue.get_border_color(self.issue)
     if self.issue.children.size > 0 then
       shapestr = "note"
       labelstr = self.identifier+"\n----\n"+self.class.word_wrap(self.issue.subject, line_width: 12)
