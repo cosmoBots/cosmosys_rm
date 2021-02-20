@@ -12,6 +12,17 @@ module IssuePatch
       unloadable # Send unloadable so it will not be unloaded in development
       
       has_one :cosmosys_issue
+
+      attr_accessor :identifier
+
+      #getter
+      def identifier
+         self.csys.identifier
+      end
+
+      def identifier=(val)
+         self.csys.identifier = val
+      end
     end
 
   end
@@ -70,6 +81,11 @@ module IssuePatch
     def supervisor
       self.csys.supervisor
     end
+
+    def attributes
+        super.merge({'identifier' => identifier})
+    end
+
   end    
 end
 # Add module to Issue
