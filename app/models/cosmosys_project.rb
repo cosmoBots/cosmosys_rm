@@ -64,7 +64,7 @@ class CosmosysProject < ActiveRecord::Base
       else
         treedata[:members][mb.user.login.to_s] = mb.user.attributes.slice("firstname","lastname")
         treedata[:members][mb.user.login.to_s][:class] = mb.user.class.name
-        treedata[:members][mb.user.login.to_s][:gen_report] = mb.user.csys.gen_rpt
+        treedata[:members][mb.user.login.to_s][:gen_report] = mb.user.csys.vgen_rpt
       end
     }
 

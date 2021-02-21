@@ -17,9 +17,8 @@ class CosmosysIssue < ActiveRecord::Base
         if sup != nil then
           ret = sup.to_i
         end
-      else
-        return ret
       end
+      return ret
     else
       return self.supervisor_id
     end
@@ -176,7 +175,7 @@ class CosmosysIssue < ActiveRecord::Base
   def self.get_fill_color(i)
     colorstr = 'pink'
     if i.status.is_closed then
-      colorstr = 'white'
+      colorstr = 'lightgrey'
     else
       expired = false
       if i.due_date then
@@ -188,13 +187,13 @@ class CosmosysIssue < ActiveRecord::Base
         if i.done_ratio > 0 then
           colorstr = 'lightblue'
         else
-          colorstr = 'grey'
+          colorstr = 'white'
         end
       else
         if i.done_ratio > 0 then
           colorstr = 'orange'
         else
-          colorstr = 'red'
+          colorstr = 'lightcoral'
         end
       end
     end
