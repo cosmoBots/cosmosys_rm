@@ -26,6 +26,23 @@ class CosmosysProject < ActiveRecord::Base
 	return self.show_as_json_inner(issue_id, root_url, true)
   end
 
+  def versions_tree(p,td)
+      p.versions.each { |v| 
+      td[:targets][v.id.to_s] = {}
+      td[:targets][v.id.to_s][:name] = v.name
+      td[:targets][v.id.to_s][:due_date] = v.due_date
+      td[:targets][v.id.to_s][:status] = v.status
+    
+      # TODO: REMEMBER TO REMOVE VSTART_DATE
+      td[:targets][v.id.to_s][:start_date] = v.csys.vstart_date
+      # TODO: REMEMBER TO REMOVE THE WORKING DAYS WHEN YOU WILL NOT NEED THEM
+      td[:targets][v.id.to_s][:working_days] = v.csys.vworking_days
+    }
+    p.children.each{|pc|
+      versions_tree(pc,td)
+    }
+  end
+
   def show_as_json_inner(issue_id,root_url,include_subprojects)
     require 'json'
 
@@ -68,17 +85,8 @@ class CosmosysProject < ActiveRecord::Base
       end
     }
 
-    self.project.versions.each { |v| 
-      treedata[:targets][v.id.to_s] = {}
-      treedata[:targets][v.id.to_s][:name] = v.name
-      treedata[:targets][v.id.to_s][:due_date] = v.due_date
-      treedata[:targets][v.id.to_s][:status] = v.status
-
-      # TODO: REMEMBER TO REMOVE VSTART_DATE
-      treedata[:targets][v.id.to_s][:start_date] = v.csys.vstart_date
-      # TODO: REMEMBER TO REMOVE THE WORKING DAYS WHEN YOU WILL NOT NEED THEM
-      treedata[:targets][v.id.to_s][:working_days] = v.csys.vworking_days
-    }
+    versions_tree(self,treedata)
+    
     roots.each { |r|
       thisnode=r
       tree_node = thisnode.csys.to_treeview_json(root_url,true)
