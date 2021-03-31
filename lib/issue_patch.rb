@@ -20,9 +20,7 @@ module IssuePatch
          self.csys.identifier
       end
 
-      def identifier=(val)
-         self.csys.identifier = val
-      end
+
     end
 
   end
