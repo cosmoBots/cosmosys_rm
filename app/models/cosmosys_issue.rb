@@ -24,6 +24,24 @@ class CosmosysIssue < ActiveRecord::Base
     end
   end
 
+  @@cfwloadpct = IssueCustomField.find_by_name('WrkloadPct')
+  def vwloadpct
+    if self.wloadpct == nil then
+      ret = nil
+      wload = self.issue.custom_values.find_by_custom_field_id(@@cfwloadpct.id)
+      if wload != nil then
+        wloadval = wload.value
+        if wloadval != nil then
+          ret = wloadval
+        end
+      end
+      return ret
+    else
+      return self.wloadpct
+    end
+  end
+
+
   def oldcode
     ret = nil
     supid = self.issue.custom_values.find_by_custom_field_id(@@cfoldcode.id)
@@ -92,6 +110,7 @@ class CosmosysIssue < ActiveRecord::Base
     tree_node[:oldcode] = self.oldcode
     tree_node[:url] = root_url+'/cosmosys/'+self.issue.id.to_s,    
     tree_node[:return_url] = root_url+'/cosmosys/'+self.issue.id.to_s+'/tree.json',    
+    tree_node[:wloadpct] = self.vwloadpct
 
     tree_node[:supervisor] = ""
     tree_node[:supervisor_id] = self.vsupervisor_id
