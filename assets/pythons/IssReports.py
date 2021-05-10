@@ -40,7 +40,8 @@ def tree_to_list(tree,parentNode):
         node['status'] = data['statuses'][str(node['status_id'])]
         if 'fixed_version_id' in node.keys():
             if (node['fixed_version_id'] is not None):
-                node['target'] = data['targets'][str(node['fixed_version_id'])]
+                if (node['fixed_version_id'] in data['targets'].keys()):
+                    node['target'] = data['targets'][str(node['fixed_version_id'])]
 
         node['tracker'] = data['trackers'][str(node['tracker_id'])]
         purgednode = node.copy()
@@ -317,14 +318,16 @@ for tk in data['targets']:
     t = data['targets'][tk]
     t['issues'] = []
     if 'start_date' in t.keys():
-        #print(t)
-        #print(t['start_date'])
-        #print(datetime.strptime(t['start_date'], '%Y-%m-%d'))
-        #print(datetime.strptime(t['start_date'], '%Y-%m-%d').timestamp())
-        #print(int(datetime.strptime(t['start_date'], '%Y-%m-%d').timestamp()))
-        t['start_date_int'] = int(datetime.strptime(t['start_date'], '%Y-%m-%d').timestamp())
-    if 'due_date' in t.keys():
-        t['due_date_int'] = int(datetime.strptime(t['due_date'], '%Y-%m-%d').timestamp())
+        if (t['start_date'] is not ''):
+            #print(t)
+            #print(t['start_date'])
+            #print(datetime.strptime(t['start_date'], '%Y-%m-%d'))
+            #print(datetime.strptime(t['start_date'], '%Y-%m-%d').timestamp())
+            #print(int(datetime.strptime(t['start_date'], '%Y-%m-%d').timestamp()))
+            t['start_date_int'] = int(datetime.strptime(t['start_date'], '%Y-%m-%d').timestamp())
+            if 'due_date' in t.keys():
+                if (t['due_date'] is not ''):
+                    t['due_date_int'] = int(datetime.strptime(t['due_date'], '%Y-%m-%d').timestamp())
 
     # Lets know the reporting periods
     if t['status'] == "open":
@@ -336,35 +339,40 @@ for tk in data['targets']:
         else:
             if upper_reporting_period is None:
                 # Second open period
-                if t['due_date_int'] < lower_reporting_period['due_date_int']:
-                    # It is lower than the lowest, so this will be the new
-                    # lowest, and the previous lowest will be the second lowest
-                    upper_reporting_period = lower_reporting_period
-                    upper_reporting_period_id = lower_reporting_period_id
-                    lower_reporting_period = t
-                    lower_reporting_period_id = tk
-                else:
-                    # It is higher, so it is considered the second lowest
-                    upper_reporting_period = t
-                    upper_reporting_period_id = tk
-                
-            else:
-                # 3... open period
-                if t['due_date_int'] < lower_reporting_period['due_date_int']:
-                    # It is the new lowest, so the lowest will now be the 
-                    # second lowest
-                    upper_reporting_period = lower_reporting_period
-                    upper_reporting_period_id = lower_reporting_period_id
-                    lower_reporting_period = t
-                    lower_reporting_period_id = tk
-                else:
-                    if t['due_date_int'] < upper_reporting_period['due_date_int']:
-                        # It is not the lowest but the second lowest
+                if 'due_date_int' in t.keys():
+                    if t['due_date_int'] < lower_reporting_period['due_date_int']:
+                        # It is lower than the lowest, so this will be the new
+                        # lowest, and the previous lowest will be the second lowest
+                        upper_reporting_period = lower_reporting_period
+                        upper_reporting_period_id = lower_reporting_period_id
+                        lower_reporting_period = t
+                        lower_reporting_period_id = tk
+                    else:
+                        # It is higher, so it is considered the second lowest
                         upper_reporting_period = t
                         upper_reporting_period_id = tk
+                
+            else:
+                if 'due_date_int' in t.keys():
+                    # 3... open period
+                    if t['due_date_int'] < lower_reporting_period['due_date_int']:
+                        # It is the new lowest, so the lowest will now be the 
+                        # second lowest
+                        upper_reporting_period = lower_reporting_period
+                        upper_reporting_period_id = lower_reporting_period_id
+                        lower_reporting_period = t
+                        lower_reporting_period_id = tk
+                    else:
+                        if t['due_date_int'] < upper_reporting_period['due_date_int']:
+                            # It is not the lowest but the second lowest
+                            upper_reporting_period = t
+                            upper_reporting_period_id = tk
 
+
+print("Salimos de los targets")
 
 for r in issueslist:
+    #print(r)
     if 'start_date' in r.keys():
         if(r['start_date']):
             #print(r)
@@ -392,36 +400,37 @@ for r in issueslist:
 
             include_none = True
             for tk in data['targets']:
-                t = data['targets'][tk]
-                include_period = True
-                finish_check = True
-                if sdt != None or ddt != None:
-                    finish_check = False
-                    psdt = None
-                    pddt = None
-                    if 'start_date' in t.keys():
-                        psdt = t['start_date_int']
+                if 'start_date_int' in t.keys():
+                    t = data['targets'][tk]
+                    include_period = True
+                    finish_check = True
+                    if sdt != None or ddt != None:
+                        finish_check = False
+                        psdt = None
+                        pddt = None
+                        if 'start_date_int' in t.keys():
+                            psdt = t['start_date_int']
 
-                    if 'due_date' in t.keys():
-                        pddt = t['due_date_int']
+                        if 'due_date_int' in t.keys():
+                            pddt = t['due_date_int']
 
-                    if sdt != None and pddt != None:
-                        if sdt > pddt:
-                            include_period = False
-                            finish_check = True
-
-                    if not finish_check:
-                        if ddt != None and psdt != None:
-                            if ddt < psdt:
+                        if sdt != None and pddt != None:
+                            if sdt > pddt:
                                 include_period = False
                                 finish_check = True
 
-                if include_period:
-                    include_none = False
-                    periods.append(tk)
+                        if not finish_check:
+                            if ddt != None and psdt != None:
+                                if ddt < psdt:
+                                    include_period = False
+                                    finish_check = True
 
-            if include_none:
-                periods.append('none')
+                    if include_period:
+                        include_none = False
+                        periods.append(tk)
+
+                if include_none:
+                    periods.append('none')
 
             r['periods'] = periods
 
@@ -582,6 +591,7 @@ for rq in issues:
     generate_diagrams(rq,diagrams,[],my_project['url'],data['dependents'])
 
 for my_issue in issueslist:
+    #print(my_issue)
     prj_graphc_parent = diagrams[str(my_issue['id'])]['parent_h']
     prj_graphc = diagrams[str(my_issue['id'])]['self_h']
     prj_graphc_parent.subgraph(prj_graphc)
@@ -630,7 +640,7 @@ datadoc = data
 
 import json
 
-# Preparamos el fichero JSON que usaremos de puente para generar la documentación
+print("Preparamos el fichero JSON que usaremos de puente para generar la documentación")
 
 with open(reporting_path + '/doc/issues.json', 'w') as outfile:
     json.dump(datadoc, outfile)

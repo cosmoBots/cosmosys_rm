@@ -26,18 +26,23 @@ class CosmosysProject < ActiveRecord::Base
 	return self.show_as_json_inner(issue_id, root_url, true)
   end
 
-  def versions_tree(p,td)
+  def versions_list(p,td)
       p.versions.each { |v| 
-      td[:targets][v.id.to_s] = {}
-      td[:targets][v.id.to_s][:name] = v.name
-      td[:targets][v.id.to_s][:due_date] = v.due_date
-      td[:targets][v.id.to_s][:status] = v.status
+      if v.project == p then
+        td[:targets][v.id.to_s] = {}
+        td[:targets][v.id.to_s][:name] = v.name
+        td[:targets][v.id.to_s][:due_date] = v.due_date
+        td[:targets][v.id.to_s][:status] = v.status
     
-      # TODO: REMEMBER TO REMOVE VSTART_DATE
-      td[:targets][v.id.to_s][:start_date] = v.csys.vstart_date
-      # TODO: REMEMBER TO REMOVE THE WORKING DAYS WHEN YOU WILL NOT NEED THEM
-      td[:targets][v.id.to_s][:working_days] = v.csys.vworking_days
+        # TODO: REMEMBER TO REMOVE VSTART_DATE
+        td[:targets][v.id.to_s][:start_date] = v.csys.vstart_date
+        # TODO: REMEMBER TO REMOVE THE WORKING DAYS WHEN YOU WILL NOT NEED THEM
+        td[:targets][v.id.to_s][:working_days] = v.csys.vworking_days
+      end
     }
+  end
+  def versions_tree(p,td)
+    versions_list(p,td)
     p.children.each{|pc|
       versions_tree(pc,td)
     }
@@ -85,7 +90,7 @@ class CosmosysProject < ActiveRecord::Base
       end
     }
 
-    versions_tree(self,treedata)
+    versions_list(self.project,treedata)
     
     roots.each { |r|
       thisnode=r
