@@ -531,15 +531,20 @@ class CosmosysIssue < ActiveRecord::Base
   end
 
   def to_graphviz_graph_str(isfirst,torecalc,root_url)
+    puts("tres")
     g,torecalc = self.to_graphviz_depgraph(isfirst,torecalc,root_url)
     result="{{graphviz_link()\n" + g.to_s + "\n}}"
+    puts("cuatro")
     g2,torecalc = self.to_graphviz_hiegraph(isfirst,torecalc,root_url)
     result+=" {{graphviz_link()\n" + g2.to_s + "\n}}"
+    puts("cinco")
     return result,torecalc
   end
 
   def show_graphs(root_url)
+    puts("uno")
     strdiag,torecalc = self.to_graphviz_graph_str(true,{},root_url)
+    puts("dos: "+strdiag)
     return strdiag
   end
   
