@@ -6,25 +6,7 @@ class CosmosysIssue < ActiveRecord::Base
 
   ## Generic utilities
 
-  @@cfsupervisor = IssueCustomField.find_by_name('Supervisor')
-  @@cfoldcode = IssueCustomField.find_by_name('OldCode')
-  def vsupervisor_id
-    if self.supervisor_id == nil then
-      ret = nil
-      supid = self.issue.custom_values.find_by_custom_field_id(@@cfsupervisor.id)
-      if supid != nil then
-        sup = supid.value
-        if sup != nil then
-          ret = sup.to_i
-        end
-      end
-      return ret
-    else
-      return self.supervisor_id
-    end
-  end
-
-  @@cfwloadpct = IssueCustomField.find_by_name('WrkloadPct')
+  @@cfwloadpct = IssueCustomField.find_by_name('csWload')
   def vwloadpct
     if self.wloadpct == nil then
       ret = nil
@@ -41,7 +23,7 @@ class CosmosysIssue < ActiveRecord::Base
     end
   end
 
-
+  @@cfoldcode = IssueCustomField.find_by_name('csOldCode')
   def oldcode
     ret = nil
     supid = self.issue.custom_values.find_by_custom_field_id(@@cfoldcode.id)
@@ -111,14 +93,6 @@ class CosmosysIssue < ActiveRecord::Base
     tree_node[:url] = root_url+'/cosmosys/'+self.issue.id.to_s,    
     tree_node[:return_url] = root_url+'/cosmosys/'+self.issue.id.to_s+'/tree.json',    
     tree_node[:wloadpct] = self.vwloadpct
-
-    tree_node[:supervisor] = ""
-    tree_node[:supervisor_id] = self.vsupervisor_id
-    if (tree_node[:supervisor_id] != nil) then
-      if (tree_node[:supervisor_id] > 0) then  
-        tree_node[:supervisor] = User.find(tree_node[:supervisor_id]).login
-      end
-    end
 
     tree_node[:assigned_to] = []
     if (self.issue.assigned_to != nil) then

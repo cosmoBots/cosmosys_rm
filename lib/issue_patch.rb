@@ -76,9 +76,6 @@ module IssuePatch
     def chapter_str
       self.csys.chapter_str
     end
-    def supervisor
-      self.csys.supervisor
-    end
 
     def attributes
         super.merge({'identifier' => identifier})

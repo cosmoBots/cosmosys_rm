@@ -33,11 +33,6 @@ class CosmosysProject < ActiveRecord::Base
         td[:targets][v.id.to_s][:name] = v.name
         td[:targets][v.id.to_s][:due_date] = v.due_date
         td[:targets][v.id.to_s][:status] = v.status
-    
-        # TODO: REMEMBER TO REMOVE VSTART_DATE
-        td[:targets][v.id.to_s][:start_date] = v.csys.vstart_date
-        # TODO: REMEMBER TO REMOVE THE WORKING DAYS WHEN YOU WILL NOT NEED THEM
-        td[:targets][v.id.to_s][:working_days] = v.csys.vworking_days
       end
     }
   end
@@ -82,11 +77,9 @@ class CosmosysProject < ActiveRecord::Base
         treedata[:members][mb.principal.lastname.to_s][:firstname] = mb.principal.lastname
         treedata[:members][mb.principal.lastname.to_s][:lastname] = "group" 
         treedata[:members][mb.principal.lastname.to_s][:class] = mb.principal.class.name
-		    treedata[:members][mb.principal.lastname.to_s][:gen_report] = false
       else
         treedata[:members][mb.user.login.to_s] = mb.user.attributes.slice("firstname","lastname")
         treedata[:members][mb.user.login.to_s][:class] = mb.user.class.name
-        treedata[:members][mb.user.login.to_s][:gen_report] = mb.user.csys.vgen_rpt
       end
     }
 

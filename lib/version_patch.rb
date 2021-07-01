@@ -27,15 +27,6 @@ module VersionPatch
       end        
       self.cosmosys_version
     end    
-    def cosmosys_version_type
-      self.csys.cosmosys_version_type
-    end    
-    def start_date
-      self.csys.start_date
-    end
-    def working_days
-      self.csys.working_days
-    end
   end
 end
 # Add module to Version

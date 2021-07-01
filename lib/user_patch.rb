@@ -27,9 +27,6 @@ module UserPatch
       end      
       self.cosmosys_user
     end    
-    def gen_rpt
-      self.csys.gen_rpt
-    end
   end    
 end
 # Add module to User
