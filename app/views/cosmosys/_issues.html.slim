@@ -4,5 +4,5 @@
 	= textilizable("### Identifier: "+ @issue.identifier)
 	= textilizable("### Workload %: "+ @issue.csys.vwloadpct.to_s)
 	= textilizable("## Diagrams")
-	= @issue.csys.show_graphs(root_url)
+	= "## Diagrams\n" + @issue.csys.show_graphs(root_url)
 	= textilizable("## Diagrams end")
