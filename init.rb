@@ -6,6 +6,10 @@ Redmine::Plugin.register :cosmosys do
   url 'http://cosmobots.eu'
   author_url 'http://cosmobots.eu'
 
+  requires_redmine_plugin :wiki_graphviz_plugin #, :version_or_higher => '0.7.3'
+  requires_redmine_plugin :computed_custom_field #, :version_or_higher => '0.7.3'
+  requires_redmine_plugin :additionals #, :version_or_higher => '0.7.3'
+
   permission :csys_menu, :cosmosys => :menu
   permission :csys_tree, :cosmosys => :tree
   permission :csys_treeview, :cosmosys => :treeview
