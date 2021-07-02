@@ -19,11 +19,11 @@ class CreateCosmosysIssuesBases < ActiveRecord::Migration[5.2]
 	end
 
 	def down
-		tmp = ProjectCustomField.find_by_name('csPrefix')
+		tmp = IssueCustomField.find_by_name('csWload')
 		if (tmp != nil) then
 			tmp.destroy
 		end		
-		tmp = IssueCustomField.find_by_name('csEstWD')
+		tmp = IssueCustomField.find_by_name('csOldCode')
 		if (tmp != nil) then
 			tmp.destroy
 		end
