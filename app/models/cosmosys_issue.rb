@@ -354,14 +354,15 @@ class CosmosysIssue < ActiveRecord::Base
             if not(relnode.include?(r.issue_to)) then
               anyrel = true
             end 
-          }
-          if anyrel then
-            labelstr = "{"+e.identifier+"|"+self.class.word_wrap(e.subject, line_width: 12) + "}"
-            fillstr = CosmosysIssue.get_fill_color(e)
-            e_node = cl.add_nodes(e.id.to_s, :label => labelstr,  
-              :style => 'filled', :color => 'black', :fillcolor => fillstr, :shape => shapestr,
-              :URL => root_url + "/issues/" + e.id.to_s)
-            e.relations_from.each {|r|
+        }
+
+		labelstr = "{"+e.identifier+"|"+self.class.word_wrap(e.subject, line_width: 12) + "}"
+		fillstr = CosmosysIssue.get_fill_color(e)
+		e_node = cl.add_nodes(e.id.to_s, :label => labelstr,  
+		  :style => 'filled', :color => 'black', :fillcolor => fillstr, :shape => shapestr,
+		  :URL => root_url + "/issues/" + e.id.to_s)
+        if anyrel then
+		  e.relations_from.each {|r|
               if (not(desc.include?(r.issue_to))) then
                 if (not(added_nodes.include?(r.issue_to))) then
                   added_nodes.append(r.issue_to)
