@@ -7,6 +7,10 @@ class CosmosysIssue < ActiveRecord::Base
   ## Generic utilities
 
   @@cfwloadpct = IssueCustomField.find_by_name('csWload')
+  @@cfoldcode = IssueCustomField.find_by_name('csOldCode')
+  @@cfid = IssueCustomField.find_by_name('csID')
+  @@cfchapter = IssueCustomField.find_by_name('csChapter')
+
   def vwloadpct
     if self.wloadpct == nil then
       ret = nil
@@ -23,7 +27,7 @@ class CosmosysIssue < ActiveRecord::Base
     end
   end
 
-  @@cfoldcode = IssueCustomField.find_by_name('csOldCode')
+
   def oldcode
     ret = nil
     supid = self.issue.custom_values.find_by_custom_field_id(@@cfoldcode.id)
@@ -63,8 +67,23 @@ class CosmosysIssue < ActiveRecord::Base
     # n is node, p is parent
     node = Issue.find(n['id'])
     if (node != nil) then
-      node.csys.chapter_order = ord
-      node.csys.save
+      if (ord != node.csys.chapter_order) then
+        node.csys.chapter_order = ord
+        node.csys.save
+      end
+      cvchap = node.custom_values.find_by_custom_field_id(@@cfchapter.id)
+      if cvchap == nil then
+        cvchap = node.custom_values.new
+        cvchap.custom_field_id = @@cfchapter.id
+        cvchap.value = node.csys.chapter_str
+        cvchap.save
+      else
+        if (cvchap.value != node.csys.chapter_str) then
+          cvchap.value = node.csys.chapter_str
+          cvchap.save          
+        end
+      end
+    
       if (p != nil) then
         parent = Issue.find(p)
         node.parent = parent
@@ -557,5 +576,13 @@ class CosmosysIssue < ActiveRecord::Base
     self.identifier = cp.prefix + '-' + format('%04d', cp.id_counter+1)
     cp.id_counter += 1
     cp.save
+    ret = nil
+    cvid = self.issue.custom_values.find_by_custom_field_id(@@cfid.id)
+    if cvid == nil then
+      cvid = self.custom_values.new
+      cvid.custom_field_id = @@cfid.id
+    end
+    cvid.value = self.identifier
+    cvid.save
   end  
 end

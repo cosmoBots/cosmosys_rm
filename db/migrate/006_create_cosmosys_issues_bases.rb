@@ -27,6 +27,5 @@ class CreateCosmosysIssuesBases < ActiveRecord::Migration[5.2]
 		if (tmp != nil) then
 			tmp.destroy
 		end
-		drop_table :cosmosys_issue_bases
 	end
 end
