@@ -31,7 +31,7 @@ class CosmosysController < ApplicationController
       output += ("\nissue_url: " + issue_url.to_s)
       issue_new_url = root_url + '/projects/' + thisproject.identifier + '/issues/new'
       output += ("\nissue_new_url: " + issue_new_url.to_s)
-      cfprefixvalue = thisproject.prefix
+      cfprefixvalue = thisproject.code
 
       tree_node = {'title':  cfprefixvalue + ". " + thisproject.identifier  + ": " + thisproject.name,
        'subtitle': thisproject.description,

@@ -573,7 +573,7 @@ class CosmosysIssue < ActiveRecord::Base
     puts p
     cp = p.csys
     self.cosmosys_project = cp
-    self.identifier = cp.prefix + '-' + format('%04d', cp.id_counter+1)
+    self.identifier = cp.code + '-' + format('%04d', cp.id_counter+1)
     cp.id_counter += 1
     cp.save
     ret = nil

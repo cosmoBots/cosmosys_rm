@@ -138,12 +138,21 @@ class CosmosysProject < ActiveRecord::Base
     return result
   end
 
+  @@cfcscode = ProjectCustomField.find_by_name('csCode')
 
+  def code
+    ret = nil
+    supid = self.project.custom_values.find_by_custom_field_id(@@cfcscode.id)
+    if supid != nil then
+      ret = supid.value
+    end
+    return ret
+  end
 
   private
-
+  
   def init_attr
-    self.prefix = self.project.identifier
-  end
+    
+  end  
 
 end

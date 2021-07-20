@@ -6,9 +6,10 @@ Redmine::Plugin.register :cosmosys do
   url 'http://cosmobots.eu'
   author_url 'http://cosmobots.eu'
 
-  #requires_redmine_plugin :wiki_graphviz_plugin, :version_or_higher => '0.8.0'
-  #requires_redmine_plugin :computed_custom_field , :version_or_higher => '1.0.7'
-  #requires_redmine_plugin :additionals , :version_or_higher => '2.0.24'
+  # Removing this because of the redmine alphabetical plugin loading process
+  # requires_redmine_plugin :wiki_graphviz_plugin, :version_or_higher => '0.8.0'
+  requires_redmine_plugin :computed_custom_field , :version_or_higher => '1.0.7'
+  requires_redmine_plugin :additionals , :version_or_higher => '2.0.24'
 
   permission :csys_menu, :cosmosys => :menu
   permission :csys_tree, :cosmosys => :tree

@@ -57,8 +57,8 @@ module ProjectPatch
       self.cosmosys_project
     end
     
-    def prefix
-      self.csys.prefix
+    def code
+      self.csys.code
     end
     
     def id_counter 
