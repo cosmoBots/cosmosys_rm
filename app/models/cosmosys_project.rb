@@ -149,6 +149,20 @@ class CosmosysProject < ActiveRecord::Base
     return ret
   end
 
+  def find_issue_by_identifier(ident)
+    ret = nil
+    self.project.issues.each {|i|
+      # It is very important not to create new identifiers when searching!!!
+      # check if cosmosys_issue attribute exists before checking the identifier
+      if i.cosmosys_issue != nil then
+        if i.cosmosys_issue.identifier == ident then
+          ret = i
+        end
+      end
+    }
+    return ret
+  end
+
   private
   
   def init_attr

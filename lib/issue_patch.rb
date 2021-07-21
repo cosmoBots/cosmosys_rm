@@ -29,7 +29,7 @@ module IssuePatch
   end
   
   module InstanceMethods
-    def reenumerate_children
+    def reenumerate_children(updatecf = false)
       # chs = self.children.where.not(cosmosys_issue_id: nil)
       chs = []
       self.children.each{|c|
@@ -45,16 +45,21 @@ module IssuePatch
           ch.chapter_order = i
           ch.save
         end
+        puts("+++++++++")
+        if (updatecf) then
+          puts("-----------")
+          ch.update_cschapter
+        end        
         i += 1
       }
-      return i   
+      return i
     end
     
-    def reenumerate_group
+    def reenumerate_group(updatecf = false)
       if (self.parent) then
-        next_chapter = self.parent.reenumerate_children
+        next_chapter = self.parent.reenumerate_children(updatecf)
       else
-        next_chapter = self.project.reenumerate_children
+        next_chapter = self.project.reenumerate_children(updatecf)
       end
       return next_chapter
     end

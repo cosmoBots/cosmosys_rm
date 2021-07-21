@@ -63,6 +63,21 @@ class CosmosysIssue < ActiveRecord::Base
   
   ## TreeView support
 
+  def update_cschapter
+    cvchap = self.issue.custom_values.find_by_custom_field_id(@@cfchapter.id)
+    if cvchap == nil then
+      cvchap = self.issue.custom_values.new
+      cvchap.custom_field_id = @@cfchapter.id
+      cvchap.value = self.chapter_str
+      cvchap.save
+    else
+      if (cvchap.value != self.chapter_str) then
+        cvchap.value = self.chapter_str
+        cvchap.save          
+      end
+    end
+  end
+
   def self.update_node(n,p,ord)
     # n is node, p is parent
     node = Issue.find(n['id'])
@@ -71,19 +86,7 @@ class CosmosysIssue < ActiveRecord::Base
         node.csys.chapter_order = ord
         node.csys.save
       end
-      cvchap = node.custom_values.find_by_custom_field_id(@@cfchapter.id)
-      if cvchap == nil then
-        cvchap = node.custom_values.new
-        cvchap.custom_field_id = @@cfchapter.id
-        cvchap.value = node.csys.chapter_str
-        cvchap.save
-      else
-        if (cvchap.value != node.csys.chapter_str) then
-          cvchap.value = node.csys.chapter_str
-          cvchap.save          
-        end
-      end
-    
+      node.csys.update_cschapter
       if (p != nil) then
         parent = Issue.find(p)
         node.parent = parent
@@ -579,7 +582,7 @@ class CosmosysIssue < ActiveRecord::Base
     ret = nil
     cvid = self.issue.custom_values.find_by_custom_field_id(@@cfid.id)
     if cvid == nil then
-      cvid = self.custom_values.new
+      cvid = self.issue.custom_values.new
       cvid.custom_field_id = @@cfid.id
     end
     cvid.value = self.identifier

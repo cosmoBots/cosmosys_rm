@@ -20,7 +20,7 @@ module ProjectPatch
   end
   
   module InstanceMethods
-    def reenumerate_children
+    def reenumerate_children(updatecf = false)
       # chs = self.children.where.not(cosmosys_issue_id: nil)
       chs = []
       self.issues.where(parent_id: nil).each{|c|
@@ -29,27 +29,43 @@ module ProjectPatch
           chs += [csys]
         end
       }
+=begin      
       puts("antes de reordenar")
       chs.each{|ch|
         puts(ch.identifier+' '+ch.chapter_order.to_s)
       }
+=end
       chs2 = chs.sort_by{|obj| obj.chapter_order}
+=begin      
       puts("despues de reordenar")
       chs2.each{|ch|
         puts(ch.identifier+' '+ch.chapter_order.to_s)
       }
+=end      
       i = 1
       chs2.each{|ch|
-        puts('Antes: '+i.to_s+' '+ch.identifier+' '+ch.chapter_order.to_s)
+        #puts('Antes: '+i.to_s+' '+ch.identifier+' '+ch.chapter_order.to_s)
         if (ch.chapter_order.floor != i) then
           ch.chapter_order = i
           ch.save
-          puts('Despues: '+i.to_s+' '+ch.identifier+' '+ch.chapter_order.to_s)          
+          #puts('Despues: '+i.to_s+' '+ch.identifier+' '+ch.chapter_order.to_s)          
+        end
+        puts("+++++++++")
+        if (updatecf) then
+          puts("-----------")
+          ch.update_cschapter
         end
         i += 1
       }
       return i   
     end
+
+    def cschapters_gen
+      self.issues.each{|i|
+        i.csys.update_cschapter
+      }
+    end
+
     def csys
       if self.cosmosys_project == nil then
         CosmosysProject.create!(project: self)
