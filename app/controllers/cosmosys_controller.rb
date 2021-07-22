@@ -148,7 +148,6 @@ class CosmosysController < ApplicationController
         }
       end
     else
-
       print("POST!!!!!")
       structure = params[:structure]
       json_params_wrapper = JSON.parse(request.body.read())
@@ -163,7 +162,7 @@ class CosmosysController < ApplicationController
           CosmosysIssue.update_node(c,nil,chord)
           chord += 1
         }
-      end      
+      end
       redirect_to :action => 'treeview', :method => :get, :id => @project.id 
     end
 

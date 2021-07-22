@@ -11,6 +11,7 @@ class CosmosysIssue < ActiveRecord::Base
   @@cfid = IssueCustomField.find_by_name('csID')
   @@cfchapter = IssueCustomField.find_by_name('csChapter')
 
+  ########## DEFERRED ATTRIBUTES TO CUSTOMFIELDS ########
   def vwloadpct
     if self.wloadpct == nil then
       ret = nil
@@ -27,7 +28,6 @@ class CosmosysIssue < ActiveRecord::Base
     end
   end
 
-
   def oldcode
     ret = nil
     supid = self.issue.custom_values.find_by_custom_field_id(@@cfoldcode.id)
@@ -36,6 +36,8 @@ class CosmosysIssue < ActiveRecord::Base
     end
     return ret
   end
+
+  ########## TREE UTILITIES ###########
 
   def is_root
     self.issue.parent == nil
@@ -50,7 +52,7 @@ class CosmosysIssue < ActiveRecord::Base
     return result
   end
   
-  ## Calculated attributes
+  ## Calculated (READONLY) attributes
 
   def chapter_str
     if !self.is_root
@@ -61,22 +63,14 @@ class CosmosysIssue < ActiveRecord::Base
     return prev_str + self.chapter_order.floor.to_s + '.'
   end
   
-  ## TreeView support
-
   def update_cschapter
-    cvchap = self.issue.custom_values.find_by_custom_field_id(@@cfchapter.id)
-    if cvchap == nil then
-      cvchap = self.issue.custom_values.new
-      cvchap.custom_field_id = @@cfchapter.id
+    cvchap = self.issue.custom_field_values.select{|a| a.custom_field_id == @@cfchapter.id }.first
+    if cvchap.value != self.chapter_str then
       cvchap.value = self.chapter_str
-      cvchap.save
-    else
-      if (cvchap.value != self.chapter_str) then
-        cvchap.value = self.chapter_str
-        cvchap.save          
-      end
     end
   end
+
+  ################## TreeView support #######################
 
   def self.update_node(n,p,ord)
     # n is node, p is parent
@@ -86,7 +80,6 @@ class CosmosysIssue < ActiveRecord::Base
         node.csys.chapter_order = ord
         node.csys.save
       end
-      node.csys.update_cschapter
       if (p != nil) then
         parent = Issue.find(p)
         node.parent = parent
@@ -103,6 +96,7 @@ class CosmosysIssue < ActiveRecord::Base
           chord += 1
         }
       end
+      node.csys.update_cschapter
     end
   end
 
@@ -565,10 +559,30 @@ class CosmosysIssue < ActiveRecord::Base
     return strdiag
   end
   
-  
-  
+  def update_chapter_subtree(ord)
+    if (ord != self.chapter_order) then
+      self.chapter_order = ord
+      self.save
+    end
+    ch = self.issue.children.sort_by {|obj| obj.csys.chapter_order}
+    chord = 1
+    if (ch != nil) then
+      ch.each { |c| 
+        c.csys.update_chapter_subtree(chord)
+        chord += 1
+      }
+    end
+    self.update_cschapter
+  end
 
   private
+
+  def update_cschapter
+    cvchap = self.issue.custom_field_values.select{|a| a.custom_field_id == @@cfchapter.id }.first
+    if cvchap.value != self.chapter_str then
+      cvchap.value = self.chapter_str
+    end
+  end
 
   def init_attr
     p = self.issue.project
