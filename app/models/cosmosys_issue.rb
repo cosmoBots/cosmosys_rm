@@ -96,7 +96,7 @@ class CosmosysIssue < ActiveRecord::Base
           chord += 1
         }
       end
-      node.csys.update_cschapter
+      #node.csys.update_cschapter
     end
   end
 

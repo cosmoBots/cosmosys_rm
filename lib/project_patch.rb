@@ -62,7 +62,7 @@ module ProjectPatch
 
     def cschapters_gen
       self.issues.each{|i|
-        i.csys.update_cschapter
+        #i.csys.update_cschapter
       }
     end
 
