@@ -12,6 +12,7 @@ class CosmosysController < ApplicationController
   def up
     @issue.csys.chapter_order -= 1.1
     @issue.csys.save
+    @issue.csys.update_cschapter
     @issue.reenumerate_group
     redirect_to :action => 'show', :method => :get, :id => @project.id 
   end
@@ -19,6 +20,7 @@ class CosmosysController < ApplicationController
   def down
     @issue.csys.chapter_order += 1.1
     @issue.csys.save
+    @issue.csys.update_cschapter
     @issue.reenumerate_group
     redirect_to :action => 'show', :method => :get, :id => @project.id 
   end
@@ -33,36 +35,37 @@ class CosmosysController < ApplicationController
       output += ("\nissue_new_url: " + issue_new_url.to_s)
       cfprefixvalue = thisproject.code
 
-      tree_node = {'title':  cfprefixvalue + ". " + thisproject.identifier  + ": " + thisproject.name,
-       'subtitle': thisproject.description,
-       'expanded': true,
-       'id': thisproject.id.to_s,
-       'return_url': root_url+'/cosmosys/'+thisproject.id.to_s+'/treeview.json',
-       'issue_show_url': issue_url,
-       'issue_new_url': issue_new_url,
-       'issue_edit_url': issue_url+"/edit",
-       'children': []
-     }
-   else
-    output = ""
-    output += ("\nissue: " + current_issue.subject)
-    issue_url = root_url + '/issues/' + current_issue.id.to_s
-    output += ("\nissue_url: " + issue_url.to_s)
-    issue_new_url = root_url + '/projects/' + thisproject.identifier + '/issues/new?issue[parent_issue_id]=' + current_issue.id.to_s + '&issue[tracker_id]=' + "Feature"
-    output += ("\nissue_new_url: " + issue_new_url.to_s)
-    cftitlevalue = current_issue.subject
+      tree_node = {
+        'title':  cfprefixvalue + ". " + thisproject.identifier  + ": " + thisproject.name,
+        'subtitle': thisproject.description,
+        'expanded': true,
+        'id': thisproject.id.to_s,
+        'return_url': root_url+'/cosmosys/'+thisproject.id.to_s+'/treeview.json',
+        'issue_show_url': issue_url,
+        'issue_new_url': issue_new_url,
+        'issue_edit_url': issue_url+"/edit",
+        'children': []
+      }
+    else
+      output = ""
+      output += ("\nissue: " + current_issue.subject)
+      issue_url = root_url + '/issues/' + current_issue.id.to_s
+      output += ("\nissue_url: " + issue_url.to_s)
+      issue_new_url = root_url + '/projects/' + thisproject.identifier + '/issues/new?issue[parent_issue_id]=' + current_issue.id.to_s + '&issue[tracker_id]=' + "Feature"
+      output += ("\nissue_new_url: " + issue_new_url.to_s)
+      cftitlevalue = current_issue.subject
       cfchapterstring = current_issue.chapter_str
       tree_node = {'title':  cfchapterstring + " " + current_issue.identifier  + ": " + cftitlevalue,
-       'subtitle': current_issue.description,
-       'expanded': true,
-       'id': current_issue.id.to_s,
-       'return_url': root_url+'/cosmosys/'+thisproject.id.to_s+'/treeview.json?issue_id='+current_issue.id.to_s,
-       'issue_show_url': issue_url,
-       'issue_new_url': issue_new_url,
-       'issue_edit_url': issue_url+"/edit",
-       'children': []
-     }
-   end
+        'subtitle': current_issue.description,
+        'expanded': true,
+        'id': current_issue.id.to_s,
+        'return_url': root_url+'/cosmosys/'+thisproject.id.to_s+'/treeview.json?issue_id='+current_issue.id.to_s,
+        'issue_show_url': issue_url,
+        'issue_new_url': issue_new_url,
+        'issue_edit_url': issue_url+"/edit",
+        'children': []
+      }
+    end
 
     #print tree_node
     #print "children: " + tree_node[:children].to_s + "++++\n"
@@ -75,7 +78,9 @@ class CosmosysController < ApplicationController
       child_node = create_tree(c,root_url,false,thisproject)
       tree_node[:children] << child_node
     }
-
+    if (is_project) then
+      thisproject.csys.update_cschapters
+    end
     return tree_node
   end
   

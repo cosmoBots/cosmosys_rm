@@ -47,6 +47,7 @@ module ProjectPatch
         #puts('Antes: '+i.to_s+' '+ch.identifier+' '+ch.chapter_order.to_s)
         if (ch.chapter_order.floor != i) then
           ch.chapter_order = i
+          ch.update_cschapter
           ch.save
           #puts('Despues: '+i.to_s+' '+ch.identifier+' '+ch.chapter_order.to_s)          
         end
@@ -58,12 +59,6 @@ module ProjectPatch
         i += 1
       }
       return i   
-    end
-
-    def cschapters_gen
-      self.issues.each{|i|
-        #i.csys.update_cschapter
-      }
     end
 
     def csys

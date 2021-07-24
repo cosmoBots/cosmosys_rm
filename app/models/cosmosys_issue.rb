@@ -62,13 +62,6 @@ class CosmosysIssue < ActiveRecord::Base
     end
     return prev_str + self.chapter_order.floor.to_s + '.'
   end
-  
-  def update_cschapter
-    cvchap = self.issue.custom_field_values.select{|a| a.custom_field_id == @@cfchapter.id }.first
-    if cvchap.value != self.chapter_str then
-      cvchap.value = self.chapter_str
-    end
-  end
 
   ################## TreeView support #######################
 
@@ -79,6 +72,7 @@ class CosmosysIssue < ActiveRecord::Base
       if (ord != node.csys.chapter_order) then
         node.csys.chapter_order = ord
         node.csys.save
+        node.csys.update_cschapter
       end
       if (p != nil) then
         parent = Issue.find(p)
@@ -562,6 +556,7 @@ class CosmosysIssue < ActiveRecord::Base
   def update_chapter_subtree(ord)
     if (ord != self.chapter_order) then
       self.chapter_order = ord
+      self.update_cschapter
       self.save
     end
     ch = self.issue.children.sort_by {|obj| obj.csys.chapter_order}
@@ -572,17 +567,17 @@ class CosmosysIssue < ActiveRecord::Base
         chord += 1
       }
     end
-    self.update_cschapter
   end
-
-  private
 
   def update_cschapter
     cvchap = self.issue.custom_field_values.select{|a| a.custom_field_id == @@cfchapter.id }.first
     if cvchap.value != self.chapter_str then
       cvchap.value = self.chapter_str
+      self.issue.save
     end
   end
+
+  private
 
   def init_attr
     p = self.issue.project

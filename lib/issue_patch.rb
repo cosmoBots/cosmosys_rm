@@ -43,6 +43,7 @@ module IssuePatch
       chs2.each{|ch|
         if (ch.chapter_order != i) then
           ch.chapter_order = i
+          ch.update_cschapter
           ch.save
         end
         puts("+++++++++")

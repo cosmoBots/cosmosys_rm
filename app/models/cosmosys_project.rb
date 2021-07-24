@@ -163,15 +163,10 @@ class CosmosysProject < ActiveRecord::Base
     return ret
   end
 
-  def update_chapters
-    ch = self.get_project_root_issues(false).sort_by{|obj| obj.csys.chapter_order}
-    chord = 1
-    if (ch != nil) then
-      ch.each { |c| 
-        c.csys.update_chapter_subtree(chord)
-        chord += 1
-      }
-    end
+  def update_cschapters
+    ch = self.project.issues.each{|i|
+      i.csys.update_cschapter
+    }
   end
 
   private
