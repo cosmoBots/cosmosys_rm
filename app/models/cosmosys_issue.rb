@@ -570,6 +570,7 @@ class CosmosysIssue < ActiveRecord::Base
   end
 
   def update_cschapter
+    self.issue.reload
     cvchap = self.issue.custom_field_values.select{|a| a.custom_field_id == @@cfchapter.id }.first
     if cvchap.value != self.chapter_str then
       cvchap.value = self.chapter_str
