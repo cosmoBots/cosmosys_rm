@@ -149,17 +149,49 @@ class CosmosysProject < ActiveRecord::Base
     return ret
   end
 
-  def find_issue_by_identifier(ident)
+  def find_root
+    if self.project.parent == nil then
+      return self
+    else
+      return self.project.parent.csys.find_root
+    end
+  end
+
+  def all_subprojects
+    ret = []
+    self.project.children.each {|c|
+      ret += [c.csys] + c.csys.all_subprojects
+    }
+    return ret
+  end
+
+  def find_issue_by_identifier(ident,full_tree = false)
     ret = nil
     self.project.issues.each {|i|
       # It is very important not to create new identifiers when searching!!!
       # check if cosmosys_issue attribute exists before checking the identifier
-      if i.cosmosys_issue != nil then
-        if i.cosmosys_issue.identifier == ident then
-          ret = i
+      if ret == nil then
+        if i.cosmosys_issue != nil then
+          if i.cosmosys_issue.identifier == ident then
+            ret = i
+          end
         end
       end
     }
+    if ret == nil and full_tree then
+      proot = self.find_root
+      #puts("root project",proot.project.identifier)
+      projectlist = [proot]+proot.all_subprojects
+      #puts("Complete projectlist",projectlist)
+      projectlist -= [self]
+      #puts("Reduced projectlist",projectlist)
+      projectlist.each {|p|
+        if ret == nil then
+          #puts("Looking for the ident ",ident,"at project",p.project.identifier)
+          ret = p.find_issue_by_identifier(ident)
+        end
+      }
+    end
     return ret
   end
 
