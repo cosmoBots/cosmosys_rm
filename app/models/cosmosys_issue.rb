@@ -94,6 +94,15 @@ class CosmosysIssue < ActiveRecord::Base
     end
   end
 
+  def ordered_subtree
+    ret = [self]
+    childrenitems = self.issue.children.sort_by {|obj| obj.csys.chapter_order}
+    childrenitems.each{|c|
+      ret += c.csys.ordered_subtree
+    }
+    return ret
+  end
+
   def to_treeview_json(root_url, include_doc_children)
     tree_node = self.issue.attributes.slice("id","tracker_id","subject","description","status_id","fixed_version_id","parent_id","root_id","assigned_to_id","due_date","start_date","done_ratio")
     tree_node[:chapter] = self.chapter_str

@@ -43,6 +43,15 @@ class CosmosysProject < ActiveRecord::Base
     }
   end
 
+  def ordered_subtree
+    ret = []
+    childrenitems = self.get_project_root_issues(false).sort_by {|obj| obj.csys.chapter_order}
+    childrenitems.each{|c|
+      ret += c.csys.ordered_subtree
+    }
+    return ret
+  end
+
   def show_as_json_inner(issue_id,root_url,include_subprojects)
     require 'json'
 
