@@ -47,15 +47,14 @@ module ProjectPatch
         #puts('Antes: '+i.to_s+' '+ch.identifier+' '+ch.chapter_order.to_s)
         if (ch.chapter_order.floor != i) then
           ch.chapter_order = i
-          ch.update_cschapter
           ch.save
-          #puts('Despues: '+i.to_s+' '+ch.identifier+' '+ch.chapter_order.to_s)          
+          #puts('Despues: '+i.to_s+' '+ch.identifier+' '+ch.chapter_order.to_s)
+          if (updatecf) then
+            puts("-----------")
+            ch.update_cschapter
+          end                  
         end
         puts("+++++++++")
-        if (updatecf) then
-          puts("-----------")
-          ch.update_cschapter
-        end
         i += 1
       }
       return i   

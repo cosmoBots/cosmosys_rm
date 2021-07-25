@@ -72,7 +72,7 @@ class CosmosysIssue < ActiveRecord::Base
       if (ord != node.csys.chapter_order) then
         node.csys.chapter_order = ord
         node.csys.save
-        node.csys.update_cschapter
+        #node.csys.update_cschapter
       end
       if (p != nil) then
         parent = Issue.find(p)
@@ -556,7 +556,7 @@ class CosmosysIssue < ActiveRecord::Base
   def update_chapter_subtree(ord)
     if (ord != self.chapter_order) then
       self.chapter_order = ord
-      self.update_cschapter
+      #self.update_cschapter
       self.save
     end
     ch = self.issue.children.sort_by {|obj| obj.csys.chapter_order}
@@ -596,6 +596,6 @@ class CosmosysIssue < ActiveRecord::Base
       cvid.custom_field_id = @@cfid.id
     end
     cvid.value = self.identifier
-    cvid.save
+    #cvid.save
   end  
 end

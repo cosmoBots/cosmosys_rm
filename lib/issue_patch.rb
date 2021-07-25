@@ -43,14 +43,13 @@ module IssuePatch
       chs2.each{|ch|
         if (ch.chapter_order != i) then
           ch.chapter_order = i
-          ch.update_cschapter
+          if (updatecf) then
+            puts("-----------")
+            ch.update_cschapter
+          end     
           ch.save
         end
         puts("+++++++++")
-        if (updatecf) then
-          puts("-----------")
-          ch.update_cschapter
-        end        
         i += 1
       }
       return i
