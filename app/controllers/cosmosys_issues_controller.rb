@@ -151,7 +151,7 @@ class CosmosysIssuesController < ApplicationController
       respond_to do |format|
         format.html {
           render_attachment_warning_if_needed(@issue)
-          flash[:notice] = l(:notice_issue_successful_create, :id => view_context.link_to("##{@issue.id}", issue_path(@issue), :title => @issue.subject))
+          flash.now[:notice] = l(:notice_issue_successful_create, :id => view_context.link_to("##{@issue.id}", issue_path(@issue), :title => @issue.subject))
           redirect_after_create
         }
         format.api  { render :action => 'show', :status => :created, :location => issue_url(@issue) }
@@ -196,7 +196,7 @@ class CosmosysIssuesController < ApplicationController
 
     if saved
       render_attachment_warning_if_needed(@issue)
-      flash[:notice] = l(:notice_successful_update) unless @issue.current_journal.new_record?
+      flash.now[:notice] = l(:notice_successful_update) unless @issue.current_journal.new_record?
 
       respond_to do |format|
         format.html { redirect_back_or_default issue_path(@issue, previous_and_next_issue_ids_params) }
@@ -355,7 +355,7 @@ class CosmosysIssuesController < ApplicationController
     end
 
     if unsaved_issues.empty?
-      flash[:notice] = l(:notice_successful_update) unless saved_issues.empty?
+      flash.now[:notice] = l(:notice_successful_update) unless saved_issues.empty?
       if params[:follow]
         if @issues.size == 1 && saved_issues.size == 1
           redirect_to issue_path(saved_issues.first)
@@ -753,7 +753,7 @@ class IssuesController < ApplicationController
       respond_to do |format|
         format.html {
           render_attachment_warning_if_needed(@issue)
-          flash[:notice] = l(:notice_issue_successful_create, :id => view_context.link_to("##{@issue.id}", issue_path(@issue), :title => @issue.subject))
+          flash.now[:notice] = l(:notice_issue_successful_create, :id => view_context.link_to("##{@issue.id}", issue_path(@issue), :title => @issue.subject))
           redirect_after_create
         }
         format.api  { render :action => 'show', :status => :created, :location => issue_url(@issue) }
@@ -798,7 +798,7 @@ class IssuesController < ApplicationController
 
     if saved
       render_attachment_warning_if_needed(@issue)
-      flash[:notice] = l(:notice_successful_update) unless @issue.current_journal.new_record?
+      flash.now[:notice] = l(:notice_successful_update) unless @issue.current_journal.new_record?
 
       respond_to do |format|
         format.html { redirect_back_or_default issue_path(@issue, previous_and_next_issue_ids_params) }
@@ -957,7 +957,7 @@ class IssuesController < ApplicationController
     end
 
     if unsaved_issues.empty?
-      flash[:notice] = l(:notice_successful_update) unless saved_issues.empty?
+      flash.now[:notice] = l(:notice_successful_update) unless saved_issues.empty?
       if params[:follow]
         if @issues.size == 1 && saved_issues.size == 1
           redirect_to issue_path(saved_issues.first)

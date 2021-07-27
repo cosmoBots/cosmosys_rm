@@ -139,9 +139,9 @@ class CosmosysController < ApplicationController
         format.html {
           if @output then 
             if @output.size <= 500 then
-              flash[:notice] = "Issuetree:\n" + @output.to_s
+              flash.now[:notice] = "Issuetree:\n" + @output.to_s
             else
-              flash[:notice] = "Issuetree too long response\n"
+              flash.now[:notice] = "Issuetree too long response\n"
             end
           end
         }
