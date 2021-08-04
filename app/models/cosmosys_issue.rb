@@ -593,9 +593,15 @@ class CosmosysIssue < ActiveRecord::Base
 
   def init_attr
     p = self.issue.project
+    if p.id != nil then
+      p.reload
+    end
     puts self.issue
     puts p
     cp = p.csys
+    if cp.id != nil then
+      cp.reload
+    end
     self.cosmosys_project = cp
     self.identifier = cp.code + '-' + format('%04d', cp.id_counter+1)
     cp.id_counter += 1
