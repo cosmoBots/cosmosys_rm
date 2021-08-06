@@ -8,11 +8,9 @@ root_url = request.base_url+splitted_url[0]
   <button class="tablink" onclick="openIssueTab('Dependences', this, 'green')" id="defaultOpenTab">Dependences</button>
   <button class="tablink" onclick="openIssueTab('Hyerarchy', this, 'green')">Hyerarchy</button>
   <div id="Dependences" class="tabcontent">
-  Dependences
   <%= textilizable(@issue.csys.show_depgraph(root_url)) %>
   </div>
   <div id="Hyerarchy" class="tabcontent">
-  Hyerarchy
   <%= textilizable(@issue.csys.show_hiegraph(root_url)) %>
   </div>
 </div>
