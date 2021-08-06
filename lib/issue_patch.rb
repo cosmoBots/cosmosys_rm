@@ -13,14 +13,6 @@ module IssuePatch
       
       has_one :cosmosys_issue
 
-      attr_accessor :identifier
-
-      #getter
-      def identifier
-         self.csys.identifier
-      end
-
-
     end
 
   end
@@ -66,24 +58,18 @@ module IssuePatch
     
     def csys
       if self.cosmosys_issue == nil then
+        self.reload
         chapter = self.reenumerate_group
         CosmosysIssue.create!(issue:self,chapter_order:chapter)
       end      
       self.cosmosys_issue
     end
     
-    def identifier
-      self.csys.identifier
-    end
     def chapter_order
       self.csys.chapter_order
     end
     def chapter_str
       self.csys.chapter_str
-    end
-
-    def attributes
-        super.merge({'identifier' => identifier})
     end
 
   end    

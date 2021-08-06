@@ -116,11 +116,11 @@ class CosmosysProject < ActiveRecord::Base
       colorstr = CosmosysIssue.get_border_color(n)
       if n.children.size > 0 then
         shapestr = "note"
-        labelstr = n.identifier+"\n----\n"+n.csys.class.word_wrap(n.subject, line_width: 12)
+        labelstr = n.csys.get_identifier+"\n----\n"+n.csys.class.word_wrap(n.subject, line_width: 12)
         fontnamestr = 'times italic'            
       else
         shapestr = 'Mrecord'
-        labelstr = "{"+n.identifier+"|"+n.csys.class.word_wrap(n.subject, line_width: 12) + "}"      
+        labelstr = "{"+n.csys.get_identifier+"|"+n.csys.class.word_wrap(n.subject, line_width: 12) + "}"      
         fontnamestr = 'times'
       end
       fillstr = CosmosysIssue.get_fill_color(n)
@@ -181,7 +181,7 @@ class CosmosysProject < ActiveRecord::Base
       # check if cosmosys_issue attribute exists before checking the identifier
       if ret == nil then
         if i.cosmosys_issue != nil then
-          if i.cosmosys_issue.identifier == ident then
+          if i.cosmosys_issue.get_identifier == ident then
             ret = i
           end
         end

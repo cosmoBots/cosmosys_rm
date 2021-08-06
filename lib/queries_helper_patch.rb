@@ -1,7 +1,8 @@
 require_dependency 'queries_helper'
 
 module QueriesHelperPatch
-  def column_content(column, item)
+  # Disabling this column hack because the existence of csID custom value
+  def column_content2(column, item)
     #puts(column.to_json)
     value = column.value_object(item)
     if value.is_a?(Array)
@@ -9,11 +10,8 @@ module QueriesHelperPatch
       safe_join(values, ', ')
     else
       ret = column_value(column, item, value)
-      puts(column.name)
-      puts(ret)
       if (column.name.to_s == "id") then
-        ret = ret + '|' + item.identifier
-        puts("Tendría que habrer añadido algo")
+        ret = ret + '|' + item.csys.get_identifier
       end
       ret
     end

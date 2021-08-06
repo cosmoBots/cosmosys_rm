@@ -32,23 +32,23 @@ module ProjectPatch
 =begin      
       puts("antes de reordenar")
       chs.each{|ch|
-        puts(ch.identifier+' '+ch.chapter_order.to_s)
+        puts(ch.cys.get_identifier+' '+ch.chapter_order.to_s)
       }
 =end
       chs2 = chs.sort_by{|obj| obj.chapter_order}
 =begin      
       puts("despues de reordenar")
       chs2.each{|ch|
-        puts(ch.identifier+' '+ch.chapter_order.to_s)
+        puts(ch.cys.get_identifier+' '+ch.chapter_order.to_s)
       }
 =end      
       i = 1
       chs2.each{|ch|
-        #puts('Antes: '+i.to_s+' '+ch.identifier+' '+ch.chapter_order.to_s)
+        #puts('Antes: '+i.to_s+' '+ch.cys.get_identifier+' '+ch.chapter_order.to_s)
         if (ch.chapter_order.floor != i) then
           ch.chapter_order = i
           ch.save
-          #puts('Despues: '+i.to_s+' '+ch.identifier+' '+ch.chapter_order.to_s)
+          #puts('Despues: '+i.to_s+' '+ch.cys.get_identifier+' '+ch.chapter_order.to_s)
           if (updatecf) then
             puts("-----------")
             ch.update_cschapter

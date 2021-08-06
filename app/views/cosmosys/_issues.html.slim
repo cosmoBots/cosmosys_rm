@@ -1,7 +1,7 @@
 - splitted_url = request.fullpath.split('/issues')
 - root_url = request.base_url+splitted_url[0]
 .issue-content
-	= textilizable("### Identifier: "+ @issue.identifier)
+	= textilizable("### Identifier: "+ @issue.csys.get_identifier)
 	= textilizable("### Workload %: "+ @issue.csys.vwloadpct.to_s)
 	= textilizable("## Diagrams")
 	= textilizable(@issue.csys.show_graphs(root_url))

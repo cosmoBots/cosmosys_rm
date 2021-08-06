@@ -7,7 +7,7 @@ module ApplicationHelperPatch
   def link_to_issue(issue, options={})
     title = nil
     subject = nil
-    text = options[:tracker] == false ? "##{issue.identifier}" : "#{issue.tracker} ##{issue.identifier}"
+    text = options[:tracker] == false ? "##{issue.csys.get_identifier}" : "#{issue.tracker} ##{issue.csys.get_identifier}"
     reqtitle = issue.subject
     if options[:subject] == false
       title = reqtitle.truncate(60)

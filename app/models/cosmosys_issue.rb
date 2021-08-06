@@ -1,6 +1,7 @@
 class CosmosysIssue < ActiveRecord::Base
   belongs_to :issue
   belongs_to :cosmosys_project
+  belongs_to :csid, :class_name => "CustomValue"
   
   before_create :init_attr
 
@@ -107,7 +108,7 @@ class CosmosysIssue < ActiveRecord::Base
     tree_node = self.issue.attributes.slice("id","tracker_id","subject","description","status_id","fixed_version_id","parent_id","root_id","assigned_to_id","due_date","start_date","done_ratio")
     tree_node[:chapter] = self.chapter_str
     tree_node[:title] = self.issue.subject
-    tree_node[:identifier] = self.identifier
+    tree_node[:identifier] = self.get_identifier
     tree_node[:oldcode] = self.oldcode
     tree_node[:url] = root_url+'/cosmosys/'+self.issue.id.to_s,    
     tree_node[:return_url] = root_url+'/cosmosys/'+self.issue.id.to_s+'/tree.json',    
@@ -231,10 +232,10 @@ class CosmosysIssue < ActiveRecord::Base
     end
     if (upn.children.size>0) then
             shapestr = 'note'
-            labelstr =  upn.identifier+"\n----\n"+self.class.word_wrap(upn.subject, line_width: 12)
+            labelstr =  upn.csys.get_identifier+"\n----\n"+self.class.word_wrap(upn.subject, line_width: 12)
     else
             shapestr = 'Mrecord'
-            labelstr =  "{ "+upn.identifier+"|"+self.class.word_wrap(upn.subject, line_width: 12) + "}"
+            labelstr =  "{ "+upn.csys.get_identifier+"|"+self.class.word_wrap(upn.subject, line_width: 12) + "}"
     end
 
     if not(force_end) then
@@ -284,10 +285,10 @@ class CosmosysIssue < ActiveRecord::Base
     end
     if (dwn.children.size>0) then
       shapestr = 'note'
-      labelstr =  dwn.identifier+"\n----\n"+self.class.word_wrap(dwn.subject, line_width: 12)
+      labelstr =  dwn.csys.get_identifier+"\n----\n"+self.class.word_wrap(dwn.subject, line_width: 12)
     else
       shapestr = 'Mrecord'
-      labelstr =  "{ "+dwn.identifier+"|"+self.class.word_wrap(dwn.subject, line_width: 12) + "}"
+      labelstr =  "{ "+dwn.csys.get_identifier+"|"+self.class.word_wrap(dwn.subject, line_width: 12) + "}"
     end
     if not(force_end) then
       colorstr = CosmosysIssue.get_border_color(dwn)
@@ -348,7 +349,7 @@ class CosmosysIssue < ActiveRecord::Base
               anyrel = true
             end 
           }
-          labelstr = "{"+e.identifier+"|"+self.class.word_wrap(e.subject, line_width: 12) + "}"
+          labelstr = "{"+e.csys.get_identifier+"|"+self.class.word_wrap(e.subject, line_width: 12) + "}"
           fillstr = CosmosysIssue.get_fill_color(e)
           e_node = cl.add_nodes(e.id.to_s, :label => labelstr,  
             :style => 'filled', :color => 'black', :fillcolor => fillstr, :shape => shapestr,
@@ -376,7 +377,7 @@ class CosmosysIssue < ActiveRecord::Base
         }
         colorstr = CosmosysIssue.get_border_color(self.issue)
         fillstr = CosmosysIssue.get_fill_color(self.issue)
-        n_node = cl.add_nodes( self.issue.id.to_s, :label => self.identifier+"\n----\n"+self.class.word_wrap(self.issue.subject, line_width: 12),
+        n_node = cl.add_nodes( self.issue.id.to_s, :label => self.get_identifier+"\n----\n"+self.class.word_wrap(self.issue.subject, line_width: 12),
           :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => 'note', :penwidth => 3,
           :URL => root_url + "/issues/" + self.issue.id.to_s)
         siblings_counter = 0
@@ -410,7 +411,7 @@ class CosmosysIssue < ActiveRecord::Base
     else
       colorstr = CosmosysIssue.get_border_color(self.issue)
       fillstr = CosmosysIssue.get_fill_color(self.issue)
-      n_node = cl.add_nodes( self.issue.id.to_s, :label => "{"+self.identifier+"|"+self.class.word_wrap(self.issue.subject, line_width: 12) + "}",  
+      n_node = cl.add_nodes( self.issue.id.to_s, :label => "{"+self.get_identifier+"|"+self.class.word_wrap(self.issue.subject, line_width: 12) + "}",  
         :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => 'Mrecord', :penwidth => 3,
         :URL => root_url + "/issues/" + self.issue.id.to_s)
       downrel = []
@@ -470,11 +471,11 @@ class CosmosysIssue < ActiveRecord::Base
     colorstr = CosmosysIssue.get_border_color(upn)
     if upn.children.size > 0 then
       shapestr = "note"
-      labelstr = upn.identifier+"\n----\n"+self.class.word_wrap(upn.subject, line_width: 12)
+      labelstr = upn.csys.get_identifier+"\n----\n"+self.class.word_wrap(upn.subject, line_width: 12)
       fontnamestr = 'times italic'            
     else
       shapestr = 'Mrecord'
-      labelstr = "{"+upn.identifier+"|"+self.class.word_wrap(upn.subject, line_width: 12) + "}"      
+      labelstr = "{"+upn.csys.get_identifier+"|"+self.class.word_wrap(upn.subject, line_width: 12) + "}"      
       fontnamestr = 'times'
     end
     fillstr = CosmosysIssue.get_fill_color(upn)
@@ -495,11 +496,11 @@ class CosmosysIssue < ActiveRecord::Base
     colorstr = CosmosysIssue.get_border_color(dwn)
     if dwn.children.size > 0 then
       shapestr = "note"
-      labelstr = dwn.identifier+"\n----\n"+self.class.word_wrap(dwn.subject, line_width: 12)
+      labelstr = dwn.csys.get_identifier+"\n----\n"+self.class.word_wrap(dwn.subject, line_width: 12)
       fontnamestr = 'times italic'            
     else
       shapestr = 'Mrecord'
-      labelstr = "{"+dwn.identifier+"|"+self.class.word_wrap(dwn.subject, line_width: 12) + "}"      
+      labelstr = "{"+dwn.csys.get_identifier+"|"+self.class.word_wrap(dwn.subject, line_width: 12) + "}"      
       fontnamestr = 'times'
     end
     fillstr = CosmosysIssue.get_fill_color(dwn)
@@ -521,11 +522,11 @@ class CosmosysIssue < ActiveRecord::Base
     colorstr = CosmosysIssue.get_border_color(self.issue)
     if self.issue.children.size > 0 then
       shapestr = "note"
-      labelstr = self.identifier+"\n----\n"+self.class.word_wrap(self.issue.subject, line_width: 12)
+      labelstr = self.get_identifier+"\n----\n"+self.class.word_wrap(self.issue.subject, line_width: 12)
       fontnamestr = 'times italic'            
     else
       shapestr = 'Mrecord'
-      labelstr = "{"+self.identifier+"|"+self.class.word_wrap(self.issue.subject, line_width: 12) + "}"      
+      labelstr = "{"+self.get_identifier+"|"+self.class.word_wrap(self.issue.subject, line_width: 12) + "}"      
       fontnamestr = 'times'
     end
     fillstr = CosmosysIssue.get_fill_color(self.issue)
@@ -589,6 +590,27 @@ class CosmosysIssue < ActiveRecord::Base
     end
   end
 
+  def get_identifier
+    if self.csid == nil then
+      puts(self.identifier+":")
+      puts("csid is null")
+      cvid = self.issue.custom_values.find_by_custom_field_id(@@cfid.id)
+      if cvid == nil then
+        puts("cvid is null")
+        cvid = self.issue.custom_values.new
+        cvid.custom_field_id = @@cfid.id
+      end
+      puts("pongo el valor")
+      cvid.value = self.identifier
+      self.csid = cvid
+      puts("grabo")
+      cvid.save
+      self.save
+    end
+    puts("devuelvo")
+    return self.identifier
+  end
+
   private
 
   def init_attr
@@ -606,13 +628,5 @@ class CosmosysIssue < ActiveRecord::Base
     self.identifier = cp.code + '-' + format('%04d', cp.id_counter+1)
     cp.id_counter += 1
     cp.save
-    ret = nil
-    cvid = self.issue.custom_values.find_by_custom_field_id(@@cfid.id)
-    if cvid == nil then
-      cvid = self.issue.custom_values.new
-      cvid.custom_field_id = @@cfid.id
-    end
-    cvid.value = self.identifier
-    #cvid.save
   end  
 end

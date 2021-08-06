@@ -55,7 +55,7 @@ class CosmosysController < ApplicationController
       output += ("\nissue_new_url: " + issue_new_url.to_s)
       cftitlevalue = current_issue.subject
       cfchapterstring = current_issue.chapter_str
-      tree_node = {'title':  cfchapterstring + " " + current_issue.identifier  + ": " + cftitlevalue,
+      tree_node = {'title':  cfchapterstring + " " + current_issue.cys.get_identifier  + ": " + cftitlevalue,
         'subtitle': current_issue.description,
         'expanded': true,
         'id': current_issue.id.to_s,

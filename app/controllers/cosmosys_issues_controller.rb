@@ -36,6 +36,8 @@ class CosmosysIssuesController < ApplicationController
   helper :attachments
   helper :queries
   include QueriesHelper
+  helper :issues
+  include IssuesHelper  
   helper :repositories
   helper :timelog
   helper :issues
@@ -657,6 +659,8 @@ class IssuesController < ApplicationController
   helper :attachments
   helper :queries
   include QueriesHelper
+  helper :issues
+  include IssuesHelper  
   helper :repositories
   helper :timelog
 
