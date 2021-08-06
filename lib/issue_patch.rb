@@ -71,6 +71,9 @@ module IssuePatch
     def chapter_str
       self.csys.chapter_str
     end
+    def sortable_chapter_str
+      self.csys.sortable_chapter_str
+    end
 
   end    
 end

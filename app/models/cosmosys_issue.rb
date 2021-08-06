@@ -11,6 +11,7 @@ class CosmosysIssue < ActiveRecord::Base
   @@cfoldcode = IssueCustomField.find_by_name('csOldCode')
   @@cfid = IssueCustomField.find_by_name('csID')
   @@cfchapter = IssueCustomField.find_by_name('csChapter')
+  @@chapterdigits = 3
 
   ########## DEFERRED ATTRIBUTES TO CUSTOMFIELDS ########
   def vwloadpct
@@ -64,6 +65,15 @@ class CosmosysIssue < ActiveRecord::Base
     return prev_str + self.chapter_order.floor.to_s + '.'
   end
 
+  def sortable_chapter_str
+    if !self.is_root
+      prev_str = self.issue.parent.csys.sortable_chapter_str
+    else
+      prev_str = ''
+    end
+    return prev_str + self.chapter_order.floor.to_s.rjust(@@chapterdigits, "0") + '.'
+  end
+  
   ################## TreeView support #######################
 
   def self.update_node(n,p,ord)
@@ -596,8 +606,9 @@ class CosmosysIssue < ActiveRecord::Base
       self.issue.reload
     end
     cvchap = self.issue.custom_field_values.select{|a| a.custom_field_id == @@cfchapter.id }.first
-    if cvchap.value != self.chapter_str then
-      cvchap.value = self.chapter_str
+    sortchap = self.sortable_chapter_str
+    if cvchap.value != sortchap then
+      cvchap.value = sortchap
       self.issue.save
     end
   end
