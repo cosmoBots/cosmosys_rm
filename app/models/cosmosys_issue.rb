@@ -562,6 +562,18 @@ class CosmosysIssue < ActiveRecord::Base
     strdiag,torecalc = self.to_graphviz_graph_str(true,{},root_url)
     return strdiag
   end
+
+  def show_depgraph(root_url)
+    g,torecalc = self.to_graphviz_depgraph(true,{},root_url)
+    result = "{{graphviz_link()\n" + g.to_s + "\n}}"
+    return result
+  end
+
+  def show_hiegraph(root_url)
+    g2,torecalc = self.to_graphviz_hiegraph(true,{},root_url)
+    result = "{{graphviz_link()\n" + g2.to_s + "\n}}"
+    return result    
+  end
   
   def update_chapter_subtree(ord)
     if (ord != self.chapter_order) then
