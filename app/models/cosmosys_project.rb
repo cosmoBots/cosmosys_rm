@@ -102,14 +102,19 @@ class CosmosysProject < ActiveRecord::Base
     return treedata
   end
 
-
-  def show_graphs_pr(root_url)
+  def show_depgraphs_pr(dg)
+    return " {{graphviz_link()\n" + dg.to_s + "\n}}"
+  end
+  def show_hiegraphs_pr(hg)
+    return "{{graphviz_link()\n" + hg.to_s + "\n}}"   
+  end
+  def calculate_graphs(root_url)
     # Create a new hierarchy graph
-    hg = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "9.5,30", :strict => true )
+    hg = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "40,30", :strict => true )
     hcl = hg.add_graph(:clusterD, :label => 'Hierarchy', :labeljust => 'l', :labelloc=>'t', :margin=> '5') 
 
     # Create a new hierarchy graph
-    dg = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "9.5,30", :strict => true )
+    dg = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "40,30", :strict => true )
     dcl = dg.add_graph(:clusterD, :label => 'Dependences', :labeljust => 'l', :labelloc=>'t', :margin=> '5') 
 
     self.project.issues.each{|n|
@@ -140,9 +145,13 @@ class CosmosysProject < ActiveRecord::Base
         }
       end
     }
+    return dg,hg
+  end
+  
+  def show_graphs_pr(dg,hg)
 
-    result="{{graphviz_link()\n" + hg.to_s + "\n}}"
-    result+=" {{graphviz_link()\n" + dg.to_s + "\n}}"
+    result = "{{graphviz_link()\n" + hg.to_s + "\n}}"
+    result += " {{graphviz_link()\n" + dg.to_s + "\n}}"
 
     return result
   end
