@@ -74,8 +74,11 @@ class CosmosysIssue < ActiveRecord::Base
     return prev_str + self.chapter_order.floor.to_s.rjust(@@chapterdigits, "0") + '.'
   end
   
-  def dependence_validation
+  def is_valid?
     true
+  end
+  def is_chapter?
+    self.issue.children.size > 0
   end
 
   ################## TreeView support #######################
@@ -182,7 +185,8 @@ class CosmosysIssue < ActiveRecord::Base
     return t.csys.paint_pref[:relation_color][r.relation_type]
   end
   
-  def self.get_fill_color(i)
+  def get_fill_color
+    i = self.issue
     colorstr = 'pink'
     if i.status.is_closed then
       colorstr = 'lightgrey'
@@ -210,15 +214,29 @@ class CosmosysIssue < ActiveRecord::Base
     return colorstr
   end
 
-  def self.get_border_color(i)
-    colorstr = 'black'
-    if i.assigned_to == User.current then
-      colorstr = 'blue'
+  def get_border_color
+    i = self.issue
+    iscolor = i.tracker.csys.paint_pref[:issue_color]
+    if self.is_valid? then
+      if i.assigned_to == User.current then
+        colorstr = iscolor['own']
+      else
+        colorstr = iscolor['valid']
+      end
+    else
+      colorstr = iscolor['invalid']
     end
     return colorstr
   end
 
+  def get_label_chapter
+    self.get_identifier+"\n----\n"+self.class.word_wrap(self.issue.subject, line_width: 12)
+  end
   
+  def get_label_issue
+    "{ "+self.get_identifier+"|"+self.class.word_wrap(self.issue.subject, line_width: 12) + "}"
+  end
+
   # -----------------------------------
 
   def to_graphviz_depupn(cl,n_node,upn,isfirst,torecalc,root_url,levels_counter,force_end,colordep)
@@ -227,23 +245,25 @@ class CosmosysIssue < ActiveRecord::Base
     else
       stylestr = 'filled'
     end
-    if (upn.children.size>0) then
+    if (upn.csys.is_chapter?) then
       shapestr =  upn.tracker.csys.paint_pref[:chapter_shape]
-      labelstr =  upn.csys.get_identifier+"\n----\n"+self.class.word_wrap(upn.subject, line_width: 12)
+      labelstr = upn.csys.get_label_chapter
+      fontnamestr = 'times italic'
     else
       shapestr =  upn.tracker.csys.paint_pref[:issue_shape]
-      labelstr =  "{ "+upn.csys.get_identifier+"|"+self.class.word_wrap(upn.subject, line_width: 12) + "}"
+      labelstr = upn.csys.get_label_issue
+      fontnamestr = 'times'
     end
 
     if not(force_end) then
-      colorstr = CosmosysIssue.get_border_color(upn)
-      fillstr = CosmosysIssue.get_fill_color(upn)
-      upn_node = cl.add_nodes( upn.id.to_s, :label => labelstr,
+      colorstr = upn.csys.get_border_color
+      fillstr = upn.csys.get_fill_color
+      upn_node = cl.add_nodes( upn.id.to_s, :label => labelstr, :fontname => fontnamestr,
         :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
         :URL => root_url + "/issues/" + upn.id.to_s)
     else
-      colorstr = CosmosysIssue.get_border_color(upn)
-      upn_node = cl.add_nodes( upn.id.to_s, :label => "{ ... }",
+      colorstr = upn.csys.get_border_color
+      upn_node = cl.add_nodes( upn.id.to_s, :label => "{ ... }", :fontname => fontnamestr,
         :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
         :URL => root_url + "/issues/" + upn.id.to_s)
       
@@ -280,22 +300,24 @@ class CosmosysIssue < ActiveRecord::Base
     else
       stylestr = 'filled'
     end
-    if (dwn.children.size>0) then
+    if (dwn.csys.is_chapter?) then
       shapestr = dwn.tracker.csys.paint_pref[:chapter_shape]
-      labelstr = dwn.csys.get_identifier+"\n----\n"+self.class.word_wrap(dwn.subject, line_width: 12)
+      labelstr = dwn.csys.get_label_chapter
+      fontnamestr = 'times italic'
     else
       shapestr = dwn.tracker.csys.paint_pref[:issue_shape]
-      labelstr =  "{ "+dwn.csys.get_identifier+"|"+self.class.word_wrap(dwn.subject, line_width: 12) + "}"
+      labelstr = dwn.csys.get_label_issue
+      fontnamestr = 'times'
     end
     if not(force_end) then
-      colorstr = CosmosysIssue.get_border_color(dwn)
-      fillstr = CosmosysIssue.get_fill_color(dwn)
-      dwn_node = cl.add_nodes( dwn.id.to_s, :label => labelstr,
+      colorstr = dwn.csys.get_border_color
+      fillstr = dwn.csys.get_fill_color
+      dwn_node = cl.add_nodes( dwn.id.to_s, :label => labelstr, :fontname => :fontnamestr,
         :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
         :URL => root_url + "/issues/" + dwn.id.to_s)
     else
-      colorstr = CosmosysIssue.get_border_color(dwn)
-      dwn_node = cl.add_nodes( dwn.id.to_s, :label => "{ ... }",
+      colorstr = dwn.csys.get_border_color
+      dwn_node = cl.add_nodes( dwn.id.to_s, :label => "{ ... }", :fontname => :fontnamestr,
         :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
         :URL => root_url + "/issues/" + dwn.id.to_s)
     end
@@ -331,7 +353,6 @@ class CosmosysIssue < ActiveRecord::Base
 
   def to_graphviz_depcluster(cl,isfirst,torecalc,root_url)
     if ((self.issue.children.size > 0)) then
-      shapestr =  self.issue.tracker.csys.paint_pref[:issue_shape]
       desc = self.get_descendents
       added_nodes = []
       relnode = []
@@ -346,9 +367,17 @@ class CosmosysIssue < ActiveRecord::Base
               anyrel = true
             end 
           }
-          labelstr = "{"+e.csys.get_identifier+"|"+self.class.word_wrap(e.subject, line_width: 12) + "}"
-          fillstr = CosmosysIssue.get_fill_color(e)
-          e_node = cl.add_nodes(e.id.to_s, :label => labelstr,  
+          fillstr = e.csys.get_fill_color
+          if e.csys.is_chapter?
+            shapestr =  e.tracker.csys.paint_pref[:chapter_shape]
+            labelstr = e.csys.get_label_chapter
+            fontnamestr = 'times italic'
+          else
+            shapestr =  e.tracker.csys.paint_pref[:issue_shape]
+            labelstr = e.csys.get_label_issue
+            fontnamestr = 'times'
+          end          
+          e_node = cl.add_nodes(e.id.to_s, :label => labelstr, :fontname => :fontnamestr,
             :style => 'filled', :color => 'black', :fillcolor => fillstr, :shape => shapestr,
             :URL => root_url + "/issues/" + e.id.to_s)
           if anyrel then
@@ -372,10 +401,19 @@ class CosmosysIssue < ActiveRecord::Base
         self.issue.relations_from.each{|dwn|
           dwnrel += [dwn.issue_to]
         }
-        colorstr = CosmosysIssue.get_border_color(self.issue)
-        fillstr = CosmosysIssue.get_fill_color(self.issue)
-        n_node = cl.add_nodes( self.issue.id.to_s, :label => self.get_identifier+"\n----\n"+self.class.word_wrap(self.issue.subject, line_width: 12),
-          :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => 'note', :penwidth => 3,
+        colorstr = self.get_border_color
+        fillstr = self.get_fill_color
+        if self.is_chapter?
+          shapestr = self.issue.tracker.csys.paint_pref[:chapter_shape]
+          labelstr = self.get_label_chapter
+          fontnamestr = 'times italic'
+        else
+          shapestr = self.issue.tracker.csys.paint_pref[:issue_shape]
+          labelstr = self.get_label_issue
+          fontnamestr = 'times'
+        end
+        n_node = cl.add_nodes( self.issue.id.to_s, :label => labelstr, :fontname => :fontnamestr,
+          :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr, :penwidth => 3,
           :URL => root_url + "/issues/" + self.issue.id.to_s)
         siblings_counter = 0
         self.issue.relations_from.each{|dwn|
@@ -406,10 +444,18 @@ class CosmosysIssue < ActiveRecord::Base
       end
       return cl,torecalc
     else
-      shapestr =  self.issue.tracker.csys.paint_pref[:issue_shape]
-      colorstr = CosmosysIssue.get_border_color(self.issue)
-      fillstr = CosmosysIssue.get_fill_color(self.issue)
-      n_node = cl.add_nodes( self.issue.id.to_s, :label => "{"+self.get_identifier+"|"+self.class.word_wrap(self.issue.subject, line_width: 12) + "}",  
+      if (self.is_chapter?) then
+        shapestr =  self.issue.tracker.csys.paint_pref[:chapter_shape]
+        labelstr = self.get_label_chapter
+        fontnamestr = 'times italic'
+      else
+        shapestr =  self.issue.tracker.csys.paint_pref[:issue_shape]
+        labelstr = self.get_label_issue
+        fontnamestr = 'times'
+      end
+      colorstr = self.get_border_color
+      fillstr = self.get_fill_color
+      n_node = cl.add_nodes( self.issue.id.to_s, :label => labelstr, :fontname => :fontnamestr,
         :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr, :penwidth => 3,
         :URL => root_url + "/issues/" + self.issue.id.to_s)
       downrel = []
@@ -466,17 +512,17 @@ class CosmosysIssue < ActiveRecord::Base
 
 
   def to_graphviz_hieupn(cl,n_node,upn,isfirst,torecalc,root_url)
-    colorstr = CosmosysIssue.get_border_color(upn)
-    if upn.children.size > 0 then
+    colorstr = upn.csys.get_border_color
+    if upn.csys.is_chapter? then
       shapestr = upn.tracker.csys.paint_pref[:chapter_shape]
-      labelstr = upn.csys.get_identifier+"\n----\n"+self.class.word_wrap(upn.subject, line_width: 12)
+      labelstr = upn.csys.get_label_chapter
       fontnamestr = 'times italic'            
     else
       shapestr = upn.tracker.csys.paint_pref[:issue_shape]
-      labelstr = "{"+upn.csys.get_identifier+"|"+self.class.word_wrap(upn.subject, line_width: 12) + "}"      
+      labelstr = upn.csys.get_label_issue
       fontnamestr = 'times'
     end
-    fillstr = CosmosysIssue.get_fill_color(upn)
+    fillstr = upn.csys.get_fill_color
     upn_node = cl.add_nodes( upn.id.to_s, :label => labelstr, :fontname => fontnamestr,
       :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
       :URL => root_url + "/issues/" + upn.id.to_s)
@@ -491,17 +537,17 @@ class CosmosysIssue < ActiveRecord::Base
   end
 
   def to_graphviz_hiedwn(cl,n_node,dwn,isfirst,torecalc,root_url)
-    colorstr = CosmosysIssue.get_border_color(dwn)
-    if dwn.children.size > 0 then
+    colorstr = dwn.csys.get_border_color
+    if dwn.csys.is_chapter? then
       shapestr =  dwn.tracker.csys.paint_pref[:chapter_shape]
-      labelstr = dwn.csys.get_identifier+"\n----\n"+self.class.word_wrap(dwn.subject, line_width: 12)
+      labelstr = dwn.csys.get_label_chapter
       fontnamestr = 'times italic'            
     else
       shapestr = dwn.tracker.csys.paint_pref[:issue_shape]
-      labelstr = "{"+dwn.csys.get_identifier+"|"+self.class.word_wrap(dwn.subject, line_width: 12) + "}"      
+      labelstr = dwn.csys.get_label_issue
       fontnamestr = 'times'
     end
-    fillstr = CosmosysIssue.get_fill_color(dwn)
+    fillstr = dwn.csys.get_fill_color
     dwn_node = cl.add_nodes( dwn.id.to_s, :label => labelstr, :fontname => fontnamestr, 
       :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
       :URL => root_url + "/issues/" + dwn.id.to_s)
@@ -517,17 +563,17 @@ class CosmosysIssue < ActiveRecord::Base
 
 
   def to_graphviz_hiecluster(cl,isfirst,torecalc,root_url)
-    colorstr = CosmosysIssue.get_border_color(self.issue)
-    if self.issue.children.size > 0 then
+    colorstr = self.get_border_color
+    if self.is_chapter? then
       shapestr =  self.issue.tracker.csys.paint_pref[:chapter_shape]
-      labelstr = self.get_identifier+"\n----\n"+self.class.word_wrap(self.issue.subject, line_width: 12)
-      fontnamestr = 'times italic'            
+      labelstr = self.get_label_chapter
+      fontnamestr = 'times italic'
     else
       shapestr =  self.issue.tracker.csys.paint_pref[:issue_shape]
-      labelstr = "{"+self.get_identifier+"|"+self.class.word_wrap(self.issue.subject, line_width: 12) + "}"      
+      labelstr = self.get_label_issue
       fontnamestr = 'times'
     end
-    fillstr = CosmosysIssue.get_fill_color(self.issue)
+    fillstr = self.get_fill_color
     n_node = cl.add_nodes( self.issue.id.to_s, :label => labelstr, :fontname => fontnamestr, 
       :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr, :penwidth => 3,
       :URL => root_url + "/issues/" + self.issue.id.to_s)

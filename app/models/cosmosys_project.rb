@@ -118,17 +118,17 @@ class CosmosysProject < ActiveRecord::Base
     dcl = dg.add_graph(:clusterD, :label => 'Dependences', :labeljust => 'l', :labelloc=>'t', :margin=> '5') 
 
     self.project.issues.each{|n|
-      colorstr = CosmosysIssue.get_border_color(n)
-      if n.children.size > 0 then
+      colorstr = n.csys.get_border_color
+      if n.csys.is_chapter? then
         shapestr =  n.tracker.csys.paint_pref[:chapter_shape]
-        labelstr = n.csys.get_identifier+"\n----\n"+n.csys.class.word_wrap(n.subject, line_width: 12)
+        labelstr = n.csys.get_label_chapter
         fontnamestr = 'times italic'            
       else
         shapestr =  n.tracker.csys.paint_pref[:issue_shape]
-        labelstr = "{"+n.csys.get_identifier+"|"+n.csys.class.word_wrap(n.subject, line_width: 12) + "}"      
+        labelstr = n.csys.get_label_issue
         fontnamestr = 'times'
       end
-      fillstr = CosmosysIssue.get_fill_color(n)
+      fillstr = n.csys.get_fill_color
       hn_node = hcl.add_nodes( n.id.to_s, :label => labelstr, :fontname => fontnamestr, 
         :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
         :URL => root_url + "/issues/" + n.id.to_s)

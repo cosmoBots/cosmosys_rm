@@ -11,7 +11,7 @@ class CosmosysTracker < ActiveRecord::Base
       'copied_to' => 'orange'
     },
     :issue_color => {
-      'normal' => 'black',
+      'valid' => 'black',
       'invalid' => 'red',
       'own' => 'blue',
     },

@@ -90,6 +90,9 @@ class CosmosysController < ApplicationController
     require 'json'
 
     is_project = false
+    unless User.current.allowed_to?(:csys_treeview, @project)
+      raise ::Unauthorized
+    end
     if request.get? then
       print("GET!!!!!")
       treedata = []      
@@ -132,6 +135,7 @@ class CosmosysController < ApplicationController
       print("\nremote_host ",request.remote_host)
 
       tree_node = create_tree(thisnode,root_url,is_project,@project)
+
 
       #print treedata
       treedata << tree_node
