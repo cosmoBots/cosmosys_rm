@@ -120,11 +120,11 @@ class CosmosysProject < ActiveRecord::Base
     self.project.issues.each{|n|
       colorstr = CosmosysIssue.get_border_color(n)
       if n.children.size > 0 then
-        shapestr = "note"
+        shapestr =  n.tracker.csys.paint_pref[:chapter_shape]
         labelstr = n.csys.get_identifier+"\n----\n"+n.csys.class.word_wrap(n.subject, line_width: 12)
         fontnamestr = 'times italic'            
       else
-        shapestr = 'Mrecord'
+        shapestr =  n.tracker.csys.paint_pref[:issue_shape]
         labelstr = "{"+n.csys.get_identifier+"|"+n.csys.class.word_wrap(n.subject, line_width: 12) + "}"      
         fontnamestr = 'times'
       end
@@ -140,7 +140,7 @@ class CosmosysProject < ActiveRecord::Base
           :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
           :URL => root_url + "/issues/" + n.id.to_s)
         n.relations_from.each {|r|
-          colorstr = CosmosysIssue.get_relation_color(r)
+          colorstr = CosmosysIssue.get_relation_color(r,n.tracker)
           dcl.add_edges(dn_node, r.issue_to_id.to_s, :color => colorstr)
         }
       end
