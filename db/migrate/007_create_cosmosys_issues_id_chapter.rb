@@ -10,6 +10,33 @@ class CreateCosmosysIssuesIdChapter < ActiveRecord::Migration[5.2]
 		roles_ids = []
 		Role.all.each{|tr|
 			roles_ids << tr.id
+			changed = false
+			if tr.permissions.include?(:view_issues) then
+				tr.permissions += [
+					:csys_iss_index,
+					:csys_show,
+					:csys_treeview,
+					:csys_tree,
+					:csys_menu					
+				]
+				changed = true
+			end
+			if tr.permissions.include?(:edit_issues) then
+				tr.permissions += [
+					:csys_iss_index,
+					:csys_down,
+					:csys_up,
+					:csys_show,
+					:csys_treeview,
+					:csys_treeview_commit,
+					:csys_tree,
+					:csys_menu
+				]
+				changed = true
+			end
+			if changed then
+				tr.save
+			end
 		}
 		status_ids = []
 		IssueStatus.all.each{|st|

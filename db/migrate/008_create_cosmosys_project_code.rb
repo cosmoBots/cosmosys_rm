@@ -17,7 +17,7 @@ class CreateCosmosysProjectCode < ActiveRecord::Migration[5.2]
 	end
 
 	def down
-		cfProjectCode = IssueCustomField.find_by_name('RqPrefix')
+		cfProjectCode = IssueCustomField.find_by_name('csCode')
 		if (cfProjectCode != nil) then
 			cfProjectCode.destroy
 		end

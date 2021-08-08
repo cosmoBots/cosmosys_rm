@@ -18,7 +18,6 @@ Redmine::Plugin.register :cosmosys do
   permission :csys_show, :cosmosys => :show
   permission :csys_up, :cosmosys => :up
   permission :csys_down, :cosmosys => :down
-
   permission :csys_iss_index, :cosmosys_issues => :index
 
   menu :project_menu, :cosmosys, {:controller => 'cosmosys', :action => 'menu' }, :caption => 'cosmoSys', :after => :activity, :param => :id
