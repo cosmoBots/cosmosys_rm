@@ -9,7 +9,7 @@ get 'cosmosys/:id/issues', :to => 'cosmosys_issues#index'
 
 
 #post 'cosmosys/:id/tree', :to => 'cosmosys#tree'
-post 'cosmosys/:id/treeview', :to => 'cosmosys#treeview'
+post 'cosmosys/:id/treeview', :to => 'cosmosys#treeview_commit'
 post 'cosmosys/:id/up', :to => 'cosmosys#up'
 post 'cosmosys/:id/down', :to => 'cosmosys#down'
 

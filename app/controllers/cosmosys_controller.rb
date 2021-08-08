@@ -1,5 +1,6 @@
 class CosmosysController < ApplicationController
-  before_action :find_this_project#, :authorize, :except => [:find_project, :treeview]
+  before_action :find_this_project
+  before_action :authorize, :except => [:find_this_project, :treeview,:treeview_commit]
 
   @@tmpdir = './tmp/csys_plugin/'
 
@@ -152,7 +153,14 @@ class CosmosysController < ApplicationController
           ActiveSupport.escape_html_entities_in_json = true        
         }
       end
-    else
+    end
+  end
+  
+  def treeview_commit
+    is_project = false
+    if request.get? then
+      print("GET!!!!!")
+    else 
       print("POST!!!!!")
       structure = params[:structure]
       json_params_wrapper = JSON.parse(request.body.read())
@@ -170,7 +178,6 @@ class CosmosysController < ApplicationController
       end
       redirect_to :action => 'treeview', :method => :get, :id => @project.id 
     end
-
   end
 
   def tree
@@ -214,6 +221,7 @@ class CosmosysController < ApplicationController
   end
   
   def find_this_project
+    puts "find_this_project++++++"
     # @project variable must be set before calling the authorize filter
     if (params[:issue_id]) then
       @issue = Issue.find(params[:issue_id])

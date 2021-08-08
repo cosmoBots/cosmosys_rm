@@ -615,22 +615,16 @@ class CosmosysIssue < ActiveRecord::Base
 
   def get_identifier
     if self.csid == nil then
-      puts(self.identifier+":")
-      puts("csid is null")
       cvid = self.issue.custom_values.find_by_custom_field_id(@@cfid.id)
       if cvid == nil then
-        puts("cvid is null")
         cvid = self.issue.custom_values.new
         cvid.custom_field_id = @@cfid.id
       end
-      puts("pongo el valor")
       cvid.value = self.identifier
       self.csid = cvid
-      puts("grabo")
       cvid.save
       self.save
     end
-    puts("devuelvo")
     return self.identifier
   end
 
