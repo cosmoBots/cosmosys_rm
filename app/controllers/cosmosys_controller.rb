@@ -90,9 +90,11 @@ class CosmosysController < ApplicationController
     require 'json'
 
     is_project = false
+=begin
     unless User.current.allowed_to?(:csys_treeview, @project)
       raise ::Unauthorized
     end
+=end
     if request.get? then
       print("GET!!!!!")
       treedata = []      
