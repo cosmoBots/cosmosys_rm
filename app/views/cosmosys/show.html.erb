@@ -6,7 +6,7 @@
 <h1><strong><%= @project.identifier %>: </strong><%= @project.name %></h1>
 <% roots = @project.issues.where(:parent => nil).sort_by{|obj| obj.chapter_order}
 	roots.each { |i| 
-          if (i.children.size >= 1) then
+          if (i.csys.is_chapter?) then
 		classdiv = "cSysParentIssue"
 		chapstr = i.chapter_str
           else
@@ -19,7 +19,7 @@
 <h1><strong><%= link_to chapstr, issue_path(i.id) %>: </strong><%= title %></h1>
 <div class="<%= classdiv %>descr"><%= textilizable i, :description %></div>
 <% i.children.sort_by{|obj| obj.chapter_order}.each { |i2| 
-          if (i2.children.size >= 1) then 
+          if (i2.csys.is_chapter?) then 
 		classdiv = "cSysParentIssue"
 		chapstr = i2.chapter_str
           else
@@ -33,7 +33,7 @@
 <h2><strong><%= link_to chapstr, issue_path(i2.id) %>: </strong><%= title %></h2>
 <div class="<%= classdiv %>descr"><%= textilizable i2, :description %></div>
 <% i2.children.sort_by{|obj| obj.chapter_order}.each { |i3| 
-          if (i3.children.size >= 1) then 
+          if (i3.csys.is_chapter?) then 
 		classdiv = "cSysParentIssue"
 		chapstr = i3.chapter_str
           else
@@ -47,7 +47,7 @@
 <h3><strong><%= link_to chapstr, issue_path(i3.id) %>: </strong><%= title %></h3>
 <div class="<%= classdiv %>descr"><%= textilizable i3, :description %></div>
 <% i3.children.sort_by{|obj| obj.chapter_order}.each { |i4| 
-          if (i4.children.size >= 1) then 
+          if (i4.csys.is_chapter?) then 
 		classdiv = "cSysParentIssue"
 		chapstr = i4.chapter_str
           else
@@ -60,7 +60,7 @@
 <h4><strong><%= link_to chapstr, issue_path(i4.id) %>: </strong><%= title %></h4>
 <div class="<%= classdiv %>descr"><%= textilizable i4, :description %></div>
 <% i4.children.sort_by{|obj| obj.chapter_order}.each { |i5| 
-          if (i5.children.size >= 1) then 
+          if (i5.csys.is_chapter?) then 
 		classdiv = "cSysParentIssue"
 		chapstr = i5.chapter_str
           else
@@ -73,7 +73,7 @@
 <h5><strong><%= link_to chapstr, issue_path(i5.id) %>: </strong><%= title %></h5>
 <div class="<%= classdiv %>descr"><%= textilizable i5, :description %></div>
 <% i5.children.sort_by{|obj| obj.chapter_order}.each { |i6| 
-          if (i6.children.size >= 1) then 
+          if (i6.csys.is_chapter?) then 
 		classdiv = "cSysParentIssue"
 		chapstr = i6.chapter_str
           else
@@ -86,7 +86,7 @@
 <h6><strong><%= link_to chapstr, issue_path(i6.id) %>: </strong><%= title %></h6>
 <div class="<%= classdiv %>descr"><%= textilizable i6, :description %></div>
 <% i6.children.sort_by{|obj| obj.chapter_order}.each { |i7| 
-          if (i7.children.size >= 1) then 
+          if (i7.csys.is_chapter?) then 
 		classdiv = "cSysParentIssue"
 		chapstr = i7.chapter_str     
           else
@@ -99,7 +99,7 @@
 <h7><strong><%= link_to chapstr, issue_path(i7.id) %>: </strong><%= title %></h7>
 <div class="<%= classdiv %>descr"><%= textilizable i7, :description %></div>
 <% i7.children.sort_by{|obj| obj.chapter_order}.each { |i8| 
-          if (i8.children.size >= 1) then 
+          if (i8.csys.is_chapter?) then 
 		classdiv = "cSysParentIssue"
 		chapstr = i8.chapter_str
           else
@@ -112,7 +112,7 @@
 <h8><strong><%= link_to chapstr, issue_path(i8.id) %>: </strong><%= title %></h8>
 <div class="<%= classdiv %>descr"><%= textilizable i8, :description %></div>
 <% i8.children.sort_by{|obj| obj.chapter_order}.each { |i9| 
-          if (i9.children.size >= 1) then 
+          if (i9.csys.is_chapter?) then 
 		classdiv = "cSysParentIssue"
 		chapstr = i9.chapter_str
           else
