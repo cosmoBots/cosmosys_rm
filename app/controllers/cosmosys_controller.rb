@@ -26,7 +26,7 @@ class CosmosysController < ApplicationController
     redirect_to :action => 'show', :method => :get, :id => @project.id 
   end
   
-  def create_tree(current_issue, root_url, is_project, thisproject)
+  def create_tree(current_issue, root_url, is_project, thisproject,thiskey)
     if (is_project) then
       output = ""
       output += ("\project: " + thisproject.name)
@@ -41,10 +41,10 @@ class CosmosysController < ApplicationController
         'subtitle': thisproject.description,
         'expanded': true,
         'id': thisproject.id.to_s,
-        'return_url': root_url+'/cosmosys/'+thisproject.id.to_s+'/treeview.json',
-        'issue_show_url': issue_url,
-        'issue_new_url': issue_new_url,
-        'issue_edit_url': issue_url+"/edit",
+        'return_url': root_url+'/cosmosys/'+thisproject.id.to_s+'/treeview.json'+'?key='+thiskey,
+        'issue_show_url': issue_url+'?key='+thiskey,
+        'issue_new_url': issue_new_url+'?key='+thiskey,
+        'issue_edit_url': issue_url+"/edit"+'?key='+thiskey,
         'children': []
       }
     else
@@ -56,14 +56,15 @@ class CosmosysController < ApplicationController
       output += ("\nissue_new_url: " + issue_new_url.to_s)
       cftitlevalue = current_issue.subject
       cfchapterstring = current_issue.chapter_str
-      tree_node = {'title':  cfchapterstring + " " + current_issue.csys.get_identifier  + ": " + cftitlevalue,
+      tree_node = {
+        'title':  cfchapterstring + " " + current_issue.csys.get_identifier  + ": " + cftitlevalue,
         'subtitle': current_issue.description,
         'expanded': true,
         'id': current_issue.id.to_s,
-        'return_url': root_url+'/cosmosys/'+thisproject.id.to_s+'/treeview.json?issue_id='+current_issue.id.to_s,
-        'issue_show_url': issue_url,
-        'issue_new_url': issue_new_url,
-        'issue_edit_url': issue_url+"/edit",
+        'return_url': root_url+'/cosmosys/'+thisproject.id.to_s+'/treeview.json?issue_id='+current_issue.id.to_s+'?key='+thiskey,
+        'issue_show_url': issue_url+'?key='+thiskey,
+        'issue_new_url': issue_new_url+'?key='+thiskey,
+        'issue_edit_url': issue_url+"/edit"+'?key='+thiskey,
         'children': []
       }
     end
@@ -76,7 +77,7 @@ class CosmosysController < ApplicationController
       childrenitems = current_issue.children.sort_by {|obj| obj.csys.chapter_order}
     end
     childrenitems.each{|c|
-      child_node = create_tree(c,root_url,false,thisproject)
+      child_node = create_tree(c,root_url,false,thisproject,thiskey)
       tree_node[:children] << child_node
     }
     if (is_project) then
@@ -90,7 +91,7 @@ class CosmosysController < ApplicationController
     require 'json'
 
     is_project = false
-    # Todo: change hardcoded key to the one 
+
     if params[:key] != nil then
       u = User.find_by_api_key(params[:key])
     else
@@ -100,7 +101,6 @@ class CosmosysController < ApplicationController
     unless u.allowed_to?(:csys_treeview, @project)
       raise ::Unauthorized
     end
-    puts("Salgo de probar")
     if request.get? then
       print("GET!!!!!")
       respond_to do |format|
@@ -111,12 +111,8 @@ class CosmosysController < ApplicationController
         format.json { 
           treedata = []
           if (@issue) then
-            print("NODO!!!\n")
             thisnodeid = params[:issue_id]
           else
-            print("PROYECTO!!!\n")
-            puts(params[:id])
-            puts(params[:issue_id])
             res = @project.issues.where(:parent => nil).limit(1)
             if res.size > 0 then
               thisnodeid = res.first.id
@@ -129,26 +125,26 @@ class CosmosysController < ApplicationController
             thisnode=Issue.find(thisnodeid)
           end
           splitted_url = request.fullpath.split('/cosmosys')
-          print("\nsplitted_url: ",splitted_url)
+          #print("\nsplitted_url: ",splitted_url)
           root_url = splitted_url[0]
-          print("\nroot_url: ",root_url)
-          print("\nbase_url: ",request.base_url)
-          print("\nurl: ",request.url)
-          print("\noriginal: ",request.original_url)
-          print("\nhost: ",request.host)
-          print("\nhost wp: ",request.host_with_port)
-          print("\nfiltered_path: ",request.filtered_path)
-          print("\nfullpath: ",request.fullpath)
-          print("\npath_translated: ",request.path_translated)
-          print("\noriginal_fullpath ",request.original_fullpath)
-          print("\nserver_name ",request.server_name)
-          print("\noriginal_fullpath ",request.original_fullpath)
-          print("\npath ",request.path)
-          print("\nserver_addr ",request.server_addr)
-          print("\nhost ",request.host)
-          print("\nremote_host ",request.remote_host)
+          #print("\nroot_url: ",root_url)
+          #print("\nbase_url: ",request.base_url)
+          #print("\nurl: ",request.url)
+          #print("\noriginal: ",request.original_url)
+          #print("\nhost: ",request.host)
+          #print("\nhost wp: ",request.host_with_port)
+          #print("\nfiltered_path: ",request.filtered_path)
+          #print("\nfullpath: ",request.fullpath)
+          #print("\npath_translated: ",request.path_translated)
+          #print("\noriginal_fullpath ",request.original_fullpath)
+          #print("\nserver_name ",request.server_name)
+          #print("\noriginal_fullpath ",request.original_fullpath)
+          #print("\npath ",request.path)
+          #print("\nserver_addr ",request.server_addr)
+          #print("\nhost ",request.host)
+          #print("\nremote_host ",request.remote_host)
     
-          tree_node = create_tree(thisnode,root_url,is_project,@project)
+          tree_node = create_tree(thisnode,root_url,is_project,@project,u.api_key)
     
           #print treedata
           treedata << tree_node
@@ -164,6 +160,17 @@ class CosmosysController < ApplicationController
   
   def treeview_commit
     is_project = false
+
+    if params[:key] != nil then
+      u = User.find_by_api_key(params[:key])
+    else
+      u = User.current
+    end
+
+    unless u.allowed_to?(:csys_treeview_commit, @project)
+      raise ::Unauthorized
+    end
+
     if request.get? then
       print("GET!!!!!")
     else 
@@ -172,7 +179,7 @@ class CosmosysController < ApplicationController
       json_params_wrapper = JSON.parse(request.body.read())
       structure = json_params_wrapper['structure']
       print ("structure: \n\n")
-      print structure
+      puts structure
       rootnode = structure[0]
       ch = rootnode['children']
       chord = 1
@@ -193,12 +200,9 @@ class CosmosysController < ApplicationController
     root_url = request.base_url+splitted_url[0]
 
     if request.get? then
-      print("GET tree ")
       if (params[:issue_id]) then
-        puts("nodo" + params[:issue_id].to_s)
         treedata = @project.csys.show_as_json(params[:issue_id],root_url)
       else
-        puts("proyecto" + @project.id.to_s)
         treedata = @project.csys.show_as_json(nil,root_url)
       end
 
@@ -214,7 +218,6 @@ class CosmosysController < ApplicationController
         }
       end
     else
-      puts("POST tree ")
       structure = params[:structure]
       json_params_wrapper = JSON.parse(request.body.read())
       structure = json_params_wrapper['structure']
@@ -227,7 +230,6 @@ class CosmosysController < ApplicationController
   end
   
   def find_this_project
-    puts "find_this_project++++++"
     # @project variable must be set before calling the authorize filter
     if (params[:issue_id]) then
       @issue = Issue.find(params[:issue_id])
