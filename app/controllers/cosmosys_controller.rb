@@ -90,69 +90,69 @@ class CosmosysController < ApplicationController
     require 'json'
 
     is_project = false
-=begin
-    unless User.current.allowed_to?(:csys_treeview, @project)
+    # Todo: change hardcoded key to the one 
+    if params[:key] != nil then
+      u = User.find_by_api_key(params[:key])
+    else
+      u = User.current
+    end
+
+    unless u.allowed_to?(:csys_treeview, @project)
       raise ::Unauthorized
     end
-=end
+    puts("Salgo de probar")
     if request.get? then
       print("GET!!!!!")
-      treedata = []      
-      if (@issue) then
-        print("NODO!!!\n")
-        thisnodeid = params[:issue_id]
-      else
-        print("PROYECTO!!!\n")
-        puts(params[:id])
-        puts(params[:issue_id])
-        res = @project.issues.where(:parent => nil).limit(1)
-        if res.size > 0 then
-          thisnodeid = res.first.id
-        else
-          thisnodeid = nil
-        end
-        is_project = true
-      end
-      if (thisnodeid != nil) then
-        thisnode=Issue.find(thisnodeid)
-      end
-      splitted_url = request.fullpath.split('/cosmosys')
-      print("\nsplitted_url: ",splitted_url)
-      root_url = splitted_url[0]
-      print("\nroot_url: ",root_url)
-      print("\nbase_url: ",request.base_url)
-      print("\nurl: ",request.url)
-      print("\noriginal: ",request.original_url)
-      print("\nhost: ",request.host)
-      print("\nhost wp: ",request.host_with_port)
-      print("\nfiltered_path: ",request.filtered_path)
-      print("\nfullpath: ",request.fullpath)
-      print("\npath_translated: ",request.path_translated)
-      print("\noriginal_fullpath ",request.original_fullpath)
-      print("\nserver_name ",request.server_name)
-      print("\noriginal_fullpath ",request.original_fullpath)
-      print("\npath ",request.path)
-      print("\nserver_addr ",request.server_addr)
-      print("\nhost ",request.host)
-      print("\nremote_host ",request.remote_host)
-
-      tree_node = create_tree(thisnode,root_url,is_project,@project)
-
-
-      #print treedata
-      treedata << tree_node
-
       respond_to do |format|
         format.html {
-          if @output then 
-            if @output.size <= 500 then
-              flash.now[:notice] = "Issuetree:\n" + @output.to_s
-            else
-              flash.now[:notice] = "Issuetree too long response\n"
-            end
-          end
+          # calculate 
+          @key = User.current.api_key
         }
         format.json { 
+          treedata = []
+          if (@issue) then
+            print("NODO!!!\n")
+            thisnodeid = params[:issue_id]
+          else
+            print("PROYECTO!!!\n")
+            puts(params[:id])
+            puts(params[:issue_id])
+            res = @project.issues.where(:parent => nil).limit(1)
+            if res.size > 0 then
+              thisnodeid = res.first.id
+            else
+              thisnodeid = nil
+            end
+            is_project = true
+          end
+          if (thisnodeid != nil) then
+            thisnode=Issue.find(thisnodeid)
+          end
+          splitted_url = request.fullpath.split('/cosmosys')
+          print("\nsplitted_url: ",splitted_url)
+          root_url = splitted_url[0]
+          print("\nroot_url: ",root_url)
+          print("\nbase_url: ",request.base_url)
+          print("\nurl: ",request.url)
+          print("\noriginal: ",request.original_url)
+          print("\nhost: ",request.host)
+          print("\nhost wp: ",request.host_with_port)
+          print("\nfiltered_path: ",request.filtered_path)
+          print("\nfullpath: ",request.fullpath)
+          print("\npath_translated: ",request.path_translated)
+          print("\noriginal_fullpath ",request.original_fullpath)
+          print("\nserver_name ",request.server_name)
+          print("\noriginal_fullpath ",request.original_fullpath)
+          print("\npath ",request.path)
+          print("\nserver_addr ",request.server_addr)
+          print("\nhost ",request.host)
+          print("\nremote_host ",request.remote_host)
+    
+          tree_node = create_tree(thisnode,root_url,is_project,@project)
+    
+          #print treedata
+          treedata << tree_node
+
           require 'json'
           ActiveSupport.escape_html_entities_in_json = false
           render json: treedata
