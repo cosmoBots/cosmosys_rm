@@ -1,9 +1,10 @@
 require_dependency 'queries_helper'
 
 module QueriesHelperPatch
-  @@chapid_str = "cf_"+IssueCustomField.find_by_name("csChapter").id.to_s
+
   def column_content(column, item)
-    if (column.name.to_s == @@chapid_str) then
+    chapid_str = "cf_"+IssueCustomField.find_by_name("csChapter").id.to_s
+    if (column.name.to_s == chapid_str) then
       ret = item.csys.chapter_str
       ret
     else
