@@ -130,6 +130,7 @@ class CosmosysIssue < ActiveRecord::Base
     tree_node[:url] = root_url+'/cosmosys/'+self.issue.id.to_s,    
     tree_node[:return_url] = root_url+'/cosmosys/'+self.issue.id.to_s+'/tree.json',    
     tree_node[:wloadpct] = self.vwloadpct
+    tree_node[:valid] = self.is_valid?
 
     tree_node[:assigned_to] = []
     if (self.issue.assigned_to != nil) then
