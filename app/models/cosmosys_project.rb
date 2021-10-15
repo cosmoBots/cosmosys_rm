@@ -66,6 +66,8 @@ class CosmosysProject < ActiveRecord::Base
     treedata[:project] = self.project.attributes.slice("id","name","identifier")
     treedata[:project][:url] = root_url
     treedata[:project][:return_url] = root_url+'/cosmosys/'+self.project.id.to_s+'/tree.json'
+    treedata[:project][:code] = self.code
+    treedata[:project][:description] = self.project.description
     treedata[:targets] = {}
     treedata[:statuses] = {}
     treedata[:trackers] = {}

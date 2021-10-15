@@ -132,6 +132,14 @@ class CosmosysIssue < ActiveRecord::Base
     tree_node[:wloadpct] = self.vwloadpct
     tree_node[:valid] = self.is_valid?
 
+    self.issue.custom_field_values.each{ |cf| 
+      if cf.value_present? then
+        tree_node[cf.custom_field.name] = cf.value
+      else
+        tree_node[cf.custom_field.name] = ""
+      end
+    }
+
     tree_node[:assigned_to] = []
     if (self.issue.assigned_to != nil) then
       if self.issue.assigned_to.class == Group then
