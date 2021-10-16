@@ -23,7 +23,7 @@ class CosmosysProject < ActiveRecord::Base
   end
 
   def show_as_json(issue_id,root_url)
-	return self.show_as_json_inner(issue_id, root_url, true)
+	return self.show_as_json_inner(issue_id, root_url, false)
   end
 
   def versions_list(p,td)
