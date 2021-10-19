@@ -168,12 +168,16 @@ class CosmosysIssue < ActiveRecord::Base
       end
     }
     tree_node[:relations] = []
+    tree_node[:blocks] = {}
     self.issue.relations_from.where(:relation_type => 'blocks').each{|rl|
       tree_node[:relations] << rl.attributes.slice("issue_to_id")
+      tree_node[:blocks][rl.issue_to.csys.identifier] = rl.issue_to_id
     }
     tree_node[:relations_back] = []
+    tree_node[:blocks_back] = {}
     self.issue.relations_to.where(:relation_type => 'blocks').each{|rl|
       tree_node[:relations_back] << rl.attributes.slice("issue_from_id")
+      tree_node[:blocks_back][rl.issue_from.csys.identifier] = rl.issue_from_id
     }
 
     return tree_node
