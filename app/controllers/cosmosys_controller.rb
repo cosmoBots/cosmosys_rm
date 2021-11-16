@@ -201,9 +201,9 @@ class CosmosysController < ApplicationController
 
     if request.get? then
       if (params[:issue_id]) then
-        treedata = @project.csys.show_as_json(params[:issue_id],root_url)
+        treedata = @project.csys.show_as_json(params[:issue_id],root_url,false)
       else
-        treedata = @project.csys.show_as_json(nil,root_url)
+        treedata = @project.csys.show_as_json(nil,root_url,false)
       end
 
       respond_to do |format|

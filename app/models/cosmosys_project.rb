@@ -22,8 +22,8 @@ class CosmosysProject < ActiveRecord::Base
 	  return roots
   end
 
-  def show_as_json(issue_id,root_url)
-	return self.show_as_json_inner(issue_id, root_url, true)
+  def show_as_json(issue_id,root_url,include_subprojects)
+	return self.show_as_json_inner(issue_id, root_url, include_subprojects)
   end
 
   def versions_list(p,td)
@@ -66,6 +66,8 @@ class CosmosysProject < ActiveRecord::Base
     treedata[:project] = self.project.attributes.slice("id","name","identifier")
     treedata[:project][:url] = root_url
     treedata[:project][:return_url] = root_url+'/cosmosys/'+self.project.id.to_s+'/tree.json'
+    treedata[:project][:code] = self.code
+    treedata[:project][:description] = self.project.description
     treedata[:targets] = {}
     treedata[:statuses] = {}
     treedata[:trackers] = {}

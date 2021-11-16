@@ -133,6 +133,15 @@ class CosmosysIssue < ActiveRecord::Base
     tree_node[:url] = root_url+'/cosmosys/'+self.issue.id.to_s,    
     tree_node[:return_url] = root_url+'/cosmosys/'+self.issue.id.to_s+'/tree.json',    
     tree_node[:wloadpct] = self.vwloadpct
+    tree_node[:valid] = self.is_valid?
+
+    self.issue.custom_field_values.each{ |cf| 
+      if cf.value_present? then
+        tree_node[cf.custom_field.name] = cf.value
+      else
+        tree_node[cf.custom_field.name] = ""
+      end
+    }
 
     tree_node[:assigned_to] = []
     if (self.issue.assigned_to != nil) then
@@ -162,12 +171,16 @@ class CosmosysIssue < ActiveRecord::Base
       end
     }
     tree_node[:relations] = []
+    tree_node[:blocks] = {}
     self.issue.relations_from.where(:relation_type => 'blocks').each{|rl|
       tree_node[:relations] << rl.attributes.slice("issue_to_id")
+      tree_node[:blocks][rl.issue_to.csys.identifier] = rl.issue_to_id
     }
     tree_node[:relations_back] = []
+    tree_node[:blocks_back] = {}
     self.issue.relations_to.where(:relation_type => 'blocks').each{|rl|
       tree_node[:relations_back] << rl.attributes.slice("issue_from_id")
+      tree_node[:blocks_back][rl.issue_from.csys.identifier] = rl.issue_from_id
     }
 
     return tree_node
