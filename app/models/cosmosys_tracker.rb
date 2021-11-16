@@ -10,8 +10,14 @@ class CosmosysTracker < ActiveRecord::Base
       'relates' => 'green',
       'copied_to' => 'orange'
     },
+    :shall_draw_relation => {
+      'blocks' => true,
+      'precedes' => true,
+      'relates' => true,
+      'copied_to' => true
+    },
     :issue_color => {
-      'valid' => 'black',
+      'normal' => 'black',
       'invalid' => 'red',
       'own' => 'blue',
     },

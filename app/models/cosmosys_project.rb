@@ -119,9 +119,9 @@ class CosmosysProject < ActiveRecord::Base
 
     self.project.issues.each{|n|
       colorstr = n.csys.get_border_color
-      if n.csys.is_chapter? then
+      if not(n.csys.shall_show_id) then
         shapestr =  n.tracker.csys.paint_pref[:chapter_shape]
-        labelstr = n.csys.get_label_chapter
+        labelstr = n.csys.get_label_noid
         fontnamestr = 'times italic'            
       else
         shapestr =  n.tracker.csys.paint_pref[:issue_shape]
