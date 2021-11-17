@@ -253,13 +253,20 @@ class CosmosysIssue < ActiveRecord::Base
     return colorstr
   end
 
-  def get_label_noid
+  def inner_get_label_noid
     # self.get_identifier+"\n----\n"+self.class.word_wrap(self.issue.subject, line_width: 12)
     self.class.word_wrap(self.issue.subject, line_width: 12)
   end
   
-  def get_label_issue
+  def inner_get_label_issue
     "{ "+self.get_identifier+"|"+self.class.word_wrap(self.issue.subject, line_width: 12) + "}"
+  end
+
+  def get_label_noid
+    inner_get_label_noid
+  end
+  def get_label_issue
+    inner_get_label_issue
   end
 
   # -----------------------------------
