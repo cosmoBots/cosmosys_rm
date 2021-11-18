@@ -53,6 +53,17 @@ class CosmosysIssue < ActiveRecord::Base
     }
     return result
   end
+
+  def get_descendents_in_project
+    result = []
+    self.issue.children.each{|c|
+      if c.project == self.issue.project then
+        result.append(c)
+        result += c.csys.get_descendents
+      end
+    }
+    return result
+  end
   
   ## Calculated (READONLY) attributes
 
@@ -253,20 +264,29 @@ class CosmosysIssue < ActiveRecord::Base
     return colorstr
   end
 
-  def inner_get_label_noid
+  def inner_get_label_noid(baseproj,boundary_node=false)
     # self.get_identifier+"\n----\n"+self.class.word_wrap(self.issue.subject, line_width: 12)
-    self.class.word_wrap(self.issue.subject, line_width: 12)
+    # If the project is not the same, the subject must be marked as "External"
+    prependstr = ""
+    if (baseproj != self.issue.project) then
+      prependstr = "+"
+    end
+    self.class.word_wrap(prependstr+self.issue.subject, line_width: 12)
   end
   
-  def inner_get_label_issue
-    "{ "+self.get_identifier+"|"+self.class.word_wrap(self.issue.subject, line_width: 12) + "}"
+  def inner_get_label_issue(baseproj,boundary_node=false)
+    prependstr = ""
+    if (baseproj != self.issue.project) then
+      prependstr = "+"
+    end
+    "{ "+self.get_identifier+"|"+self.class.word_wrap(prependstr+self.issue.subject, line_width: 12) + "}"
   end
 
-  def get_label_noid
-    inner_get_label_noid
+  def get_label_noid(baseproj,boundary_node=false)
+    inner_get_label_noid(baseproj,boundary_node)
   end
-  def get_label_issue
-    inner_get_label_issue
+  def get_label_issue(baseproj,boundary_node=false)
+    inner_get_label_issue(baseproj,boundary_node)
   end
 
   # -----------------------------------
@@ -279,11 +299,11 @@ class CosmosysIssue < ActiveRecord::Base
     end
     if (not(upn.csys.shall_show_id)) then
       shapestr =  upn.tracker.csys.paint_pref[:chapter_shape]
-      labelstr = upn.csys.get_label_noid
+      labelstr = upn.csys.get_label_noid(self.issue.project)
       fontnamestr = 'times italic'
     else
       shapestr =  upn.tracker.csys.paint_pref[:issue_shape]
-      labelstr = upn.csys.get_label_issue
+      labelstr = upn.csys.get_label_issue(self.issue.project)
       fontnamestr = 'times'
     end
 
@@ -292,32 +312,42 @@ class CosmosysIssue < ActiveRecord::Base
       fillstr = upn.csys.get_fill_color
       upn_node = cl.add_nodes( upn.id.to_s, :label => labelstr, :fontname => fontnamestr,
         :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-        :URL => root_url + "/issues/" + upn.id.to_s)
+        :URL => root_url + "/issues/" + upn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5)
     else
       colorstr = upn.csys.get_border_color
       upn_node = cl.add_nodes( upn.id.to_s, :label => "{ ... }", :fontname => fontnamestr,
         :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-        :URL => root_url + "/issues/" + upn.id.to_s)
+        :URL => root_url + "/issues/" + upn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5)
       
     end
-    cl.add_edges(upn_node, n_node, :color => colordep)
-    if not(force_end) then
-      if (levels_counter < @@max_graph_levels) then
-        siblings_counter = 0
-        levels_counter += 1
-        upn.relations_to.each {|upn2|
-          if (CosmosysIssue.shall_draw_relation(upn2,upn.tracker)) then
-            colordep2 = CosmosysIssue.get_relation_color(upn2,upn.tracker)
-            if (siblings_counter < @@max_graph_siblings) then
-              cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn2.issue_from,isfirst,torecalc,root_url,levels_counter,force_end,colordep2)
-            else
-              if (siblings_counter <= @@max_graph_siblings) then
-                cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn2.issue_from,isfirst,torecalc,root_url,levels_counter,true,colordep2)
+    cl.add_edges(upn_node, n_node, :color => colordep,:arrowsize => 0.5)
+    if upn.project == self.issue.project then
+      if not(force_end) then
+        if (levels_counter < @@max_graph_levels) then
+          relup = []
+          upn.relations_from.each {|upn2|
+            if (CosmosysIssue.shall_draw_relation(upn2,upn.tracker)) then
+              relup += [upn2.issue_from]
+            end
+          }
+          siblings_counter = 0
+          levels_counter += 1
+          upn.relations_to.each {|upn2|
+            if (CosmosysIssue.shall_draw_relation(upn2,upn.tracker)) then
+              colordep2 = CosmosysIssue.get_relation_color(upn2,upn.tracker)
+              if not(relup.include?(upn2.issue_from.parent)) then
+                if (siblings_counter < @@max_graph_siblings) then
+                  cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn2.issue_from,isfirst,torecalc,root_url,levels_counter,force_end,colordep2)
+                else
+                  if (siblings_counter <= @@max_graph_siblings) then
+                    cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn2.issue_from,isfirst,torecalc,root_url,levels_counter,true,colordep2)
+                  end
+                end
+                siblings_counter += 1
               end
             end
-            siblings_counter += 1
-          end
-        }
+          }
+        end
       end
     end
     if (isfirst) then
@@ -336,11 +366,11 @@ class CosmosysIssue < ActiveRecord::Base
     end
     if (not(dwn.csys.shall_show_id)) then
       shapestr = dwn.tracker.csys.paint_pref[:chapter_shape]
-      labelstr = dwn.csys.get_label_noid
+      labelstr = dwn.csys.get_label_noid(self.issue.project)
       fontnamestr = 'times italic'
     else
       shapestr = dwn.tracker.csys.paint_pref[:issue_shape]
-      labelstr = dwn.csys.get_label_issue
+      labelstr = dwn.csys.get_label_issue(self.issue.project)
       fontnamestr = 'times'
     end
     if not(force_end) then
@@ -348,39 +378,43 @@ class CosmosysIssue < ActiveRecord::Base
       fillstr = dwn.csys.get_fill_color
       dwn_node = cl.add_nodes( dwn.id.to_s, :label => labelstr, :fontname => :fontnamestr,
         :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-        :URL => root_url + "/issues/" + dwn.id.to_s)
+        :URL => root_url + "/issues/" + dwn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5)
     else
       colorstr = dwn.csys.get_border_color
       dwn_node = cl.add_nodes( dwn.id.to_s, :label => "{ ... }", :fontname => :fontnamestr,
         :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-        :URL => root_url + "/issues/" + dwn.id.to_s)
+        :URL => root_url + "/issues/" + dwn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5)
     end
-    cl.add_edges(n_node, dwn_node, :color => colordep)
-    if not(force_end) then
-      if (levels_counter < @@max_graph_levels) then
-        reldown = []
-        dwn.relations_from.each {|dwn2|
-          if (CosmosysIssue.shall_draw_relation(dwn2,dwn.tracker)) then
-            reldown += [dwn2.issue_to]
-          end
-        }
-        levels_counter += 1
-        siblings_counter = 0
-        dwn.relations_from.each {|dwn2|
-          if (CosmosysIssue.shall_draw_relation(dwn2,dwn.tracker)) then
-            colordep2 = CosmosysIssue.get_relation_color(dwn2,dwn.tracker)
-            if not(reldown.include?(dwn2.issue_to.parent)) then
-              if (siblings_counter < @@max_graph_siblings) then
-                cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn2.issue_to,isfirst,torecalc,root_url, levels_counter, force_end,colordep2)
-              else
-                if (siblings_counter <= @@max_graph_siblings) then
-                  cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn2.issue_to,isfirst,torecalc,root_url, levels_counter, true,colordep2)
+    cl.add_edges(n_node, dwn_node, :color => colordep,:arrowsize => 0.5)
+    if dwn.project == self.issue.project then
+      if not(force_end) then
+        if (levels_counter < @@max_graph_levels) then
+          reldown = []
+          dwn.relations_from.each {|dwn2|
+            if (CosmosysIssue.shall_draw_relation(dwn2,dwn.tracker)) then
+              reldown += [dwn2.issue_to]
+            end
+          }
+          levels_counter += 1
+          siblings_counter = 0
+          dwn.relations_from.each {|dwn2|
+            #if dwn2.issue_to.project == self.issue.project then
+              if (CosmosysIssue.shall_draw_relation(dwn2,dwn.tracker)) then
+                colordep2 = CosmosysIssue.get_relation_color(dwn2,dwn.tracker)
+                if not(reldown.include?(dwn2.issue_to.parent)) then
+                  if (siblings_counter < @@max_graph_siblings) then
+                    cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn2.issue_to,isfirst,torecalc,root_url, levels_counter, force_end,colordep2)
+                  else
+                    if (siblings_counter <= @@max_graph_siblings) then
+                      cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn2.issue_to,isfirst,torecalc,root_url, levels_counter, true,colordep2)
+                    end
+                  end
+                  siblings_counter += 1
                 end
               end
-              siblings_counter += 1
-            end
-          end
-        }
+            #end
+          }
+        end
       end
     end
     if (isfirst) then
@@ -391,7 +425,7 @@ class CosmosysIssue < ActiveRecord::Base
 
   def to_graphviz_depcluster(cl,isfirst,torecalc,root_url)
     if ((self.issue.children.size > 0)) then
-      desc = self.get_descendents
+      desc = self.get_descendents_in_project
       added_nodes = []
       relnode = []
       self.issue.relations_from.each{|rn|
@@ -399,43 +433,69 @@ class CosmosysIssue < ActiveRecord::Base
           relnode += [rn.issue_to]
         end
       }
-      desc.each { |e| 
-        if (e.relations.size>0) then
-          anyrel = false
-          e.relations_from.each {|r|
-            if (CosmosysIssue.shall_draw_relation(r,e.tracker)) then
-              if not(relnode.include?(r.issue_to)) then
-                anyrel = true
-              end 
-            end
-          }
-          fillstr = e.csys.get_fill_color
-          if not(e.csys.shall_show_id) then
-            shapestr =  e.tracker.csys.paint_pref[:chapter_shape]
-            labelstr = e.csys.get_label_noid
-            fontnamestr = 'times italic'
-          else
-            shapestr =  e.tracker.csys.paint_pref[:issue_shape]
-            labelstr = e.csys.get_label_issue
-            fontnamestr = 'times'
-          end          
-          e_node = cl.add_nodes(e.id.to_s, :label => labelstr, :fontname => :fontnamestr,
-            :style => 'filled', :color => 'black', :fillcolor => fillstr, :shape => shapestr,
-            :URL => root_url + "/issues/" + e.id.to_s)
-          if anyrel then
+      # Increment one level to show the boundaries
+      descbound = []
+
+        desc.each { |e| 
+          if (e.relations.size>0) then
             e.relations_from.each {|r|
               if (CosmosysIssue.shall_draw_relation(r,e.tracker)) then
-                if (not(desc.include?(r.issue_to))) then
-                  if (not(added_nodes.include?(r.issue_to))) then
-                    added_nodes.append(r.issue_to)
-                    ext_node = cl.add_nodes(r.issue_to.id.to_s,
-                      :URL => root_url + "/issues/" + r.issue_to.id.to_s)
-                  end
-                end
-                colorstr = CosmosysIssue.get_relation_color(r,e.tracker)
-                cl.add_edges(e_node, r.issue_to_id.to_s, :color => colorstr)
+                if not(desc.include?(r.issue_to)) then
+                  descbound += [r.issue_to]
+                end 
               end
             }
+            e.relations_to.each {|r|
+              if (CosmosysIssue.shall_draw_relation(r,e.tracker)) then
+                if not(desc.include?(r.issue_from)) then
+                  descbound += [r.issue_from]
+                end 
+              end
+            }          
+          end
+        }
+
+      (desc+descbound).each { |e|
+        anyrel = false
+        fillstr = e.csys.get_fill_color
+        boundary_node = descbound.include?(e)      
+        if (e.relations.size>0) then
+          e.relations_from.each {|r|
+            if r.issue_to != e then
+              if (CosmosysIssue.shall_draw_relation(r,e.tracker)) then
+                if (desc+descbound).include?(r.issue_to) then
+                  colorstr = CosmosysIssue.get_relation_color(r,e.tracker)
+                  cl.add_edges(e.id.to_s, r.issue_to_id.to_s, :color => colorstr, :arrowsize => 0.5)
+                  anyrel = true
+                end
+              end
+            end
+          }
+          e.relations_to.each {|r|
+            if r.issue_from != e then            
+              if (CosmosysIssue.shall_draw_relation(r,e.tracker)) then
+                if (desc+descbound).include?(r.issue_from) then
+                  colorstr = CosmosysIssue.get_relation_color(r,e.tracker)
+                  cl.add_edges(r.issue_from_id.to_s, e.id.to_s, :color => colorstr, :arrowsize => 0.5)
+                  anyrel = true
+                end 
+              end
+            end
+          }
+          if anyrel then
+            if not(e.csys.shall_show_id) then
+              shapestr =  e.tracker.csys.paint_pref[:chapter_shape]
+              labelstr = e.csys.get_label_noid(self.issue.project,boundary_node)
+              fontnamestr = 'times italic'
+            else
+              shapestr =  e.tracker.csys.paint_pref[:issue_shape]
+              labelstr = e.csys.get_label_issue(self.issue.project,boundary_node)
+              fontnamestr = 'times'
+            end
+    
+            e_node = cl.add_nodes(e.id.to_s, :label => labelstr, :fontname => :fontnamestr,
+              :style => 'filled', :color => 'black', :fillcolor => fillstr, :shape => shapestr,
+              :URL => root_url + "/issues/" + e.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5)
           end
         end
       }
@@ -451,63 +511,67 @@ class CosmosysIssue < ActiveRecord::Base
         fillstr = self.get_fill_color
         if not(self.shall_show_id)
           shapestr = self.issue.tracker.csys.paint_pref[:chapter_shape]
-          labelstr = self.get_label_noid
+          labelstr = self.get_label_noid(self.issue.project)
           fontnamestr = 'times italic'
         else
           shapestr = self.issue.tracker.csys.paint_pref[:issue_shape]
-          labelstr = self.get_label_issue
+          labelstr = self.get_label_issue(self.issue.project)
           fontnamestr = 'times'
         end
         n_node = cl.add_nodes( self.issue.id.to_s, :label => labelstr, :fontname => :fontnamestr,
-          :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr, :penwidth => 3,
-          :URL => root_url + "/issues/" + self.issue.id.to_s)
+          :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr, :penwidth => 1.5,
+          :URL => root_url + "/issues/" + self.issue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0)
         siblings_counter = 0
         self.issue.relations_from.each{|dwn|
-          if (CosmosysIssue.shall_draw_relation(dwn,self.issue.tracker)) then
-            colordep2 = CosmosysIssue.get_relation_color(dwn,self.issue.tracker)
-            if not(dwnrel.include?(dwn.issue_to.parent)) then
+          #if dwn.issue_to.project == self.issue.project then
+            if (CosmosysIssue.shall_draw_relation(dwn,self.issue.tracker)) then
+              colordep2 = CosmosysIssue.get_relation_color(dwn,self.issue.tracker)
+              if not(dwnrel.include?(dwn.issue_to.parent)) then
+                if (siblings_counter < @@max_graph_siblings) then
+                  cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,false,colordep2)
+                else
+                  if (siblings_counter <= @@max_graph_siblings) then
+                    cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,true,colordep2)
+                  end
+                end
+                siblings_counter += 1
+              end
+            end
+          #end
+        }
+        siblings_counter = 0
+        self.issue.relations_to.each{|upn|
+          #if upn.issue_from.project == self.issue.project then
+            if (CosmosysIssue.shall_draw_relation(upn,self.issue.tracker)) then
+              colordep2 = CosmosysIssue.get_relation_color(upn,self.issue.tracker)
               if (siblings_counter < @@max_graph_siblings) then
-                cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,false,colordep2)
+                cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,false,colordep2)
               else
                 if (siblings_counter <= @@max_graph_siblings) then
-                  cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,true,colordep2)
+                  cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,true,colordep2)
                 end
               end
               siblings_counter += 1
             end
-          end
-        }
-        siblings_counter = 0
-        self.issue.relations_to.each{|upn|
-          if (CosmosysIssue.shall_draw_relation(upn,self.issue.tracker)) then
-            colordep2 = CosmosysIssue.get_relation_color(upn,self.issue.tracker)
-            if (siblings_counter < @@max_graph_siblings) then
-              cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,false,colordep2)
-            else
-              if (siblings_counter <= @@max_graph_siblings) then
-                cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,true,colordep2)
-              end
-            end
-            siblings_counter += 1
-          end
+          #end
         }
       end
       return cl,torecalc
     else
       if not(self.shall_show_id) then
         shapestr =  self.issue.tracker.csys.paint_pref[:chapter_shape]
-        labelstr = self.get_label_noid
+        labelstr = self.get_label_noid(self.issue.project)
         fontnamestr = 'times italic'
       else
         shapestr =  self.issue.tracker.csys.paint_pref[:issue_shape]
-        labelstr = self.get_label_issue
+        labelstr = self.get_label_issue(self.issue.project)
         fontnamestr = 'times'
       end
       colorstr = self.get_border_color
       fillstr = self.get_fill_color
       n_node = cl.add_nodes( self.issue.id.to_s, :label => labelstr, :fontname => :fontnamestr,
-        :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr, :penwidth => 3,
-        :URL => root_url + "/issues/" + self.issue.id.to_s)
+        :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr, :penwidth => 1.5,
+        :URL => root_url + "/issues/" + self.issue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0)
       downrel = []
       self.issue.relations_from.each{|dwn|
         if (CosmosysIssue.shall_draw_relation(dwn,self.issue.tracker)) then
@@ -516,33 +580,37 @@ class CosmosysIssue < ActiveRecord::Base
       }
       siblings_counter = 0
       self.issue.relations_from.each{|dwn|
-        if (CosmosysIssue.shall_draw_relation(dwn,self.issue.tracker)) then
-          colordep2 = CosmosysIssue.get_relation_color(dwn,self.issue.tracker)
-          if not(downrel.include?(dwn.issue_to.parent)) then 
+        #if dwn.issue_to.project == self.issue.project then
+          if (CosmosysIssue.shall_draw_relation(dwn,self.issue.tracker)) then
+            colordep2 = CosmosysIssue.get_relation_color(dwn,self.issue.tracker)
+            if not(downrel.include?(dwn.issue_to.parent)) then 
+              if (siblings_counter < @@max_graph_siblings) then
+                cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,false,colordep2)
+              else
+                if (siblings_counter <= @@max_graph_siblings) then
+                  cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,true,colordep2)
+                end        
+              end        
+              siblings_counter += 1
+            end
+          end
+        #end
+      }
+      siblings_counter = 0
+      self.issue.relations_to.each{|upn|
+        #if upn.issue_from.project == self.issue.project then
+          if (CosmosysIssue.shall_draw_relation(upn,self.issue.tracker)) then
+            colordep2 = CosmosysIssue.get_relation_color(upn,self.issue.tracker)
             if (siblings_counter < @@max_graph_siblings) then
-              cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,false,colordep2)
+              cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,false,colordep2)
             else
               if (siblings_counter <= @@max_graph_siblings) then
-                cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,true,colordep2)
+                cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,true,colordep2)
               end        
             end        
             siblings_counter += 1
           end
-        end
-      }
-      siblings_counter = 0
-      self.issue.relations_to.each{|upn|
-        if (CosmosysIssue.shall_draw_relation(upn,self.issue.tracker)) then
-          colordep2 = CosmosysIssue.get_relation_color(upn,self.issue.tracker)
-          if (siblings_counter < @@max_graph_siblings) then
-            cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,false,colordep2)
-          else
-            if (siblings_counter <= @@max_graph_siblings) then
-              cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,true,colordep2)
-            end        
-          end        
-          siblings_counter += 1
-        end
+        #end
       }
       return cl,torecalc
     end    
@@ -571,20 +639,22 @@ class CosmosysIssue < ActiveRecord::Base
     colorstr = upn.csys.get_border_color
     if not(upn.csys.shall_show_id) then
       shapestr = upn.tracker.csys.paint_pref[:chapter_shape]
-      labelstr = upn.csys.get_label_noid
+      labelstr = upn.csys.get_label_noid(self.issue.project)
       fontnamestr = 'times italic'            
     else
       shapestr = upn.tracker.csys.paint_pref[:issue_shape]
-      labelstr = upn.csys.get_label_issue
+      labelstr = upn.csys.get_label_issue(self.issue.project)
       fontnamestr = 'times'
     end
     fillstr = upn.csys.get_fill_color
     upn_node = cl.add_nodes( upn.id.to_s, :label => labelstr, :fontname => fontnamestr,
       :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-      :URL => root_url + "/issues/" + upn.id.to_s)
-    cl.add_edges(upn_node, n_node)
-    if (upn.parent != nil) then
-      cl,torecalc=self.to_graphviz_hieupn(cl,upn_node,upn.parent,isfirst,torecalc,root_url)
+      :URL => root_url + "/issues/" + upn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5)
+    cl.add_edges(upn_node, n_node, :arrowsize => 0.5)
+    if upn.project == self.issue.project then
+      if (upn.parent != nil) then
+        cl,torecalc=self.to_graphviz_hieupn(cl,upn_node,upn.parent,isfirst,torecalc,root_url)
+      end
     end
     if (isfirst) then
       torecalc[upn.id.to_s.to_sym] = upn.id
@@ -596,21 +666,24 @@ class CosmosysIssue < ActiveRecord::Base
     colorstr = dwn.csys.get_border_color
     if not(dwn.csys.shall_show_id) then
       shapestr =  dwn.tracker.csys.paint_pref[:chapter_shape]
-      labelstr = dwn.csys.get_label_noid
+      labelstr = dwn.csys.get_label_noid(self.issue.project)
       fontnamestr = 'times italic'            
     else
       shapestr = dwn.tracker.csys.paint_pref[:issue_shape]
-      labelstr = dwn.csys.get_label_issue
+      labelstr = dwn.csys.get_label_issue(self.issue.project)
       fontnamestr = 'times'
     end
+
     fillstr = dwn.csys.get_fill_color
     dwn_node = cl.add_nodes( dwn.id.to_s, :label => labelstr, :fontname => fontnamestr, 
       :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-      :URL => root_url + "/issues/" + dwn.id.to_s)
-    cl.add_edges(n_node, dwn_node)
-    dwn.children.each {|dwn2|
-      cl,torecalc=self.to_graphviz_hiedwn(cl,dwn_node,dwn2,isfirst,torecalc,root_url)
-    }
+      :URL => root_url + "/issues/" + dwn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5)
+    cl.add_edges(n_node, dwn_node, :arrowsize => 0.5)
+    if dwn.project == self.issue.project then
+      dwn.children.each {|dwn2|
+        cl,torecalc=self.to_graphviz_hiedwn(cl,dwn_node,dwn2,isfirst,torecalc,root_url)
+      }
+    end
     if (isfirst) then
       torecalc[dwn.id.to_s.to_sym] = dwn.id
     end      
@@ -622,17 +695,17 @@ class CosmosysIssue < ActiveRecord::Base
     colorstr = self.get_border_color
     if not(self.shall_show_id) then
       shapestr =  self.issue.tracker.csys.paint_pref[:chapter_shape]
-      labelstr = self.get_label_noid
+      labelstr = self.get_label_noid(self.issue.project)
       fontnamestr = 'times italic'
     else
       shapestr =  self.issue.tracker.csys.paint_pref[:issue_shape]
-      labelstr = self.get_label_issue
+      labelstr = self.get_label_issue(self.issue.project)
       fontnamestr = 'times'
     end
     fillstr = self.get_fill_color
     n_node = cl.add_nodes( self.issue.id.to_s, :label => labelstr, :fontname => fontnamestr, 
-      :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr, :penwidth => 3,
-      :URL => root_url + "/issues/" + self.issue.id.to_s)
+      :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr, :penwidth => 1.5,
+      :URL => root_url + "/issues/" + self.issue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0)
     self.issue.children.each{|dwn|
       cl,torecalc=self.to_graphviz_hiedwn(cl,n_node,dwn,isfirst,torecalc,root_url)
     }
