@@ -808,5 +808,11 @@ class CosmosysIssue < ActiveRecord::Base
     self.identifier = cp.code + '-' + format('%04d', cp.id_counter+1)
     cp.id_counter += 1
     cp.save
+    cvid = self.issue.custom_values.find_by_custom_field_id(@@cfid.id)
+    if cvid != nil then
+      cvid.value = self.identifier
+      self.csid = cvid      
+      cvid.save      
+    end
   end  
 end
