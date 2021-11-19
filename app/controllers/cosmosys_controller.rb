@@ -73,6 +73,9 @@ class CosmosysController < ApplicationController
     #print "children: " + tree_node[:children].to_s + "++++\n"
     if (is_project) then
       childrenitems = thisproject.issues.where(:parent => nil).sort_by {|obj| obj.csys.chapter_order}
+      if childrenitems.size == 0 then
+        childrenitems = thisproject.issues.select { |n| n.parent.project != thisproject }
+      end
     else
       childrenitems = current_issue.children.sort_by {|obj| obj.csys.chapter_order}
     end

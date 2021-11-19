@@ -5,6 +5,9 @@
 <div class="<%= "cSysProject" %>">
 <h1><strong><%= @project.identifier %>: </strong><%= @project.name %></h1>
 <% roots = @project.issues.where(:parent => nil).sort_by{|obj| obj.chapter_order}
+	if roots.size == 0 then
+		roots = @project.issues.select { |n| n.parent.project != @project }
+	end
 	roots.each { |i| 
           if (i.csys.is_chapter?) then
 		classdiv = "cSysParentIssue"
