@@ -19,6 +19,10 @@ Redmine::Plugin.register :cosmosys do
   permission :csys_up, :cosmosys => :up
   permission :csys_down, :cosmosys => :down
   permission :csys_iss_index, :cosmosys_issues => :index
+  permission :csys_iss_dep_gv, :cosmosys_issues => :dep_gv
+  permission :csys_iss_hie_gv, :cosmosys_issues => :hie_gv
+  permission :csys_dep_gv, :cosmosys => :dep_gv
+  permission :csys_hie_gv, :cosmosys => :hie_gv
 
   menu :project_menu, :cosmosys, {:controller => 'cosmosys', :action => 'menu' }, :caption => 'cosmoSys', :after => :activity, :param => :id
   menu :project_menu, :cosmosys_treeview, {:controller => 'cosmosys', :action => 'treeview' }, :caption => 'cSysTreeView', :after => :issues, :param => :id
@@ -39,4 +43,8 @@ Redmine::Plugin.register :cosmosys do
   require 'project_patch'
   require 'version_patch'
   require 'issue_patch'
+
+  Mime::Type.register "image/svg+xml", :svg
+  Mime::Type.register 'text/vnd.graphviz', :gv
+
 end

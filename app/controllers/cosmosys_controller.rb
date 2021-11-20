@@ -1,15 +1,45 @@
 class CosmosysController < ApplicationController
   before_action :find_this_project
-  before_action :authorize, :except => [:find_this_project, :treeview,:treeview_commit]
+  before_action :authorize, :except => [:find_this_project, :treeview,:treeview_commit,:dep_gv,:hie_gv]
 
   @@tmpdir = './tmp/csys_plugin/'
+
+  def dep_gv
+    splitted_url = request.fullpath.split('/cosmosys')
+    root_url = request.base_url+splitted_url[0]
+    dg,hg = @project.csys.calculate_graphs(root_url)
+    respond_to do |format|  ## Add this
+      format.svg {
+        render :inline => dg.output(:svg => String)
+      }
+      format.gv {
+        render :inline => dg.to_s
+      }
+    end
+  end
+
+  def hie_gv
+    splitted_url = request.fullpath.split('/cosmosys')
+    root_url = request.base_url+splitted_url[0]
+    dg,hg = @project.csys.calculate_graphs(root_url)
+    respond_to do |format|  ## Add this
+      format.svg {
+        render :inline => hg.output(:svg => String)
+      }
+      format.gv {
+        render :inline => hg.to_s
+      }
+    end
+  end
+
+
 
   def menu
   end
 
   def show
   end
-  
+
   def up
     @issue.csys.chapter_order -= 1.1
     @issue.csys.save

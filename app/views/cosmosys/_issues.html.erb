@@ -9,9 +9,15 @@ root_url = request.base_url+splitted_url[0]
   <button class="tablink" onclick="openIssueTab('Hyerarchy', this, 'green')">Hyerarchy</button>
   <div id="Dependences" class="tabcontent">
   <%= textilizable(@issue.csys.show_depgraph(root_url)) %>
+    <p style="color: blue;">Links for downloading GraphViz and SVG:</p>
+  <p><%= link_to 'GV', { :controller => 'cosmosys_issues', :action => 'dep_gv', :format => 'gv'}, :method => :get %> 
+<%= link_to 'SVG', { :controller => 'cosmosys_issues', :action => 'dep_gv', :format => 'svg'}, :method => :get %></p>
   </div>
   <div id="Hyerarchy" class="tabcontent">
   <%= textilizable(@issue.csys.show_hiegraph(root_url)) %>
+    <p style="color: blue;">Links for downloading GraphViz and SVG:</p>
+  <p><%= link_to 'GV', { :controller => 'cosmosys_issues', :action => 'hie_gv', :format => 'gv'}, :method => :get %> 
+<%= link_to 'SVG', { :controller => 'cosmosys_issues', :action => 'hie_gv', :format => 'svg'}, :method => :get %></p>  
   </div>
 </div>
 <%= javascript_include_tag 'cosmosys', :plugin => 'cosmosys' %>

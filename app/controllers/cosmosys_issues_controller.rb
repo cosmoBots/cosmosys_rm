@@ -20,7 +20,7 @@ class CosmosysIssuesController < ApplicationController
 
   before_action :find_issue, :only => [:show, :edit, :update]
   before_action :find_issues, :only => [:bulk_edit, :bulk_update, :destroy]
-  before_action :authorize, :except => [:index, :new, :create]
+  before_action :authorize, :except => [:index, :new, :create,:dep_gv,:hie_gv]
   before_action :find_optional_project, :only => [:index, :new, :create]
   before_action :build_new_issue_from_params, :only => [:new, :create]
   accept_rss_auth :index, :show
@@ -44,6 +44,46 @@ class CosmosysIssuesController < ApplicationController
 #  helper :issues_tags
   
   before_action :find_this_project, :only => [:index]
+
+  def dep_gv
+    splitted_url = request.fullpath.split('/cosmosys_issues')
+    root_url = request.base_url+splitted_url[0]
+    if(params[:id]) then
+      @issue = Issue.find(params[:id])
+    else
+      @issue = Issue.first
+    end
+    respond_to do |format|  ## Add this
+      format.svg {
+        g,torecalc = @issue.csys.to_graphviz_depgraph(true,{},root_url)
+        render :inline => g.output(:svg => String)
+      }
+      format.gv {
+        g,torecalc = @issue.csys.to_graphviz_depgraph(true,{},root_url)
+        render :inline => g.to_s
+      }
+    end
+  end
+
+  def hie_gv
+    splitted_url = request.fullpath.split('/cosmosys_issues')
+    root_url = request.base_url+splitted_url[0]
+    if(params[:id]) then
+      @issue = Issue.find(params[:id])
+    else
+      @issue = Issue.first
+    end
+    respond_to do |format|
+      format.svg {
+        g,torecalc = @issue.csys.to_graphviz_hiegraph(true,{},root_url)
+        render :inline => g.output(:svg => String)
+      }
+      format.gv {
+        g,torecalc = @issue.csys.to_graphviz_hiegraph(true,{},root_url)
+        render :inline => g.to_s
+      }
+    end
+  end
 
   def find_this_project
     # @project variable must be set before calling the authorize filter
