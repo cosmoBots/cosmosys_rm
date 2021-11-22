@@ -112,11 +112,11 @@ class CosmosysProject < ActiveRecord::Base
   end
   def calculate_graphs(root_url)
     # Create a new hierarchy graph
-    hg = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "40,30", :strict => true )
+    hg = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "40,30", :strict => true, :rankdir => "LR")
     hcl = hg.add_graph(:clusterD, :label => 'Hierarchy', :labeljust => 'l', :labelloc=>'t', :margin=> '5') 
 
-    # Create a new hierarchy graph
-    dg = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "40,30", :strict => true )
+    # Create a new dependence graph
+    dg = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "40,30", :strict => true, :rankdir => self.project.issues.first.csys.get_deprankdir)
     dcl = dg.add_graph(:clusterD, :label => 'Dependences', :labeljust => 'l', :labelloc=>'t', :margin=> '5') 
 
     self.project.issues.each{|n|
@@ -133,7 +133,7 @@ class CosmosysProject < ActiveRecord::Base
       fillstr = n.csys.get_fill_color
       hn_node = hcl.add_nodes( n.id.to_s, :label => labelstr, :fontname => fontnamestr, 
         :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-        :URL => root_url + "/issues/" + n.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5)
+        :URL => root_url + "/issues/" + n.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => n.description)
       n.children.each{|c|
         # In case a children does not belong to the project
         # it must be drawn as an "external" node
@@ -150,7 +150,7 @@ class CosmosysProject < ActiveRecord::Base
           end
           childnode_node = hcl.add_nodes( c.id.to_s, :label => labelstr, :fontname => fontnamestr, 
             :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-            :URL => root_url + "/issues/" + c.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5)
+            :URL => root_url + "/issues/" + c.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => c.description)
           hcl.add_edges(hn_node, childnode_node,:arrowsize => 0.5)
         else
           hcl.add_edges(hn_node, c.id.to_s,:arrowsize => 0.5)
@@ -165,7 +165,7 @@ class CosmosysProject < ActiveRecord::Base
               if dn_node == nil then
                 dn_node = dcl.add_nodes( n.id.to_s, :label => labelstr, :fontname => fontnamestr,   
                   :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-                  :URL => root_url + "/issues/" + n.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5)
+                  :URL => root_url + "/issues/" + n.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => n.description)
               end                
               # In case a relation does not belong to the project
               # it must be drawn as an "external" node
@@ -182,7 +182,7 @@ class CosmosysProject < ActiveRecord::Base
                 end
                 relnode_node = dcl.add_nodes( rissue.id.to_s, :label => labelstr, :fontname => fontnamestr, 
                   :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-                  :URL => root_url + "/issues/" + rissue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5)
+                  :URL => root_url + "/issues/" + rissue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => rissue.description)
                 colorstr = CosmosysIssue.get_relation_color(r,n.tracker)
                 dcl.add_edges(dn_node, relnode_node, :color => colorstr,:arrowsize => 0.5)
               else
@@ -199,7 +199,7 @@ class CosmosysProject < ActiveRecord::Base
               if dn_node == nil then
                 dn_node = dcl.add_nodes( n.id.to_s, :label => labelstr, :fontname => fontnamestr,   
                   :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-                  :URL => root_url + "/issues/" + n.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5)
+                  :URL => root_url + "/issues/" + n.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => n.description)
               end              
               # In case a relation does not belong to the project
               # it must be drawn as an "external" node
@@ -216,7 +216,7 @@ class CosmosysProject < ActiveRecord::Base
                 end
                 relnode_node = dcl.add_nodes( rissue.id.to_s, :label => labelstr, :fontname => fontnamestr, 
                   :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-                  :URL => root_url + "/issues/" + rissue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5)
+                  :URL => root_url + "/issues/" + rissue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => dcl.description)
               end          
               colorstr = CosmosysIssue.get_relation_color(r,n.tracker)
               dcl.add_edges(rissue.id.to_s, dn_node, :color => colorstr,:arrowsize => 0.5)

@@ -22,7 +22,8 @@ class CosmosysTracker < ActiveRecord::Base
       'own' => 'blue',
     },
     :issue_shape => 'Mrecord',
-    :chapter_shape => 'note'
+    :chapter_shape => 'note',
+    :deprankdir => 'LR'
   }
 
   def paint_pref
