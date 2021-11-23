@@ -1,8 +1,12 @@
 <% splitted_url = request.fullpath.split('/projects')
 root_url = request.base_url+splitted_url[0]
 dg,hg = @project.csys.calculate_graphs(root_url)
-project_overview_content_dep = @project.csys.show_depgraphs_pr(dg)
-project_overview_content_hie = @project.csys.show_hiegraphs_pr(hg)
+if (dg != nil) then
+  project_overview_content_dep = @project.csys.show_depgraphs_pr(dg)
+end
+if (hg != nil) then
+  project_overview_content_hie = @project.csys.show_hiegraphs_pr(hg)
+end
  %>
 <%= stylesheet_link_tag 'cosmosys', plugin: 'cosmosys' %> 
 <div class="project-content">

@@ -116,7 +116,13 @@ class CosmosysProject < ActiveRecord::Base
     hcl = hg.add_graph(:clusterD, :label => 'Hierarchy', :labeljust => 'l', :labelloc=>'t', :margin=> '5') 
 
     # Create a new dependence graph
-    dg = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "40,30", :strict => true, :rankdir => self.project.issues.first.csys.get_deprankdir)
+    if self.project.issues.first != nil then
+      dprnk = self.project.issues.first.csys.get_deprankdir
+    else
+      dprnk = Tracker.find_by_name("rq").csys.paint_pref[:deprankdir]
+    end
+    
+    dg = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "40,30", :strict => true, :rankdir => dprnk)
     dcl = dg.add_graph(:clusterD, :label => 'Dependences', :labeljust => 'l', :labelloc=>'t', :margin=> '5') 
 
     self.project.issues.each{|n|

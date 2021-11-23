@@ -8,13 +8,15 @@ class CosmosysController < ApplicationController
     splitted_url = request.fullpath.split('/cosmosys')
     root_url = request.base_url+splitted_url[0]
     dg,hg = @project.csys.calculate_graphs(root_url)
-    respond_to do |format|  ## Add this
-      format.svg {
-        render :inline => dg.output(:svg => String)
-      }
-      format.gv {
-        render :inline => dg.to_s
-      }
+    if (dg != nil) then
+      respond_to do |format|  ## Add this
+        format.svg {
+          render :inline => dg.output(:svg => String)
+        }
+        format.gv {
+          render :inline => dg.to_s
+        }
+      end
     end
   end
 
@@ -22,13 +24,15 @@ class CosmosysController < ApplicationController
     splitted_url = request.fullpath.split('/cosmosys')
     root_url = request.base_url+splitted_url[0]
     dg,hg = @project.csys.calculate_graphs(root_url)
-    respond_to do |format|  ## Add this
-      format.svg {
-        render :inline => hg.output(:svg => String)
-      }
-      format.gv {
-        render :inline => hg.to_s
-      }
+    if (hg != nil) then
+      respond_to do |format|  ## Add this
+        format.svg {
+          render :inline => hg.output(:svg => String)
+        }
+        format.gv {
+          render :inline => hg.to_s
+        }
+      end
     end
   end
 
