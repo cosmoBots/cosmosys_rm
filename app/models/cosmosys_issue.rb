@@ -317,12 +317,12 @@ class CosmosysIssue < ActiveRecord::Base
       fillstr = upn.csys.get_fill_color
       upn_node = cl.add_nodes( upn.id.to_s, :label => labelstr, :fontname => fontnamestr,
         :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-        :URL => root_url + "/issues/" + upn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => upn.description.blank? ? 'missing description' : upn.description)
+        :URL => root_url + "/issues/" + upn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => upn.description)
     else
       colorstr = upn.csys.get_border_color
       upn_node = cl.add_nodes( upn.id.to_s, :label => "{ ... }", :fontname => fontnamestr,
         :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-        :URL => root_url + "/issues/" + upn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => upn.description.blank? ? 'missing description' : upn.description)
+        :URL => root_url + "/issues/" + upn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => upn.description)
       
     end
     cl.add_edges(upn_node, n_node, :color => colordep,:arrowsize => 0.5)
@@ -383,12 +383,12 @@ class CosmosysIssue < ActiveRecord::Base
       fillstr = dwn.csys.get_fill_color
       dwn_node = cl.add_nodes( dwn.id.to_s, :label => labelstr, :fontname => :fontnamestr,
         :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-        :URL => root_url + "/issues/" + dwn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => dwn.description.blank? ? 'missing description' : dwn.description)
+        :URL => root_url + "/issues/" + dwn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => dwn.description)
     else
       colorstr = dwn.csys.get_border_color
       dwn_node = cl.add_nodes( dwn.id.to_s, :label => "{ ... }", :fontname => :fontnamestr,
         :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-        :URL => root_url + "/issues/" + dwn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => dwn.description.blank? ? 'missing description' : dwn.description)
+        :URL => root_url + "/issues/" + dwn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => dwn.description)
     end
     cl.add_edges(n_node, dwn_node, :color => colordep,:arrowsize => 0.5)
     if dwn.project == self.issue.project then
@@ -500,7 +500,7 @@ class CosmosysIssue < ActiveRecord::Base
     
             e_node = cl.add_nodes(e.id.to_s, :label => labelstr, :fontname => :fontnamestr,
               :style => 'filled', :color => 'black', :fillcolor => fillstr, :shape => shapestr,
-              :URL => root_url + "/issues/" + e.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => e.description.blank? ? 'missing description' : e.description)
+              :URL => root_url + "/issues/" + e.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => e.description)
           end
         end
       }
@@ -525,7 +525,7 @@ class CosmosysIssue < ActiveRecord::Base
         end
         n_node = cl.add_nodes( self.issue.id.to_s, :label => labelstr, :fontname => :fontnamestr,
           :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr, :penwidth => 1.5,
-          :URL => root_url + "/issues/" + self.issue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :tooltip => self.issue.description.blank? ? 'missing description' : self.issue.description)
+          :URL => root_url + "/issues/" + self.issue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :tooltip => self.issue.description)
         siblings_counter = 0
         self.issue.relations_from.each{|dwn|
           #if dwn.issue_to.project == self.issue.project then
@@ -576,7 +576,7 @@ class CosmosysIssue < ActiveRecord::Base
       fillstr = self.get_fill_color
       n_node = cl.add_nodes( self.issue.id.to_s, :label => labelstr, :fontname => :fontnamestr,
         :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr, :penwidth => 1.5,
-        :URL => root_url + "/issues/" + self.issue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :tooltip => self.issue.description.blank? ? 'missing description' : self.issue.description)
+        :URL => root_url + "/issues/" + self.issue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :tooltip => self.issue.description)
       downrel = []
       self.issue.relations_from.each{|dwn|
         if (CosmosysIssue.shall_draw_relation(dwn,self.issue.tracker)) then
@@ -654,7 +654,7 @@ class CosmosysIssue < ActiveRecord::Base
     fillstr = upn.csys.get_fill_color
     upn_node = cl.add_nodes( upn.id.to_s, :label => labelstr, :fontname => fontnamestr,
       :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-      :URL => root_url + "/issues/" + upn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => upn.description.blank? ? 'missing description' : upn.description)
+      :URL => root_url + "/issues/" + upn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => upn.description)
     cl.add_edges(upn_node, n_node, :arrowsize => 0.5)
     if upn.project == self.issue.project then
       if (upn.parent != nil) then
@@ -682,7 +682,7 @@ class CosmosysIssue < ActiveRecord::Base
     fillstr = dwn.csys.get_fill_color
     dwn_node = cl.add_nodes( dwn.id.to_s, :label => labelstr, :fontname => fontnamestr, 
       :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-      :URL => root_url + "/issues/" + dwn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => dwn.description.blank? ? 'missing description' : dwn.description)
+      :URL => root_url + "/issues/" + dwn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => dwn.description)
     cl.add_edges(n_node, dwn_node, :arrowsize => 0.5)
     if dwn.project == self.issue.project then
       dwn.children.each {|dwn2|
@@ -710,7 +710,7 @@ class CosmosysIssue < ActiveRecord::Base
     fillstr = self.get_fill_color
     n_node = cl.add_nodes( self.issue.id.to_s, :label => labelstr, :fontname => fontnamestr, 
       :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr, :penwidth => 1.5,
-      :URL => root_url + "/issues/" + self.issue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :tooltip => self.issue.description.blank? ? 'missing description' : self.issue.description)
+      :URL => root_url + "/issues/" + self.issue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :tooltip => self.issue.description)
     self.issue.children.each{|dwn|
       cl,torecalc=self.to_graphviz_hiedwn(cl,n_node,dwn,isfirst,torecalc,root_url)
     }
