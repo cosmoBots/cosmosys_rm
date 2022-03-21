@@ -11,14 +11,14 @@ end
 <%= stylesheet_link_tag 'cosmosys', plugin: 'cosmosys' %> 
 <div class="project-content">
   <button class="tablink" onclick="openIssueTab('Dependences', this, 'green')">Dependences</button>
-  <button class="tablink" onclick="openIssueTab('Hyerarchy', this, 'green')" id="defaultOpenTab">Hyerarchy</button>
+  <button class="tablink" onclick="openIssueTab('Hierarchy', this, 'green')" id="defaultOpenTab">Hierarchy</button>
   <div id="Dependences" class="tabcontent">
     <%= textilizable(project_overview_content_dep) %>
     <p style="color: blue;">Links for downloading GraphViz and SVG:</p>
   <p><%= link_to 'GV', { :controller => 'cosmosys', :action => 'dep_gv', :format => 'gv'}, :method => :get %> 
 <%= link_to 'SVG', { :controller => 'cosmosys', :action => 'dep_gv', :format => 'svg'}, :method => :get %></p>
   </div>
-  <div id="Hyerarchy" class="tabcontent">
+  <div id="Hierarchy" class="tabcontent">
     <%= textilizable(project_overview_content_hie) %>
     <p style="color: blue;">Links for downloading GraphViz and SVG:</p>
   <p><%= link_to 'GV', { :controller => 'cosmosys', :action => 'hie_gv', :format => 'gv'}, :method => :get %> 
