@@ -253,6 +253,11 @@ class CosmosysIssue < ActiveRecord::Base
     i = self.issue
     return i.tracker.csys.paint_pref[:deprankdir]
   end 
+  def get_hierankdir
+    i = self.issue
+    return i.tracker.csys.paint_pref[:hierankdir]
+  end 
+
 
   def get_border_color
     i = self.issue
@@ -722,7 +727,7 @@ class CosmosysIssue < ActiveRecord::Base
 
   def to_graphviz_hiegraph(isfirst,torecalc,root_url)
     # Create a new graph
-    g = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "30,30", :strict => true, :rankdir => "LR")
+    g = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "30,30", :strict => true, :rankdir => self.get_hierankdir)
     cl = g.add_graph(:clusterD, :label => 'Hierarchy', :labeljust => 'l', :labelloc=>'t', :margin=> '5')
     cl,torecalc = self.to_graphviz_hiecluster(cl,isfirst,torecalc,root_url)
     return g,torecalc

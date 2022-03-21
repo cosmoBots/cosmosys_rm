@@ -114,10 +114,9 @@ class CosmosysProject < ActiveRecord::Base
     # Create a new dependence graph
     if self.project.issues.first != nil then
       # Create a new hierarchy graph
-      hg = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "40,30", :strict => true, :rankdir => "LR")
+      hg = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "40,30", :strict => true, :rankdir => self.project.issues.first.csys.get_hierankdir)
       hcl = hg.add_graph(:clusterD, :label => 'Hierarchy', :labeljust => 'l', :labelloc=>'t', :margin=> '5') 
-      dprnk = self.project.issues.first.csys.get_deprankdir
-      dg = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "40,30", :strict => true, :rankdir => dprnk)
+      dg = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "40,30", :strict => true, :rankdir => self.project.issues.first.csys.get_deprankdir)
       dcl = dg.add_graph(:clusterD, :label => 'Dependences', :labeljust => 'l', :labelloc=>'t', :margin=> '5') 
 
       self.project.issues.each{|n|
