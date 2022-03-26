@@ -77,17 +77,86 @@ module IssuePatch
     end
 
     def propagate(dest,c1)
+      notes = "#### Propagation from commander issue ##"+self.id.to_s+" caused by user#"+User.current.id.to_s+"\n"
+      j = dest.journals.new
+      j.user = User.find_by_login("admin")
+
       is_changed = false
+      if (self.tracker != dest.tracker) then
+        if not dest.project.include?(self.tracker) then
+          dest.project.trackers << self.tracker;
+          notes += "* Adding tracker "+self.tracker.to_s+" to project project#"+dest.project.id.to_s+"\n"
+        end
+        is_changed = true
+        notes += "* Updating tracker from "+dest.tracker.to_s+" to "+self.tracker.to_s+"\n"
+        dest.tracker = self.tracker
+      end
+      if (self.assigned_to != dest.assigned_to) then
+        if (self.assigned_to != nil) then
+          memberlist = dest.project.members.where(user:self.assigned_to)
+          if (memberlist.size<=0) then
+            mb = dest.project.members.new;
+            r = Role.find_by_name("rqWriter")
+            mb.roles << r
+            mb.user = self.assigned_to
+            notes += "* Adding membership for user#"+self.assigned_to.id.to_s+" with role '"+r.to_s+"' to project project#"+dest.project.id.to_s+"\n"
+            mb.save            
+          end
+        end
+        is_changed = true
+        destusr = "None"
+        if (dest.assigned_to != nil) then
+          destusr = "user#"+dest.assigned_to.id.to_s
+        end
+        srcusr = "None"
+        if (self.assigned_to != nil) then
+          srcusr = "user#"+self.assigned_to.id.to_s
+        end
+        notes += "* Updating assignee from user "+destusr+" to user "+srcusr+"\n"
+        dest.assigned_to = self.assigned_to
+      end
       if (self.subject != dest.subject) then
         is_changed = true
-        puts "subject"
+        notes += "* Updating subject from '"+dest.subject+"' to '"+self.subject+"'\n"
         dest.subject = self.subject
       end
       if (self.description != dest.description) then
         is_changed = true
-        puts "description"
+        notes += "* Updating description from '"+dest.description+"' to '"+self.description+"'\n"
         dest.description = self.description
       end
+      if (self.status != dest.status) then
+        is_changed = true
+        notes += "* Updating status from '"+dest.status.name+"' to '"+self.status.name+"'\n"
+        dest.status = self.status
+      end
+
+      self.custom_field_values.each{|cfv|
+        cf = cfv.custom_field
+        if c1.include?(cf) then
+          dcfv_found = false
+          dest.custom_field_values.each{|dcfv|
+            if dcfv.custom_field == cf then
+              dcfv_found = true
+              if (cfv.value != dcfv.value) then
+                is_changed = true
+                notes += "* Updating custom field '"+cf.name+"' from '"+ dcfv.value.to_s+"' to '"+cfv.value.to_s+"'\n"
+                dcfv.value = cfv.value     
+              end
+              break
+            end
+          }
+          if not(dcfv_found) then
+            # Create the dcfv
+            dcfv = dest.custom_field_values.new
+            dcfv.custom_field = cf
+            notes += "* Creating new custom field '"+cf.name+"' and assigning value '"+cfv.value.to_s+"'\n"
+            is_changed = true
+            dcfv.value = cfv.value
+          end
+        end
+      }
+=begin
       c1.each {|cf|
         src_cv = self.custom_values.find_by_custom_field_id(cf.id)
         if (src_cv != nil) then
@@ -96,26 +165,31 @@ module IssuePatch
             dst_cv = dest.custom_values.new
             dst_cv.custom_field = cf
             dst_cv.value = src_cv.value
-            puts "cv1 "
-            puts src_cv
-            puts dst_cv
+            notes += "* Creating new custom field '"+cf.name+"' and assigning value '"+dst_cv.value.to_s+"'\n"
             is_changed = true
             dst_cv.save
           else
             if (dst_cv.value != src_cv.value) then
               is_changed = true
-              puts "cv2 "
-              puts src_cv.value
-              puts dst_cv.value					
+              notes += "* Updating custom field '"+cf.name+"' from '"+ dst_cv.value.to_s+"' to '"+src_cv.value.to_s+"'\n"
               dst_cv.value = src_cv.value
               dst_cv.save
             end
           end
         end
       }
+=end
       if (is_changed) then
-        puts "saving!!"
-        dest.save
+        j.private_notes = true
+        j.notes = notes
+        saved = dest.save
+        if (not saved) then
+          notes += "#### ERROR! Propagation could not be perfomed due to following errors:\n"
+          dest.errors.each{|e|
+            notes += "* "+e.to_s+"\n"
+          }
+        end
+        j.save
       end
     end	
 
