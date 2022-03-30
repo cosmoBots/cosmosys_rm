@@ -223,22 +223,22 @@ module IssuePatch
 
 
 
-      p1 = self.project.csys.find_root
-      if (p1 == psandbox) then
+      #p1 = self.project.csys.find_root
+      #if (p1 == psandbox) then
         self.relations_from.where(relation_type:'copied_to').each{|r|
           # We obtain the other instance in the relation
           idest = r.issue_to
-          p2 = idest.project.csys.find_root
+          #p2 = idest.project.csys.find_root
           # As a temporary protection, we will only process the ones below the Sandbox tree
-          if p2 == psandbox then
+          #if p2 == psandbox then
             # After selecting the pair, we will propagate
             puts ("From "+self.csys.identifier)
             puts ("To "+idest.csys.identifier)
             puts "Propagating!"
             self.propagate(idest,c1)	    
-          end
+          #end
         }
-      end
+      #end
     end
 
   end    
