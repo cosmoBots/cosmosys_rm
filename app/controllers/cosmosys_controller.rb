@@ -81,6 +81,7 @@ class CosmosysController < ApplicationController
         'issue_edit_url': issue_url+"/edit"+'?key='+thiskey,
         'leaf': childrentypevector.size <= 0,
         'tracker': "project",
+        'nodetype': "project",
         'childrentype': childrentypevector,
         'children': []
       }
@@ -106,6 +107,7 @@ class CosmosysController < ApplicationController
         'issue_edit_url': issue_url+"/edit"+'?key='+thiskey,
         'leaf': childrentypevector.size <= 0,
         'tracker': currentnodetype,
+        'nodetype': currentnodetype,
         'childrentype': childrentypevector,
         'children': []
       }
