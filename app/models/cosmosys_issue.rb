@@ -216,8 +216,12 @@ class CosmosysIssue < ActiveRecord::Base
     return t.csys.paint_pref[:shall_draw_relation][r.relation_type]
   end
 
-  def self.get_childrentype(t)
-    return t.csys.childrentype
+  def self.get_childrentype(i,t)
+    return t.csys.childrentype(i)
+  end
+
+  def self.get_nodetype(i,t)
+    return t.csys.nodetype(i)
   end
   
   def inner_get_fill_color

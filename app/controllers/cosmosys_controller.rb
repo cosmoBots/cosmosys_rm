@@ -93,7 +93,8 @@ class CosmosysController < ApplicationController
       output += ("\nissue_new_url: " + issue_new_url.to_s)
       cftitlevalue = current_issue.subject
       cfchapterstring = current_issue.chapter_str
-      childrentypevector = CosmosysIssue.get_childrentype(current_issue.tracker)
+      childrentypevector = CosmosysIssue.get_childrentype(current_issue,current_issue.tracker)
+      currentnodetype = CosmosysIssue.get_nodetype(current_issue,current_issue.tracker)
       tree_node = {
         'title':  cfchapterstring + " " + current_issue.csys.get_identifier  + ": " + cftitlevalue,
         'subtitle': current_issue.description,
@@ -104,7 +105,7 @@ class CosmosysController < ApplicationController
         'issue_new_url': issue_new_url+'?key='+thiskey,
         'issue_edit_url': issue_url+"/edit"+'?key='+thiskey,
         'leaf': childrentypevector.size <= 0,
-        'tracker': current_issue.tracker.name,
+        'tracker': currentnodetype,
         'childrentype': childrentypevector,
         'children': []
       }

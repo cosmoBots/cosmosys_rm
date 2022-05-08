@@ -33,9 +33,14 @@ class CosmosysTracker < ActiveRecord::Base
     @@paint_pref
   end
 
-  def childrentype
+  def childrentype(i)
     @@childrentype
   end
+
+  def nodetype(i)
+    return i.tracker.name
+  end
+
 
   def init_attr
     
