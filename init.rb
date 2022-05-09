@@ -25,8 +25,8 @@ Redmine::Plugin.register :cosmosys do
   permission :csys_hie_gv, :cosmosys => :hie_gv
 
   menu :project_menu, :cosmosys, {:controller => 'cosmosys', :action => 'menu' }, :caption => 'cosmoSys', :after => :activity, :param => :id
-  menu :project_menu, :cosmosys_treeview, {:controller => 'cosmosys', :action => 'treeview' }, :caption => 'cSysTreeView', :after => :issues, :param => :id
-  menu :project_menu, :cosmosys_show, {:controller => 'cosmosys', :action => 'show' }, :caption => 'cSysShow', :after => :issues, :param => :id
+  menu :project_menu, :cosmosys_treeview, {:controller => 'cosmosys', :action => 'treeview' }, :caption => 'Directory', :after => :issues, :param => :id
+  menu :project_menu, :cosmosys_show, {:controller => 'cosmosys', :action => 'show' }, :caption => 'MainReport', :after => :overview, :param => :id
   #menu :project_menu, :cosmosys_issues_index, {:controller => 'cosmosys_issues', :action => 'index' }, :caption => 'cSysIssues', :after => :issues, :param => :id
 
   settings :default => {
