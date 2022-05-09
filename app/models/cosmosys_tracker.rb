@@ -3,8 +3,6 @@ class CosmosysTracker < ActiveRecord::Base
   
   before_create :init_attr
 
-  @@childrentype =  Tracker.all.map{|t| t.name}
-
   @@paint_pref = {
     :relation_color => {
       'blocks' => 'red',
@@ -34,7 +32,7 @@ class CosmosysTracker < ActiveRecord::Base
   end
 
   def childrentype(i)
-    @@childrentype
+    i.project.trackers.map{|t| t.name}
   end
 
   def nodetype(i)
