@@ -1,7 +1,23 @@
 <% content_for :header_tags do %>
     <%= stylesheet_link_tag 'cosmosys', :plugin => 'cosmosys' %>
+    <%= stylesheet_link_tag 'treeview/index.9924afb6', :plugin => 'cosmosys' %>	
 <% end %>
 
+<table style="width: 100%; border-collapse: collapse;border-spacing:0px;">
+<colgroup>
+	<col span="1" style="width: 30%;">
+	<col span="1" style="width: 70%;">
+</colgroup>
+<tbody>
+<tr>
+<th style="text-overflow: ellipsis;border: 2px solid black;padding: 0;margin: 0px;overflow: auto;">
+<div style="resize: horizontal;overflow: auto;margin: 0px;padding: 0px;display: block;border: 0px;height: 20px;min-height: 20px;min-width: 20px;">tree</div>
+</th>
+</th>
+</tr>
+<tr><td style="text-overflow: ellipsis;vertical-align: top;border: 2px solid black;padding: 0;margin: 0px;overflow: auto;">
+<div id="app"></div>
+</td><td>
 <div class="<%= "cSysProject" %>">
 <h1><strong><%= @project.identifier %>: </strong><%= @project.name %></h1>
 <% roots = @project.issues.where(:parent => nil).sort_by{|obj| obj.chapter_order}
@@ -128,30 +144,24 @@
 <h9><strong><%= link_to chapstr, issue_path(i9.id) %>: </strong><%= title %></h8>
 <div class="<%= classdiv %>descr"><%= textilizable i9, :description %></div>
 </div>
-<p><%= link_to 'Up', { :action => 'up', :issue_id => i9.id}, :method => :post %> <%= link_to 'Down', { :action => 'down', :issue_id => i9.id}, :method => :post %></p>
 <% } %>
 </div>
-<p><%= link_to 'Up', { :action => 'up', :issue_id => i8.id}, :method => :post %> <%= link_to 'Down', { :action => 'down', :issue_id => i8.id}, :method => :post %></p>
 <% } %>
 </div>
-<p><%= link_to 'Up', { :action => 'up', :issue_id => i7.id}, :method => :post %> <%= link_to 'Down', { :action => 'down', :issue_id => i7.id}, :method => :post %></p>
 <% } %>
 </div>
-<p><%= link_to 'Up', { :action => 'up', :issue_id => i6.id}, :method => :post %> <%= link_to 'Down', { :action => 'down', :issue_id => i6.id}, :method => :post %></p>
 <% } %>
 </div>
-<p><%= link_to 'Up', { :action => 'up', :issue_id => i5.id}, :method => :post %> <%= link_to 'Down', { :action => 'down', :issue_id => i5.id}, :method => :post %></p>
 <% } %>
 </div>
-<p><%= link_to 'Up', { :action => 'up', :issue_id => i4.id}, :method => :post %> <%= link_to 'Down', { :action => 'down', :issue_id => i4.id}, :method => :post %></p>
 <% } %>
 </div>
-<p><%= link_to 'Up', { :action => 'up', :issue_id => i3.id}, :method => :post %> <%= link_to 'Down', { :action => 'down', :issue_id => i3.id}, :method => :post %></p>
 <% } %>
 </div>
-<p><%= link_to 'Up', { :action => 'up', :issue_id => i2.id}, :method => :post %> <%= link_to 'Down', { :action => 'down', :issue_id => i2.id}, :method => :post %></p>
 <% } %>
 </div>
-<p><%= link_to 'Up', { :action => 'up', :issue_id => i.id}, :method => :post %> <%= link_to 'Down', { :action => 'down', :issue_id => i.id}, :method => :post %></p>
 <% } %>
 </div>
+</td></tr></tbody></table>
+<script>thiskey="<%=@key %>"</script>
+<%= javascript_include_tag 'treeview/index.60fae44f', :plugin => 'cosmosys', :type => 'module' %>
