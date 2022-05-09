@@ -39,6 +39,7 @@
 }
 .node .subtitle[data-v-3d096bee] {
   margin-left: 26px;
+  white-space: nowrap;
 }
 .node .children[data-v-3d096bee] {
   margin-left: 8px;
