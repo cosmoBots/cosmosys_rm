@@ -47,9 +47,9 @@
   padding-left: 24px;
 }
 .button-bar {
-  display: inline-flex;
+  /*display: inline-flex;
   flex-direction: row;
-  gap: 8px;
+  gap: 8px;*/
 }
 .button-bar button svg,
 .button-bar button span {
@@ -100,7 +100,7 @@
   margin-bottom: 16px;
 }
 #app {
-  padding: 0 2rem;
+  padding: 0 0.1rem;
   width: 100%;
 }
 main {
