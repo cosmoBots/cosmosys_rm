@@ -158,6 +158,10 @@ class CosmosysController < ApplicationController
       output += ("\nissue_new_url: " + issue_new_url.to_s)
       cfprefixvalue = thisproject.code
       childrentypevector = thisproject.trackers.map{|t| t.name}
+      # TODO: CHANGE THIS PATCH
+      if childrentypevector.include?("rq") then
+        childrentypevector += ["rqInfo","rqComplex","rqOpt","rqMech","rqHw","rqSw"]
+      end
       infobox = [
         ["Project:"],
         [thisproject.name,"/projects/"+thisproject.identifier,"link"],
