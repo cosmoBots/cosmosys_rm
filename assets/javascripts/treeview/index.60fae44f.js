@@ -6936,7 +6936,7 @@ var a1 = Qu((je, Be) => {
   Ko.exports = Pe;
   Ko.exports.default = Pe;
   var va = Ko.exports;
-  const Np = `${window.location.pathname}.json?key=`+thiskey,
+  const Np = treeviewpath+`.json?key=`+thiskey,
     ba = "return_url";
   var Rp =
       typeof global == "object" && global && global.Object === Object && global,

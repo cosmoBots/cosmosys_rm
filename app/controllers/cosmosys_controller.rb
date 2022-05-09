@@ -54,7 +54,7 @@ class CosmosysController < ApplicationController
       u = User.current
     end
 
-    unless u.allowed_to?(:csys_treeview, @project)
+     unless u.allowed_to?(:csys_treeview, @project)
       raise ::Unauthorized
     end
     if request.get? then
@@ -63,6 +63,7 @@ class CosmosysController < ApplicationController
         format.html {
           # calculate 
           @key = User.current.api_key
+          @treeviewpath = "/cosmosys/"+@project.identifier+"/treeview"
         }
         format.json { 
           treedata = []
@@ -131,6 +132,22 @@ class CosmosysController < ApplicationController
     redirect_to :action => 'show', :method => :get, :id => @project.id 
   end
   
+  def translate_rel(is_dir_to,reltype)
+    if is_dir_to then
+      if (reltype == "blocks") then
+        return "blocked by"
+      else 
+          if (reltype == "precedes") then
+            return "follows"
+          else 
+            return reltype
+          end
+        end
+    else
+      return reltype
+    end
+  end
+
   def create_tree(current_issue, root_url, is_project, thisproject,thiskey)
     if (is_project) then
       output = ""
@@ -141,6 +158,11 @@ class CosmosysController < ApplicationController
       output += ("\nissue_new_url: " + issue_new_url.to_s)
       cfprefixvalue = thisproject.code
       childrentypevector = thisproject.trackers.map{|t| t.name}
+      infobox = [
+        ["Project:"],
+        [thisproject.name,"/projects/"+thisproject.identifier,"link"],
+        [thisproject.description],
+      ]
       tree_node = {
         'title':  cfprefixvalue + ". " + thisproject.identifier  + ": " + thisproject.name,
         'subtitle': thisproject.description,
@@ -153,6 +175,7 @@ class CosmosysController < ApplicationController
         'leaf': childrentypevector.size <= 0,
         'nodetype': "project",
         'childrentype': childrentypevector,
+        'info': infobox,
         'children': []
       }
     else
@@ -166,6 +189,23 @@ class CosmosysController < ApplicationController
       cfchapterstring = current_issue.chapter_str
       childrentypevector = CosmosysIssue.get_childrentype(current_issue,current_issue.tracker)
       currentnodetype = CosmosysIssue.get_nodetype(current_issue,current_issue.tracker)
+      infobox = [
+        [currentnodetype+": "+current_issue.csys.identifier],
+        [current_issue.description],
+      ]
+      if current_issue.relations_to.size > 0 then
+        infobox += [["*** Incoming relations ***"]]
+        current_issue.relations_to.each{|r|
+          infobox += [["<- "+translate_rel(true,r.relation_type)+" '"+r.issue_from.subject+"'","/issues/"+r.issue_from_id.to_s,r.issue_from.csys.identifier]]
+        }
+      end
+      if current_issue.relations_from.size > 0 then
+        infobox += [["*** Outgoing relations ***"]]
+        current_issue.relations_from.each{|r|
+          infobox += [["-> "+translate_rel(false,r.relation_type)+" '"+r.issue_to.subject+"'","/issues/"+r.issue_to_id.to_s,r.issue_to.csys.identifier]]
+        }
+      end
+      
       tree_node = {
         'title':  cfchapterstring + " " + current_issue.csys.get_identifier  + ": " + cftitlevalue,
         'subtitle': current_issue.description,
@@ -178,9 +218,7 @@ class CosmosysController < ApplicationController
         'leaf': childrentypevector.size <= 0,
         'nodetype': currentnodetype,
         'childrentype': childrentypevector,
-        'info': [
-          ["cosmoBots.eu web page","http://cosmobots.eu","link"]
-        ],
+        'info': infobox,
         'children': []
       }
     end
@@ -230,6 +268,7 @@ class CosmosysController < ApplicationController
           puts("key")
           @key = User.current.api_key
           puts(@key)
+          @treeviewpath = "/cosmosys/"+@project.identifier+"/treeview"
         }
         format.json { 
           treedata = []
