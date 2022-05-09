@@ -3,23 +3,6 @@
     <%= stylesheet_link_tag 'treeview/index.9924afb6', :plugin => 'cosmosys' %>	
 <% end %>
 
-<table style="width: 100%; border-collapse: collapse;border-spacing:0px;">
-<colgroup>
-	<col span="1" style="width: 30%;">
-	<col span="1" style="width: 70%;">
-</colgroup>
-<tbody>
-<tr>
-<th style="background-color:#eee;text-overflow: ellipsis;border: 2px solid black;padding: 0;margin: 0px;overflow: auto;">
-<div style="resize: horizontal;overflow: auto;margin: 0px;padding: 0px;display: block;border: 0px;height: 20px;min-height: 20px;min-width: 20px;">Project index</div>
-</th>
-<th style="border: 2px solid black;padding: 0;margin: 0px;">
-<div style="margin: 0px;padding: 0px;display: block;border: 0px;height: 20px;min-height: 20px;min-width: 20px;">Document</div>
-</th>
-</tr>
-<tr><td style="background-color:#eee;text-overflow: ellipsis;vertical-align: top;border: 2px solid black;padding: 0;margin: 0px;overflow: auto;">
-<div id="app"></div>
-</td><td>
 <div class="<%= "cSysProject" %>">
 <h1><strong><%= @project.identifier %>: </strong><%= @project.name %></h1>
 <% roots = @project.issues.where(:parent => nil).sort_by{|obj| obj.chapter_order}
@@ -164,7 +147,3 @@
 </div>
 <% } %>
 </div>
-</td></tr></tbody></table>
-<script>thiskey="<%=@key%>"</script>
-<script>treeviewpath="<%=@treeviewpath%>"</script>
-<%= javascript_include_tag 'treeview/index.60fae44f', :plugin => 'cosmosys', :type => 'module' %>
