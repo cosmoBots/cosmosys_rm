@@ -46,9 +46,11 @@ class CosmosysController < ApplicationController
 
     is_project = false
 
+    u = nil
     if params[:key] != nil then
       u = User.find_by_api_key(params[:key])
-    else
+    end
+    if u == nil then
       u = User.current
     end
 
@@ -209,9 +211,11 @@ class CosmosysController < ApplicationController
 
     is_project = false
 
+    u = nil
     if params[:key] != nil then
       u = User.find_by_api_key(params[:key])
-    else
+    end
+    if u == nil then
       u = User.current
     end
 
@@ -264,7 +268,7 @@ class CosmosysController < ApplicationController
           #print("\nremote_host ",request.remote_host)
     
           puts("---->User",u)
-          tree_node = create_tree(thisnode,root_url,is_project,@project,params[:key])
+          tree_node = create_tree(thisnode,root_url,is_project,@project,u.api_key)
     
           #print treedata
           treedata << tree_node
