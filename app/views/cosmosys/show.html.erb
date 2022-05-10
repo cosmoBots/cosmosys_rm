@@ -3,8 +3,17 @@
 	<%= stylesheet_link_tag 'cosmosys', :plugin => 'cosmosys', :media => "print" %>
 <% end %>
 
+<% 
+	if params[:nochapters] 
+		hidden_str = "hidden"
+		show_chapters = false
+	else
+		hidden_str = ""
+		show_chapters = true
+	end
+%>
 <div class="<%= "cSysProject" %>">
-<h1><strong><%= @project.identifier %>: </strong><%= @project.name %></h1>
+<h1 <%= hidden_str %>><strong><%= @project.identifier %>: </strong><%= @project.name %></h1>
 <% roots = @project.issues.where(:parent => nil).sort_by{|obj| obj.chapter_order}
 	if roots.size == 0 then
 		roots = @project.issues.select { |n| n.parent.project != @project }
@@ -12,121 +21,180 @@
 	roots.each { |i| 
           if (i.csys.is_chapter?) then
 		classdiv = "cSysParentIssue"
-		chapstr = i.chapter_str
+		chapstr = ""
+		if show_chapters
+			chapstr = i.chapter_str
+		end
           else
 		classdiv = "cSysIssue"
-		chapstr = i.chapter_str +  ' ' + i.csys.get_identifier
+		chapstr = ""
+		if show_chapters
+			chapstr += i.chapter_str
+		end		
+		chapstr += i.csys.get_identifier
           end          
 	  title = i.subject
 	%>
 <div class="<%= classdiv %>">
-<h1><strong><%= link_to chapstr, issue_path(i.id) %>: </strong><%= title %></h1>
+<h1><strong <%= hidden_str %>><%= link_to chapstr, issue_path(i.id) %>: </strong><%= title %></h1>
 <div class="<%= classdiv %>descr"><%= textilizable i, :description %></div>
 <% i.children.sort_by{|obj| obj.chapter_order}.each { |i2| 
           if (i2.csys.is_chapter?) then 
 		classdiv = "cSysParentIssue"
-		chapstr = i2.chapter_str
+		chapstr = ""
+		if show_chapters
+			chapstr = i2.chapter_str
+		end		
           else
 		classdiv = "cSysIssue"
-		chapstr = i2.chapter_str +  ' ' + i2.csys.get_identifier
+		chapstr = ""
+		if show_chapters
+			chapstr += i2.chapter_str
+		end		
+		chapstr += i2.csys.get_identifier		
           end          
 	  title = i2.subject
 
 	%>
 <div class="<%= classdiv %>">
-<h2><strong><%= link_to chapstr, issue_path(i2.id) %>: </strong><%= title %></h2>
+<h2><strong <%= hidden_str %>><%= link_to chapstr, issue_path(i2.id) %>: </strong><%= title %></h2>
 <div class="<%= classdiv %>descr"><%= textilizable i2, :description %></div>
 <% i2.children.sort_by{|obj| obj.chapter_order}.each { |i3| 
           if (i3.csys.is_chapter?) then 
 		classdiv = "cSysParentIssue"
-		chapstr = i3.chapter_str
+		chapstr = ""
+		if show_chapters
+			chapstr = i3.chapter_str
+		end		
           else
 		classdiv = "cSysIssue"
-		chapstr = i3.chapter_str +  ' ' + i3.csys.get_identifier
+		chapstr = ""
+		if show_chapters
+			chapstr += i3.chapter_str
+		end		
+		chapstr += i3.csys.get_identifier	
           end          
 	  title = i3.subject
 
 	%>
-<%= link_to chapstr, issue_path(i2.id) %><div class="<%= classdiv %>">
-<h3><strong><%= link_to chapstr, issue_path(i3.id) %>: </strong><%= title %></h3>
+<div class="<%= classdiv %>">
+<h3><strong <%= hidden_str %>><%= link_to chapstr, issue_path(i3.id) %>: </strong><%= title %></h3>
 <div class="<%= classdiv %>descr"><%= textilizable i3, :description %></div>
 <% i3.children.sort_by{|obj| obj.chapter_order}.each { |i4| 
           if (i4.csys.is_chapter?) then 
 		classdiv = "cSysParentIssue"
-		chapstr = i4.chapter_str
+		chapstr = ""
+		if show_chapters
+			chapstr = i4.chapter_str
+		end		
           else
 		classdiv = "cSysIssue"
-		chapstr = i4.chapter_str +  ' ' + i4.csys.get_identifier
+		chapstr = ""
+		if show_chapters
+			chapstr += i4.chapter_str
+		end		
+		chapstr += i4.csys.get_identifier	
           end          
 	  title = i4.subject
 	%>
 <div class="<%= classdiv %>">
-<h4><strong><%= link_to chapstr, issue_path(i4.id) %>: </strong><%= title %></h4>
+<h4><strong <%= hidden_str %>><%= link_to chapstr, issue_path(i4.id) %>: </strong><%= title %></h4>
 <div class="<%= classdiv %>descr"><%= textilizable i4, :description %></div>
 <% i4.children.sort_by{|obj| obj.chapter_order}.each { |i5| 
           if (i5.csys.is_chapter?) then 
 		classdiv = "cSysParentIssue"
-		chapstr = i5.chapter_str
+		chapstr = ""
+		if show_chapters
+			chapstr = i5.chapter_str
+		end		
           else
 		classdiv = "cSysIssue"
-		chapstr = i5.chapter_str +  ' ' + i5.csys.get_identifier
+		chapstr = ""
+		if show_chapters
+			chapstr += i5.chapter_str
+		end		
+		chapstr += i5.csys.get_identifier	
           end          
 	  title = i5.subject
 	%>
 <div class="<%= classdiv %>">
-<h5><strong><%= link_to chapstr, issue_path(i5.id) %>: </strong><%= title %></h5>
+<h5><strong <%= hidden_str %>><%= link_to chapstr, issue_path(i5.id) %>: </strong><%= title %></h5>
 <div class="<%= classdiv %>descr"><%= textilizable i5, :description %></div>
 <% i5.children.sort_by{|obj| obj.chapter_order}.each { |i6| 
           if (i6.csys.is_chapter?) then 
-		classdiv = "cSysParentIssue"
-		chapstr = i6.chapter_str
+		chapstr = ""
+		if show_chapters
+			chapstr = i6.chapter_str
+		end		
           else
 		classdiv = "cSysIssue"
-		chapstr = i6.chapter_str +  ' ' + i6.csys.get_identifier
+		chapstr = ""
+		if show_chapters
+			chapstr += i6.chapter_str
+		end		
+		chapstr += i6.csys.get_identifier	
           end          
 		title = i6.subject	
 	%>
 <div class="<%= classdiv %>">
-<h6><strong><%= link_to chapstr, issue_path(i6.id) %>: </strong><%= title %></h6>
+<h6><strong <%= hidden_str %>><%= link_to chapstr, issue_path(i6.id) %>: </strong><%= title %></h6>
 <div class="<%= classdiv %>descr"><%= textilizable i6, :description %></div>
 <% i6.children.sort_by{|obj| obj.chapter_order}.each { |i7| 
           if (i7.csys.is_chapter?) then 
-		classdiv = "cSysParentIssue"
-		chapstr = i7.chapter_str     
+		chapstr = ""
+		if show_chapters
+			chapstr = i7.chapter_str
+		end		
           else
 		classdiv = "cSysIssue"
-		chapstr = i7.chapter_str +  ' ' + i7.csys.get_identifier
+		chapstr = ""
+		if show_chapters
+			chapstr += i7.chapter_str
+		end		
+		chapstr += i7.csys.get_identifier	
           end          
 		title = i7.subject	
 	%>
 <div class="<%= classdiv %>">
-<h7><strong><%= link_to chapstr, issue_path(i7.id) %>: </strong><%= title %></h7>
+<h7><strong <%= hidden_str %>><%= link_to chapstr, issue_path(i7.id) %>: </strong><%= title %></h7>
 <div class="<%= classdiv %>descr"><%= textilizable i7, :description %></div>
 <% i7.children.sort_by{|obj| obj.chapter_order}.each { |i8| 
           if (i8.csys.is_chapter?) then 
-		classdiv = "cSysParentIssue"
-		chapstr = i8.chapter_str
+		chapstr = ""
+		if show_chapters
+			chapstr = i8.chapter_str
+		end		
           else
 		classdiv = "cSysIssue"
-		chapstr = i8.chapter_str +  ' ' + i8.csys.get_identifier
+		chapstr = ""
+		if show_chapters
+			chapstr += i8.chapter_str
+		end		
+		chapstr += i8.csys.get_identifier	
           end          
 		title = i8.subject	
 	%>
 <div class="<%= classdiv %>">
-<h8><strong><%= link_to chapstr, issue_path(i8.id) %>: </strong><%= title %></h8>
+<h8><strong <%= hidden_str %>><%= link_to chapstr, issue_path(i8.id) %>: </strong><%= title %></h8>
 <div class="<%= classdiv %>descr"><%= textilizable i8, :description %></div>
 <% i8.children.sort_by{|obj| obj.chapter_order}.each { |i9| 
           if (i9.csys.is_chapter?) then 
-		classdiv = "cSysParentIssue"
-		chapstr = i9.chapter_str
+		chapstr = ""
+		if show_chapters
+			chapstr = i9.chapter_str
+		end		
           else
 		classdiv = "cSysIssue"
-		chapstr = i9.chapter_str +  ' ' + i9.csys.get_identifier
+		chapstr = ""
+		if show_chapters
+			chapstr += i9.chapter_str
+		end		
+		chapstr += i9.csys.get_identifier	
           end          
 		title = i9.subject	
 	%>
 <div class="<%= classdiv %>">
-<h9><strong><%= link_to chapstr, issue_path(i9.id) %>: </strong><%= title %></h8>
+<h9><strong <%= hidden_str %>><%= link_to chapstr, issue_path(i9.id) %>: </strong><%= title %></h8>
 <div class="<%= classdiv %>descr"><%= textilizable i9, :description %></div>
 </div>
 <% } %>
