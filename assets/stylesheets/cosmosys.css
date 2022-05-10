@@ -1,21 +1,21 @@
 
 div > table {
-  background-color: aliceblue;
+  background-color: aliceblue !important;
   border-spacing: 0px;
 }
 div > table > thead{
-  background-color: lightblue;
+  background-color: lightblue !important;
   border-spacing: 0px;
 }
 div > table > tbody > tr > td {
-  border-style: solid;
-  border-width: 0.5px;
+  border-style: solid !important;
+  border-width: 0.5px !important;
   border-spacing: 0px;
 }
 
 div > table > thead > tr > th {
-  border-style: solid;
-  border-width: 0.5px;
+  border-style: solid !important;
+  border-width: 0.5px !important;
   border-spacing: 0px;
 }
 
@@ -28,7 +28,7 @@ td.description {
 }
 
 .cSysProject {
-    border: 1px solid darkgrey;
+    /*border: 1px solid darkgrey;*/
     padding-left: 4px;
 }
 
@@ -36,11 +36,11 @@ td.description {
     /* border-top: 1px darkgrey; */
     padding-left: 3px;
     margin-left: 3px;
-    border-style: ridge;
+    /*border-style: ridge;
     border-bottom: hidden;
     border-left: hidden;
     border-right: hidden;
-    border: 1px solid darkgrey;
+    border: 1px solid darkgrey;*/
     margin-bottom: 6px;
     margin-top: 5px;
 }
@@ -61,13 +61,13 @@ td.description {
 }
 
 .cSysIssue {
-    border-top: 1px darkgrey;
+    /*border-top: 1px darkgrey;*/
     padding-left: 3px;
     margin-left: 4px;
-    border-style: dotted;
+    /*border-style: dotted;
     border-bottom: hidden;
     border-left: hidden;
-    border-right: hidden;
+    border-right: hidden;*/
 }
 
 h1 { 
@@ -136,7 +136,7 @@ h6 {
   margin-top: 2.50em;
   margin-bottom: 2.50em;
   margin-left: 0;
-  margin-right: 0;dd
+  margin-right: 0;
   font-weight: bold;
 }
 
