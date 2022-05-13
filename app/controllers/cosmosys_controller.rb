@@ -238,8 +238,10 @@ class CosmosysController < ApplicationController
       childrenitems = current_issue.children.sort_by {|obj| obj.csys.chapter_order}
     end
     childrenitems.each{|c|
-      child_node = create_tree(c,root_url,false,thisproject,thiskey)
-      tree_node[:children] << child_node
+      if c.csys.shall_draw then
+        child_node = create_tree(c,root_url,false,thisproject,thiskey)
+        tree_node[:children] << child_node
+      end
     }
     if (is_project) then
       thisproject.csys.update_cschapters

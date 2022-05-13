@@ -55,9 +55,9 @@ end
 %>
 <div class="<%= "cSysProject" %>">
 <% if show_chapters %><h1><%= @project.csys.code %>: <%= @project.name %></h1><% end %>
-<% roots = @project.issues.where(:parent => nil).sort_by{|obj| obj.chapter_order}
+<% roots = @project.issues.select{|obj| obj.parent == nil and obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}
 	if roots.size == 0 then
-		roots = @project.issues.select { |n| n.parent.project != @project }
+		roots = @project.issues.select { |n| n.parent.project != @project and n.csys.shall_draw}
 	end
 	roots.each { |i| 
 		chapstr,classdiv = calculate_heading(show_chapters,i)
@@ -73,7 +73,7 @@ end
 <p style="text-align:right"><a href="<%= imagesrc %>" ><img src="<%= imagesrc %>" alt="Dependence diagram"></a></p>
 <% end %>
 <% end %>
-<% i.children.sort_by{|obj| obj.chapter_order}.each { |i2| 
+<% i.children.select{|obj| obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}.each { |i2| 
 	chapstr,classdiv = calculate_heading(show_chapters,i2)
 	title = i2.subject
 
@@ -88,7 +88,7 @@ end
 <p style="text-align:right"><a href="<%= imagesrc %>" ><img src="<%= imagesrc %>" alt="Dependence diagram"></a></p>
 <% end %>
 <% end %>
-<% i2.children.sort_by{|obj| obj.chapter_order}.each { |i3| 
+<% i2.children.select{|obj| obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}.each { |i3| 
 	chapstr,classdiv = calculate_heading(show_chapters,i3)
 	title = i3.subject
 
@@ -103,7 +103,7 @@ end
 <p style="text-align:right"><a href="<%= imagesrc %>" ><img src="<%= imagesrc %>" alt="Dependence diagram"></a></p>
 <% end %>
 <% end %>
-<% i3.children.sort_by{|obj| obj.chapter_order}.each { |i4| 
+<% i3.children.select{|obj| obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}.each { |i4| 
 	chapstr,classdiv = calculate_heading(show_chapters,i4)
 	title = i4.subject
 
@@ -118,7 +118,7 @@ end
 <p style="text-align:right"><a href="<%= imagesrc %>" ><img src="<%= imagesrc %>" alt="Dependence diagram"></a></p>
 <% end %>
 <% end %>
-<% i4.children.sort_by{|obj| obj.chapter_order}.each { |i5| 
+<% i4.children.select{|obj| obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}.each { |i5| 
 	chapstr,classdiv = calculate_heading(show_chapters,i5)
 	title = i5.subject
 	%>
@@ -132,7 +132,7 @@ end
 <p style="text-align:right"><a href="<%= imagesrc %>" ><img src="<%= imagesrc %>" alt="Dependence diagram"></a></p>
 <% end %>
 <% end %>
-<% i5.children.sort_by{|obj| obj.chapter_order}.each { |i6| 
+<% i5.children.select{|obj| obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}.each { |i6| 
 	chapstr,classdiv = calculate_heading(show_chapters,i6)
 	title = i6.subject
 	%>
@@ -146,7 +146,7 @@ end
 <p style="text-align:right"><a href="<%= imagesrc %>" ><img src="<%= imagesrc %>" alt="Dependence diagram"></a></p>
 <% end %>
 <% end %>
-<% i6.children.sort_by{|obj| obj.chapter_order}.each { |i7| 
+<% i6.children.select{|obj| obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}.each { |i7| 
 	chapstr,classdiv = calculate_heading(show_chapters,i7)
 	title = i7.subject
 	%>
@@ -160,7 +160,7 @@ end
 <p style="text-align:right"><a href="<%= imagesrc %>" ><img src="<%= imagesrc %>" alt="Dependence diagram"></a></p>
 <% end %>
 <% end %>
-<% i7.children.sort_by{|obj| obj.chapter_order}.each { |i8| 
+<% i7.children.select{|obj| obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}.each { |i8| 
 	chapstr,classdiv = calculate_heading(show_chapters,i8)
 	title = i8.subject	
 	%>
@@ -174,7 +174,7 @@ end
 <p style="text-align:right"><a href="<%= imagesrc %>" ><img src="<%= imagesrc %>" alt="Dependence diagram"></a></p>
 <% end %>
 <% end %>
-<% i8.children.sort_by{|obj| obj.chapter_order}.each { |i9| 
+<% i8.children.select{|obj| obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}.each { |i9| 
 	chapstr,classdiv = calculate_heading(show_chapters,i9)
 	title = i9.subject	
 	%>
