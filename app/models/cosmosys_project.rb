@@ -120,109 +120,117 @@ class CosmosysProject < ActiveRecord::Base
       dcl = dg.add_graph(:clusterD, :label => 'Dependences', :labeljust => 'l', :labelloc=>'t', :margin=> '5') 
 
       self.project.issues.each{|n|
-        colorstr = n.csys.get_border_color
-        if not(n.csys.shall_show_id) then
-          shapestr =  n.tracker.csys.paint_pref[:chapter_shape]
-          labelstr = n.csys.get_label_noid(self.project)
-          fontnamestr = 'times italic'            
-        else
-          shapestr =  n.tracker.csys.paint_pref[:issue_shape]
-          labelstr = n.csys.get_label_issue(self.project)
-          fontnamestr = 'times'
-        end
-        fillstr = n.csys.get_fill_color
-        hn_node = hcl.add_nodes( n.id.to_s, :label => labelstr, :fontname => fontnamestr, 
-          :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-          :URL => root_url + "/issues/" + n.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => n.description)
-        n.children.each{|c|
-          # In case a children does not belong to the project
-          # it must be drawn as an "external" node
-          if (c.project != self.project) then
-            colorstr = c.csys.get_border_color
-            if not(c.csys.shall_show_id) then
-              shapestr =  c.tracker.csys.paint_pref[:chapter_shape]
-              labelstr = c.csys.get_label_noid(self.project)
-              fontnamestr = 'times italic'            
-            else
-              shapestr =  c.tracker.csys.paint_pref[:issue_shape]
-              labelstr = c.csys.get_label_issue(self.project)
-              fontnamestr = 'times'
-            end
-            childnode_node = hcl.add_nodes( c.id.to_s, :label => labelstr, :fontname => fontnamestr, 
-              :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-              :URL => root_url + "/issues/" + c.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => c.description)
-            hcl.add_edges(hn_node, childnode_node,:arrowsize => 0.5)
+        if n.csys.shall_draw then
+          colorstr = n.csys.get_border_color
+          if not(n.csys.shall_show_id) then
+            shapestr =  n.tracker.csys.paint_pref[:chapter_shape]
+            labelstr = n.csys.get_label_noid(self.project)
+            fontnamestr = 'times italic'            
           else
-            hcl.add_edges(hn_node, c.id.to_s,:arrowsize => 0.5)
+            shapestr =  n.tracker.csys.paint_pref[:issue_shape]
+            labelstr = n.csys.get_label_issue(self.project)
+            fontnamestr = 'times'
           end
-        }
-        if (n.relations.size>0) then
-          dn_node = nil
-          n.relations_from.each {|r|
-            if (CosmosysIssue.shall_draw_relation(r,n.tracker)) then          
-              rissue = r.issue_to
-              if (rissue != n) then
-                if dn_node == nil then
-                  dn_node = dcl.add_nodes( n.id.to_s, :label => labelstr, :fontname => fontnamestr,   
-                    :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-                    :URL => root_url + "/issues/" + n.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => n.description)
-                end                
-                # In case a relation does not belong to the project
-                # it must be drawn as an "external" node
-                if (rissue.project != self.project) then
-                  colorstr = rissue.csys.get_border_color
-                  if not(rissue.csys.shall_show_id) then
-                    shapestr =  rissue.tracker.csys.paint_pref[:chapter_shape]
-                    labelstr = rissue.csys.get_label_noid(self.project)
-                    fontnamestr = 'times italic'            
-                  else
-                    shapestr =  rissue.tracker.csys.paint_pref[:issue_shape]
-                    labelstr = rissue.csys.get_label_issue(self.project)
-                    fontnamestr = 'times'
-                  end
-                  relnode_node = dcl.add_nodes( rissue.id.to_s, :label => labelstr, :fontname => fontnamestr, 
-                    :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-                    :URL => root_url + "/issues/" + rissue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => rissue.description)
-                  colorstr = CosmosysIssue.get_relation_color(r,n.tracker)
-                  dcl.add_edges(dn_node, relnode_node, :color => colorstr,:arrowsize => 0.5)
+          fillstr = n.csys.get_fill_color
+          hn_node = hcl.add_nodes( n.id.to_s, :label => labelstr, :fontname => fontnamestr, 
+            :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
+            :URL => root_url + "/issues/" + n.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => n.description)
+          n.children.each{|c|
+            if c.csys.shall_draw then
+              # In case a children does not belong to the project
+              # it must be drawn as an "external" node
+              if (c.project != self.project) then
+                colorstr = c.csys.get_border_color
+                if not(c.csys.shall_show_id) then
+                  shapestr =  c.tracker.csys.paint_pref[:chapter_shape]
+                  labelstr = c.csys.get_label_noid(self.project)
+                  fontnamestr = 'times italic'            
                 else
-                  colorstr = CosmosysIssue.get_relation_color(r,n.tracker)
-                  dcl.add_edges(dn_node, rissue.id.to_s, :color => colorstr,:arrowsize => 0.5)
+                  shapestr =  c.tracker.csys.paint_pref[:issue_shape]
+                  labelstr = c.csys.get_label_issue(self.project)
+                  fontnamestr = 'times'
                 end
+                childnode_node = hcl.add_nodes( c.id.to_s, :label => labelstr, :fontname => fontnamestr, 
+                  :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
+                  :URL => root_url + "/issues/" + c.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => c.description)
+                hcl.add_edges(hn_node, childnode_node,:arrowsize => 0.5)
+              else
+                hcl.add_edges(hn_node, c.id.to_s,:arrowsize => 0.5)
               end
             end
           }
-          n.relations_to.each {|r|
-            if (CosmosysIssue.shall_draw_relation(r,n.tracker)) then
-              rissue = r.issue_from
-              if (rissue != n) then
-                if dn_node == nil then
-                  dn_node = dcl.add_nodes( n.id.to_s, :label => labelstr, :fontname => fontnamestr,   
-                    :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-                    :URL => root_url + "/issues/" + n.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => n.description)
-                end              
-                # In case a relation does not belong to the project
-                # it must be drawn as an "external" node
-                if (rissue.project != self.project) then
-                  colorstr = rissue.csys.get_border_color
-                  if not(rissue.csys.shall_show_id) then
-                    shapestr =  rissue.tracker.csys.paint_pref[:chapter_shape]
-                    labelstr = rissue.csys.get_label_noid(self.project)
-                    fontnamestr = 'times italic'            
-                  else
-                    shapestr =  rissue.tracker.csys.paint_pref[:issue_shape]
-                    labelstr = rissue.csys.get_label_issue(self.project)
-                    fontnamestr = 'times'
+          if (n.relations.size>0) then
+            dn_node = nil
+            n.relations_from.each {|r|
+              if (CosmosysIssue.shall_draw_relation(r,n.tracker)) then          
+                rissue = r.issue_to
+                if rissue.csys.shall_draw then
+                  if (rissue != n) then
+                    if dn_node == nil then
+                      dn_node = dcl.add_nodes( n.id.to_s, :label => labelstr, :fontname => fontnamestr,   
+                        :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
+                        :URL => root_url + "/issues/" + n.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => n.description)
+                    end                
+                    # In case a relation does not belong to the project
+                    # it must be drawn as an "external" node
+                    if (rissue.project != self.project) then
+                      colorstr = rissue.csys.get_border_color
+                      if not(rissue.csys.shall_show_id) then
+                        shapestr =  rissue.tracker.csys.paint_pref[:chapter_shape]
+                        labelstr = rissue.csys.get_label_noid(self.project)
+                        fontnamestr = 'times italic'            
+                      else
+                        shapestr =  rissue.tracker.csys.paint_pref[:issue_shape]
+                        labelstr = rissue.csys.get_label_issue(self.project)
+                        fontnamestr = 'times'
+                      end
+                      relnode_node = dcl.add_nodes( rissue.id.to_s, :label => labelstr, :fontname => fontnamestr, 
+                        :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
+                        :URL => root_url + "/issues/" + rissue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => rissue.description)
+                      colorstr = CosmosysIssue.get_relation_color(r,n.tracker)
+                      dcl.add_edges(dn_node, relnode_node, :color => colorstr,:arrowsize => 0.5)
+                    else
+                      colorstr = CosmosysIssue.get_relation_color(r,n.tracker)
+                      dcl.add_edges(dn_node, rissue.id.to_s, :color => colorstr,:arrowsize => 0.5)
+                    end
                   end
-                  relnode_node = dcl.add_nodes( rissue.id.to_s, :label => labelstr, :fontname => fontnamestr, 
-                    :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-                    :URL => root_url + "/issues/" + rissue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => rissue.description)
-                end          
-                colorstr = CosmosysIssue.get_relation_color(r,n.tracker)
-                dcl.add_edges(rissue.id.to_s, dn_node, :color => colorstr,:arrowsize => 0.5)
+                end
               end
-            end
-          }        
+            }
+            n.relations_to.each {|r|
+              if (CosmosysIssue.shall_draw_relation(r,n.tracker)) then
+                rissue = r.issue_from
+                if rissue.csys.shall_draw then
+                  if (rissue != n) then
+                    if dn_node == nil then
+                      dn_node = dcl.add_nodes( n.id.to_s, :label => labelstr, :fontname => fontnamestr,   
+                        :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
+                        :URL => root_url + "/issues/" + n.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => n.description)
+                    end              
+                    # In case a relation does not belong to the project
+                    # it must be drawn as an "external" node
+                    if (rissue.project != self.project) then
+                      colorstr = rissue.csys.get_border_color
+                      if not(rissue.csys.shall_show_id) then
+                        shapestr =  rissue.tracker.csys.paint_pref[:chapter_shape]
+                        labelstr = rissue.csys.get_label_noid(self.project)
+                        fontnamestr = 'times italic'            
+                      else
+                        shapestr =  rissue.tracker.csys.paint_pref[:issue_shape]
+                        labelstr = rissue.csys.get_label_issue(self.project)
+                        fontnamestr = 'times'
+                      end
+                      relnode_node = dcl.add_nodes( rissue.id.to_s, :label => labelstr, :fontname => fontnamestr, 
+                        :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
+                        :URL => root_url + "/issues/" + rissue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => rissue.description)
+                    end          
+                    colorstr = CosmosysIssue.get_relation_color(r,n.tracker)
+                    dcl.add_edges(rissue.id.to_s, dn_node, :color => colorstr,:arrowsize => 0.5)
+                  end
+                end
+              end
+            }        
+          end
         end
       }
       return dg,hg
