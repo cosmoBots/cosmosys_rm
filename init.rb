@@ -2,7 +2,7 @@ Redmine::Plugin.register :cosmosys do
   name 'Cosmosys plugin'
   author 'Txinto Vaz'
   description 'This is a plugin for Redmine, which converts it into a CosmoSys instance'
-  version '0.0.2'
+  version '0.0.3'
   url 'http://cosmobots.eu'
   author_url 'http://cosmobots.eu'
 
