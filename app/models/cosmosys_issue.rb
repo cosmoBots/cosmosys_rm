@@ -650,7 +650,7 @@ class CosmosysIssue < ActiveRecord::Base
 
   def to_graphviz_depgraph(isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
     # Create a new graph
-    g = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "30,30", :strict => true, :rankdir => self.get_deprankdir)
+    g = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "3000,3000", :strict => true, :rankdir => self.get_deprankdir)
     if (self.issue.children.size > 0) then
       labelstr = 'Dependences (in subtree)'
       colorstr = 'orange'
@@ -755,7 +755,7 @@ class CosmosysIssue < ActiveRecord::Base
 
   def to_graphviz_hiegraph(isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
     # Create a new graph
-    g = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "30,30", :strict => true, :rankdir => self.get_hierankdir)
+    g = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "3000,3000", :strict => true, :rankdir => self.get_hierankdir)
     cl = g.add_graph(:clusterD, :label => 'Hierarchy', :labeljust => 'l', :labelloc=>'t', :margin=> '5')
     cl,torecalc = self.to_graphviz_hiecluster(cl,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
     return g,torecalc
