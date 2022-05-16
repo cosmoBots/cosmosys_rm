@@ -199,9 +199,7 @@ class CosmosysIssue < ActiveRecord::Base
   
   ################## Diagrams support #######################
   
-  @@max_graph_levels = 12
-  @@max_graph_siblings = 7
-  
+ 
   def self.word_wrap( text, line_width: 80, break_sequence: "\n")
     text.split("\n").collect! do |line|
       line.length > line_width ? line.gsub(/(.{1,#{line_width}})(\s+|$)/, "\\1#{break_sequence}").rstrip : line
@@ -313,9 +311,9 @@ class CosmosysIssue < ActiveRecord::Base
 
   # -----------------------------------
 
-  def to_graphviz_depupn(cl,n_node,upn,isfirst,torecalc,root_url,levels_counter,force_end,colordep)
+  def to_graphviz_depupn(cl,n_node,upn,isfirst,torecalc,root_url,levels_counter,force_end,colordep, max_graph_siblings, max_graph_levels)
     if upn.csys.shall_draw then
-      if (levels_counter >= @@max_graph_levels)
+      if (levels_counter >= max_graph_levels)
         stylestr = 'dotted'
       else
         stylestr = 'filled'
@@ -346,7 +344,7 @@ class CosmosysIssue < ActiveRecord::Base
       cl.add_edges(upn_node, n_node, :color => colordep,:arrowsize => 0.5)
       if upn.project == self.issue.project then
         if not(force_end) then
-          if (levels_counter < @@max_graph_levels) then
+          if (levels_counter < max_graph_levels) then
             relup = []
             upn.relations_from.each {|upn2|
               if (CosmosysIssue.shall_draw_relation(upn2,upn.tracker)) then
@@ -359,11 +357,11 @@ class CosmosysIssue < ActiveRecord::Base
               if (CosmosysIssue.shall_draw_relation(upn2,upn.tracker)) then
                 colordep2 = CosmosysIssue.get_relation_color(upn2,upn.tracker)
                 if not(relup.include?(upn2.issue_from.parent)) then
-                  if (siblings_counter < @@max_graph_siblings) then
-                    cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn2.issue_from,isfirst,torecalc,root_url,levels_counter,force_end,colordep2)
+                  if (siblings_counter < max_graph_siblings) then
+                    cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn2.issue_from,isfirst,torecalc,root_url,levels_counter,force_end,colordep2,max_graph_siblings,max_graph_levels)
                   else
-                    if (siblings_counter <= @@max_graph_siblings) then
-                      cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn2.issue_from,isfirst,torecalc,root_url,levels_counter,true,colordep2)
+                    if (siblings_counter <= max_graph_siblings) then
+                      cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn2.issue_from,isfirst,torecalc,root_url,levels_counter,true,colordep2,max_graph_siblings,max_graph_levels)
                     end
                   end
                   siblings_counter += 1
@@ -382,9 +380,9 @@ class CosmosysIssue < ActiveRecord::Base
 
 
 
-  def to_graphviz_depdwn(cl,n_node,dwn,isfirst,torecalc,root_url,levels_counter,force_end,colordep)
+  def to_graphviz_depdwn(cl,n_node,dwn,isfirst,torecalc,root_url,levels_counter,force_end,colordep,max_graph_siblings,max_graph_levels)
     if dwn.csys.shall_draw then
-      if (levels_counter >= @@max_graph_levels) then
+      if (levels_counter >= max_graph_levels) then
         stylestr = 'dotted'
       else
         stylestr = 'filled'
@@ -413,7 +411,7 @@ class CosmosysIssue < ActiveRecord::Base
       cl.add_edges(n_node, dwn_node, :color => colordep,:arrowsize => 0.5)
       if dwn.project == self.issue.project then
         if not(force_end) then
-          if (levels_counter < @@max_graph_levels) then
+          if (levels_counter < max_graph_levels) then
             reldown = []
             dwn.relations_from.each {|dwn2|
               if (CosmosysIssue.shall_draw_relation(dwn2,dwn.tracker)) then
@@ -427,11 +425,11 @@ class CosmosysIssue < ActiveRecord::Base
                 if (CosmosysIssue.shall_draw_relation(dwn2,dwn.tracker)) then
                   colordep2 = CosmosysIssue.get_relation_color(dwn2,dwn.tracker)
                   if not(reldown.include?(dwn2.issue_to.parent)) then
-                    if (siblings_counter < @@max_graph_siblings) then
-                      cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn2.issue_to,isfirst,torecalc,root_url, levels_counter, force_end,colordep2)
+                    if (siblings_counter < max_graph_siblings) then
+                      cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn2.issue_to,isfirst,torecalc,root_url, levels_counter, force_end,colordep2,max_graph_siblings,max_graph_levels)
                     else
-                      if (siblings_counter <= @@max_graph_siblings) then
-                        cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn2.issue_to,isfirst,torecalc,root_url, levels_counter, true,colordep2)
+                      if (siblings_counter <= max_graph_siblings) then
+                        cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn2.issue_to,isfirst,torecalc,root_url, levels_counter, true,colordep2,max_graph_siblings,max_graph_levels)
                       end
                     end
                     siblings_counter += 1
@@ -449,7 +447,7 @@ class CosmosysIssue < ActiveRecord::Base
     return cl,torecalc
   end
 
-  def to_graphviz_depcluster(cl,isfirst,torecalc,root_url)
+  def to_graphviz_depcluster(cl,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
     if self.shall_draw then
       if ((self.issue.children.size > 0)) then
         desc = self.get_descendents_in_project
@@ -560,10 +558,10 @@ class CosmosysIssue < ActiveRecord::Base
               if (CosmosysIssue.shall_draw_relation(dwn,self.issue.tracker)) then
                 colordep2 = CosmosysIssue.get_relation_color(dwn,self.issue.tracker)
                 if not(dwnrel.include?(dwn.issue_to.parent)) then
-                  if (siblings_counter < @@max_graph_siblings) then
+                  if (siblings_counter < max_graph_siblings) then
                     cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,false,colordep2)
                   else
-                    if (siblings_counter <= @@max_graph_siblings) then
+                    if (siblings_counter <= max_graph_siblings) then
                       cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,true,colordep2)
                     end
                   end
@@ -577,10 +575,10 @@ class CosmosysIssue < ActiveRecord::Base
             #if upn.issue_from.project == self.issue.project then
               if (CosmosysIssue.shall_draw_relation(upn,self.issue.tracker)) then
                 colordep2 = CosmosysIssue.get_relation_color(upn,self.issue.tracker)
-                if (siblings_counter < @@max_graph_siblings) then
+                if (siblings_counter < max_graph_siblings) then
                   cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,false,colordep2)
                 else
-                  if (siblings_counter <= @@max_graph_siblings) then
+                  if (siblings_counter <= max_graph_siblings) then
                     cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,true,colordep2)
                   end
                 end
@@ -617,11 +615,11 @@ class CosmosysIssue < ActiveRecord::Base
             if (CosmosysIssue.shall_draw_relation(dwn,self.issue.tracker)) then
               colordep2 = CosmosysIssue.get_relation_color(dwn,self.issue.tracker)
               if not(downrel.include?(dwn.issue_to.parent)) then 
-                if (siblings_counter < @@max_graph_siblings) then
-                  cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,false,colordep2)
+                if (siblings_counter < max_graph_siblings) then
+                  cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,false,colordep2,max_graph_siblings,max_graph_levels)
                 else
-                  if (siblings_counter <= @@max_graph_siblings) then
-                    cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,true,colordep2)
+                  if (siblings_counter <= max_graph_siblings) then
+                    cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,true,colordep2,max_graph_siblings,max_graph_levels)
                   end        
                 end        
                 siblings_counter += 1
@@ -634,11 +632,11 @@ class CosmosysIssue < ActiveRecord::Base
           #if upn.issue_from.project == self.issue.project then
             if (CosmosysIssue.shall_draw_relation(upn,self.issue.tracker)) then
               colordep2 = CosmosysIssue.get_relation_color(upn,self.issue.tracker)
-              if (siblings_counter < @@max_graph_siblings) then
-                cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,false,colordep2)
+              if (siblings_counter < max_graph_siblings) then
+                cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,false,colordep2,max_graph_siblings,max_graph_levels)
               else
-                if (siblings_counter <= @@max_graph_siblings) then
-                  cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,true,colordep2)
+                if (siblings_counter <= max_graph_siblings) then
+                  cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,true,colordep2,max_graph_siblings,max_graph_levels)
                 end        
               end        
               siblings_counter += 1
@@ -650,7 +648,7 @@ class CosmosysIssue < ActiveRecord::Base
     return cl,torecalc   
   end
 
-  def to_graphviz_depgraph(isfirst,torecalc,root_url)
+  def to_graphviz_depgraph(isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
     # Create a new graph
     g = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "30,30", :strict => true, :rankdir => self.get_deprankdir)
     if (self.issue.children.size > 0) then
@@ -664,12 +662,12 @@ class CosmosysIssue < ActiveRecord::Base
     end    
     cl = g.add_graph(:clusterD, :fontname => fontnamestr, :label => labelstr, :labeljust => 'l', :labelloc=>'t', :margin=> '5', :color => colorstr)
     # Generate output image
-    cl,torecalc = self.to_graphviz_depcluster(cl,isfirst,torecalc,root_url)  
+    cl,torecalc = self.to_graphviz_depcluster(cl,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)  
     return g,torecalc
   end
 
 
-  def to_graphviz_hieupn(cl,n_node,upn,isfirst,torecalc,root_url)
+  def to_graphviz_hieupn(cl,n_node,upn,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
     if upn.csys.shall_draw then
       colorstr = upn.csys.get_border_color
       if not(upn.csys.shall_show_id) then
@@ -688,7 +686,7 @@ class CosmosysIssue < ActiveRecord::Base
       cl.add_edges(upn_node, n_node, :arrowsize => 0.5)
       if upn.project == self.issue.project then
         if (upn.parent != nil) then
-          cl,torecalc=self.to_graphviz_hieupn(cl,upn_node,upn.parent,isfirst,torecalc,root_url)
+          cl,torecalc=self.to_graphviz_hieupn(cl,upn_node,upn.parent,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
         end
       end
       if (isfirst) then
@@ -698,7 +696,7 @@ class CosmosysIssue < ActiveRecord::Base
     return cl,torecalc
   end
 
-  def to_graphviz_hiedwn(cl,n_node,dwn,isfirst,torecalc,root_url)
+  def to_graphviz_hiedwn(cl,n_node,dwn,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
     if dwn.csys.shall_draw then
       colorstr = dwn.csys.get_border_color
       if not(dwn.csys.shall_show_id) then
@@ -718,7 +716,7 @@ class CosmosysIssue < ActiveRecord::Base
       cl.add_edges(n_node, dwn_node, :arrowsize => 0.5)
       if dwn.project == self.issue.project then
         dwn.children.each {|dwn2|
-          cl,torecalc=self.to_graphviz_hiedwn(cl,dwn_node,dwn2,isfirst,torecalc,root_url)
+          cl,torecalc=self.to_graphviz_hiedwn(cl,dwn_node,dwn2,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
         }
       end
       if (isfirst) then
@@ -729,7 +727,7 @@ class CosmosysIssue < ActiveRecord::Base
   end
 
 
-  def to_graphviz_hiecluster(cl,isfirst,torecalc,root_url)
+  def to_graphviz_hiecluster(cl,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
     if self.shall_draw then
       colorstr = self.get_border_color
       if not(self.shall_show_id) then
@@ -746,44 +744,44 @@ class CosmosysIssue < ActiveRecord::Base
         :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr, :penwidth => 1.5,
         :URL => root_url + "/issues/" + self.issue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :tooltip => self.issue.description)
       self.issue.children.each{|dwn|
-        cl,torecalc=self.to_graphviz_hiedwn(cl,n_node,dwn,isfirst,torecalc,root_url)
+        cl,torecalc=self.to_graphviz_hiedwn(cl,n_node,dwn,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
       }
       if (self.issue.parent != nil) then
-        cl,torecalc=self.to_graphviz_hieupn(cl,n_node,self.issue.parent,isfirst,torecalc,root_url)
+        cl,torecalc=self.to_graphviz_hieupn(cl,n_node,self.issue.parent,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
       end
     end
     return cl,torecalc
   end
 
-  def to_graphviz_hiegraph(isfirst,torecalc,root_url)
+  def to_graphviz_hiegraph(isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
     # Create a new graph
     g = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "30,30", :strict => true, :rankdir => self.get_hierankdir)
     cl = g.add_graph(:clusterD, :label => 'Hierarchy', :labeljust => 'l', :labelloc=>'t', :margin=> '5')
-    cl,torecalc = self.to_graphviz_hiecluster(cl,isfirst,torecalc,root_url)
+    cl,torecalc = self.to_graphviz_hiecluster(cl,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
     return g,torecalc
   end
 
-  def to_graphviz_graph_str(isfirst,torecalc,root_url)
-    g,torecalc = self.to_graphviz_depgraph(isfirst,torecalc,root_url)
+  def to_graphviz_graph_str(isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
+    g,torecalc = self.to_graphviz_depgraph(isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
     result="{{graphviz_link()\n" + g.to_s + "\n}}"
-    g2,torecalc = self.to_graphviz_hiegraph(isfirst,torecalc,root_url)
+    g2,torecalc = self.to_graphviz_hiegraph(isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
     result+=" {{graphviz_link()\n" + g2.to_s + "\n}}"
     return result,torecalc
   end
 
-  def show_graphs(root_url)
-    strdiag,torecalc = self.to_graphviz_graph_str(true,{},root_url)
+  def show_graphs(root_url,max_graph_siblings,max_graph_levels)
+    strdiag,torecalc = self.to_graphviz_graph_str(true,{},root_url,max_graph_siblings,max_graph_levels)
     return strdiag
   end
 
-  def show_depgraph(root_url)
-    g,torecalc = self.to_graphviz_depgraph(true,{},root_url)
+  def show_depgraph(root_url,max_graph_siblings,max_graph_levels)
+    g,torecalc = self.to_graphviz_depgraph(true,{},root_url,max_graph_siblings,max_graph_levels)
     result = "{{graphviz_link()\n" + g.to_s + "\n}}"
     return result
   end
 
-  def show_hiegraph(root_url)
-    g2,torecalc = self.to_graphviz_hiegraph(true,{},root_url)
+  def show_hiegraph(root_url,max_graph_siblings,max_graph_levels)
+    g2,torecalc = self.to_graphviz_hiegraph(true,{},root_url,max_graph_siblings,max_graph_levels)
     result = "{{graphviz_link()\n" + g2.to_s + "\n}}"
     return result    
   end
