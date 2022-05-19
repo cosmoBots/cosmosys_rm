@@ -8511,7 +8511,7 @@ var a1 = Qu((je, Be) => {
           class: "node",
           id: e.nodeId,
           "data-node-type": e.node.nodetype,
-          style: Jn({ width: `${400 - e.deep * 8}px` }),
+          style: Jn({ width: `${`100%` - e.deep * 8}px` }),
         },
         [
           e.isLeaf

@@ -1,6 +1,7 @@
 <h2>CosmosysController#menu</h2>
 <p>Actions:</p>
-<p><%= link_to 'Directory', { :action => 'treeview'}, :method => :get %></p>
+<p><%= link_to 'Tree', { :action => 'treeview'}, :method => :get %></p>
+<p><%= link_to 'Directory', { :action => 'treeview', :includerpt => 'yes'}, :method => :get %></p>
 <p><%= link_to 'MainReport', { :action => 'show'}, :method => :get %></p>
 <p><%= link_to 'Exportable Report', { :action => 'show', :nochapters => 'yes'}, :method => :get %></p>
 

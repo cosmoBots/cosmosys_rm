@@ -1,8 +1,16 @@
+<% 
+if params[:includerpt] 
+	show_rpt = true
+else
+	show_rpt = false
+end %>
+
 <% content_for :header_tags do %>
     <%= stylesheet_link_tag 'cosmosys', :plugin => 'cosmosys' %>
-    <%= stylesheet_link_tag 'treeview/index.9924afb6', :plugin => 'cosmosys' %>	
+    <%= stylesheet_link_tag 'treeview/index.9924afb6', :plugin => 'cosmosys' %>
 <% end %>
 
+<% if show_rpt then %>
 <table style="width: 100%; border-collapse: collapse;border-spacing:0px;">
 <colgroup>
 	<col span="1" style="width: 30%;">
@@ -18,11 +26,12 @@
 </th>
 </tr>
 <tr><td style="background-color:#eee;text-overflow: ellipsis;vertical-align: top;border: 2px solid black;padding: 0;margin: 0px;overflow: auto;">
+<% end %>
 <div id="app"></div>
+<% if show_rpt then%>
 </td><td>
 
 <% 
-
 show_images = false
 
 def calculate_heading(show_chapters,i)
@@ -209,6 +218,7 @@ end
 </div>
 
 </td></tr></tbody></table>
+<% end %>
 <script>thiskey="<%=@key%>"</script>
 <script>treeviewpath="<%=@treeviewpath%>"</script>
 <%= javascript_include_tag 'treeview/index.60fae44f', :plugin => 'cosmosys', :type => 'module' %>

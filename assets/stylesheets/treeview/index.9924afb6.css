@@ -39,7 +39,17 @@
 }
 .node .subtitle[data-v-3d096bee] {
   margin-left: 26px;
+  white-space: break-spaces;
+  font-family: monospace;
+}
+.title .subtitle[data-v-3d096bee] {
+  margin-left: 26px;
   white-space: nowrap;
+  display: inline-block;  /* TODO: Find inline which really truncates */
+  font-weight:100;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-inline-size:400px;
 }
 .node .children[data-v-3d096bee] {
   margin-left: 8px;
