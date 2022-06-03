@@ -667,57 +667,61 @@ class CosmosysIssue < ActiveRecord::Base
   end
 
 
-  def to_graphviz_hieupn(cl,n_node,upn,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
+  def to_graphviz_hieupn(cl,upn,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
+    ucl = nil
     if upn.csys.shall_draw then
-      colorstr = upn.csys.get_border_color
-      if not(upn.csys.shall_show_id) then
-        shapestr = upn.tracker.csys.paint_pref[:chapter_shape]
-        labelstr = upn.csys.get_label_noid(self.issue.project)
-        fontnamestr = 'times italic'            
-      else
-        shapestr = upn.tracker.csys.paint_pref[:issue_shape]
-        labelstr = upn.csys.get_label_issue(self.issue.project)
-        fontnamestr = 'times'
-      end
-      fillstr = upn.csys.get_fill_color
-      upn_node = cl.add_nodes( upn.id.to_s, :label => labelstr, :fontname => fontnamestr,
-        :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-        :URL => root_url + "/issues/" + upn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => upn.description)
-      cl.add_edges(upn_node, n_node, :arrowsize => 0.5)
       if upn.project == self.issue.project then
         if (upn.parent != nil) then
-          cl,torecalc=self.to_graphviz_hieupn(cl,upn_node,upn.parent,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
+          cl,torecalc,ucl=self.to_graphviz_hieupn(cl,upn.parent,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
         end
       end
+      colorstr = upn.csys.get_border_color
+      shapestr = upn.tracker.csys.paint_pref[:chapter_shape]
+      labelstr = upn.csys.get_label_noid(self.issue.project)
+      fontnamestr = 'times italic'            
+      fillstr = upn.csys.get_fill_color
+      if ucl == nil then
+        ucl = cl
+      end
+      upcl = ucl.add_graph(("cluster"+upn.id.to_s).to_sym, :label => labelstr, :fontname => fontnamestr, :penwidth => 1,
+      :URL => root_url + "/issues/" + upn.id.to_s,:fontsize => 10, :margin => 4, :tooltip => upn.description, 
+      :labeljust => 'l', :labelloc=>'t')
       if (isfirst) then
         torecalc[upn.id.to_s.to_sym] = upn.id
       end  
     end
-    return cl,torecalc
+    return cl,torecalc,upcl
   end
 
   def to_graphviz_hiedwn(cl,n_node,dwn,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
     if dwn.csys.shall_draw then
       colorstr = dwn.csys.get_border_color
-      if not(dwn.csys.shall_show_id) then
-        shapestr =  dwn.tracker.csys.paint_pref[:chapter_shape]
-        labelstr = dwn.csys.get_label_noid(self.issue.project)
-        fontnamestr = 'times italic'            
-      else
-        shapestr = dwn.tracker.csys.paint_pref[:issue_shape]
-        labelstr = dwn.csys.get_label_issue(self.issue.project)
-        fontnamestr = 'times'
-      end
+      if (dwn.children.size == 0) then
+        if not(dwn.csys.shall_show_id) then
+          shapestr =  dwn.tracker.csys.paint_pref[:chapter_shape]
+          labelstr = dwn.csys.get_label_noid(self.issue.project)
+          fontnamestr = 'times italic'            
+        else
+          shapestr = dwn.tracker.csys.paint_pref[:issue_shape]
+          labelstr = dwn.csys.get_label_issue(self.issue.project)
+          fontnamestr = 'times'
+        end
 
-      fillstr = dwn.csys.get_fill_color
-      dwn_node = cl.add_nodes( dwn.id.to_s, :label => labelstr, :fontname => fontnamestr, 
-        :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-        :URL => root_url + "/issues/" + dwn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => dwn.description)
-      cl.add_edges(n_node, dwn_node, :arrowsize => 0.5)
-      if dwn.project == self.issue.project then
-        dwn.children.each {|dwn2|
-          cl,torecalc=self.to_graphviz_hiedwn(cl,dwn_node,dwn2,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
-        }
+        fillstr = dwn.csys.get_fill_color
+        dwn_node = cl.add_nodes( dwn.id.to_s, :label => labelstr, :fontname => fontnamestr, 
+          :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
+          :URL => root_url + "/issues/" + dwn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => dwn.description)
+      else
+        labelstr = dwn.csys.get_label_noid(self.issue.project)
+        fontnamestr = 'times italic'
+        scl = cl.add_graph(("cluster"+dwn.id.to_s).to_sym, :label => labelstr, :fontname => fontnamestr, :penwidth => 1,
+        :URL => root_url + "/issues/" + dwn.id.to_s,:fontsize => 10, :margin => 4, :tooltip => dwn.description, 
+        :labeljust => 'l', :labelloc=>'t')
+        if dwn.project == self.issue.project then
+          dwn.children.each {|dwn2|
+            scl,torecalc=self.to_graphviz_hiedwn(scl,dwn_node,dwn2,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
+          }
+        end  
       end
       if (isfirst) then
         torecalc[dwn.id.to_s.to_sym] = dwn.id
@@ -727,27 +731,40 @@ class CosmosysIssue < ActiveRecord::Base
   end
 
 
-  def to_graphviz_hiecluster(cl,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
+  def to_graphviz_hiecluster(cl,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)    
     if self.shall_draw then
+      ucl = nil
+      if (self.issue.parent != nil) then
+        cl,torecalc,ucl=self.to_graphviz_hieupn(cl,self.issue.parent,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
+      end
+      if ucl == nil then
+        ucl = cl
+      end      
       colorstr = self.get_border_color
-      if not(self.shall_show_id) then
-        shapestr =  self.issue.tracker.csys.paint_pref[:chapter_shape]
+      if (self.issue.children.size == 0) then
+        if not(self.shall_show_id) then
+          shapestr =  self.issue.tracker.csys.paint_pref[:chapter_shape]
+          labelstr = self.get_label_noid(self.issue.project)
+          fontnamestr = 'times italic'
+        else
+          shapestr =  self.issue.tracker.csys.paint_pref[:issue_shape]
+          labelstr = self.get_label_issue(self.issue.project)
+          fontnamestr = 'times'
+        end
+        fillstr = self.get_fill_color
+        n_node = ucl.add_nodes( self.issue.id.to_s, :label => labelstr, :fontname => fontnamestr, 
+        :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr, :penwidth => 1,
+        :URL => root_url + "/issues/" + self.issue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :tooltip => self.issue.description)
+
+      else
         labelstr = self.get_label_noid(self.issue.project)
         fontnamestr = 'times italic'
-      else
-        shapestr =  self.issue.tracker.csys.paint_pref[:issue_shape]
-        labelstr = self.get_label_issue(self.issue.project)
-        fontnamestr = 'times'
-      end
-      fillstr = self.get_fill_color
-      n_node = cl.add_nodes( self.issue.id.to_s, :label => labelstr, :fontname => fontnamestr, 
-        :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr, :penwidth => 1.5,
-        :URL => root_url + "/issues/" + self.issue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :tooltip => self.issue.description)
-      self.issue.children.each{|dwn|
-        cl,torecalc=self.to_graphviz_hiedwn(cl,n_node,dwn,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
-      }
-      if (self.issue.parent != nil) then
-        cl,torecalc=self.to_graphviz_hieupn(cl,n_node,self.issue.parent,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
+        scl = ucl.add_graph(("cluster"+self.issue.id.to_s).to_sym, :label => labelstr, :fontname => fontnamestr, :penwidth => 1,
+        :URL => root_url + "/issues/" + self.issue.id.to_s,:fontsize => 10, :margin => 4, :tooltip => self.issue.description, 
+        :labeljust => 'l', :labelloc=>'t',:rankdir => "TD")
+        self.issue.children.each{|dwn|
+          scl,torecalc=self.to_graphviz_hiedwn(scl,n_node,dwn,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
+        }
       end
     end
     return cl,torecalc
@@ -755,8 +772,8 @@ class CosmosysIssue < ActiveRecord::Base
 
   def to_graphviz_hiegraph(isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
     # Create a new graph
-    g = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "3000,3000", :strict => true, :rankdir => self.get_hierankdir)
-    cl = g.add_graph(:clusterD, :label => 'Hierarchy', :labeljust => 'l', :labelloc=>'t', :margin=> '5')
+    g = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "3000,3000", :strict => true, :rankdir => "DT", :layout => :fdp)
+    cl = g.add_graph(:clusterH, :label => 'Hierarchy', :labeljust => 'l', :labelloc=>'t', :margin=> '1')
     cl,torecalc = self.to_graphviz_hiecluster(cl,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
     return g,torecalc
   end
