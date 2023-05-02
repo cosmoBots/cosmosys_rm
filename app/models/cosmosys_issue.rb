@@ -558,11 +558,11 @@ class CosmosysIssue < ActiveRecord::Base
               if (CosmosysIssue.shall_draw_relation(dwn,self.issue.tracker)) then
                 colordep2 = CosmosysIssue.get_relation_color(dwn,self.issue.tracker)
                 if not(dwnrel.include?(dwn.issue_to.parent)) then
-                  if (siblings_counter < max_graph_siblings) then
-                    cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,false,colordep2)
+                  if (siblings_counter < max_graph_siblings) then          
+                    cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,false,colordep2,max_graph_siblings,max_graph_levels)
                   else
                     if (siblings_counter <= max_graph_siblings) then
-                      cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,true,colordep2)
+                      cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,true,colordep2,max_graph_siblings,max_graph_levels)
                     end
                   end
                   siblings_counter += 1
@@ -576,10 +576,10 @@ class CosmosysIssue < ActiveRecord::Base
               if (CosmosysIssue.shall_draw_relation(upn,self.issue.tracker)) then
                 colordep2 = CosmosysIssue.get_relation_color(upn,self.issue.tracker)
                 if (siblings_counter < max_graph_siblings) then
-                  cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,false,colordep2)
+                  cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,false,colordep2,max_graph_siblings,max_graph_levels)
                 else
                   if (siblings_counter <= max_graph_siblings) then
-                    cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,true,colordep2)
+                    cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,true,colordep2,max_graph_siblings,max_graph_levels)
                   end
                 end
                 siblings_counter += 1
