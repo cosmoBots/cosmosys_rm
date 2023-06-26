@@ -274,7 +274,9 @@ class CosmosysController < ApplicationController
           puts("key")
           @key = User.current.api_key
           puts(@key)
-          @treeviewpath = "/cosmosys/"+@project.identifier+"/treeview"
+          splitted_url = request.fullpath.split('/cosmosys')
+          root_url = splitted_url[0]
+          @treeviewpath = root_url+"/cosmosys/"+@project.identifier+"/treeview"
         }
         format.json { 
           treedata = []
