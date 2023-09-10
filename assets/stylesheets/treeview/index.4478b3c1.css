@@ -1,18 +1,18 @@
-.node[data-v-5bac4383] {
+.node[data-v-67b1b437] {
     position: relative
 }
 
-.node[data-v-5bac4383] :hover {
+.node[data-v-67b1b437] :hover {
     background-color: #aaa1
 }
 
-.node .folder-icon[data-v-5bac4383] {
+.node .folder-icon[data-v-67b1b437] {
     position: absolute;
     left: 0;
     top: 0
 }
 
-.node .info-box[data-v-5bac4383] {
+.node .info-box[data-v-67b1b437] {
     z-index: 1000;
     position: absolute;
     top: 24px;
@@ -26,13 +26,13 @@
     font-weight: 400
 }
 
-.node .button-bar[data-v-5bac4383] {
+.node .button-bar[data-v-67b1b437] {
     position: absolute;
     top: 1px;
     right: 1px
 }
 
-.node .title[data-v-5bac4383] {
+.node .title[data-v-67b1b437] {
     display: block;
     padding-bottom: 4px;
     font-weight: 700;
@@ -40,32 +40,40 @@
     margin-bottom: 1px
 }
 
-.node .title--hover[data-v-5bac4383] {
+.node .title--hover[data-v-67b1b437] {
     background-color: #0001
 }
 
-.node .title .subtitle[data-v-3d096bee][data-v-5bac4383] {
+.node .title .subtitle[data-v-67b1b437] {
     margin-left: 26px;
     white-space: nowrap;
-    display: inline-block;
     font-weight: 100;
     overflow: hidden;
     text-overflow: ellipsis;
     max-inline-size: 400px
 }
 
-.node .subtitle[data-v-5bac4383] {
+.node .subtitle[data-v-67b1b437] {
     margin-left: 26px;
     white-space: break-spaces;
     font-family: monospace
 }
 
-.node .children[data-v-5bac4383] {
+.node .children[data-v-67b1b437] {
     margin-left: 8px
 }
 
-.node .children .drop-area[data-v-5bac4383] {
+.node .children .drop-area[data-v-67b1b437] {
     padding-left: 24px
+}
+
+.title .subtitle[data-v-67b1b437] {
+    margin-left: 26px;
+    white-space: nowrap;
+    font-weight: 100;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-inline-size: 400px
 }
 
 .button-bar {
@@ -168,7 +176,7 @@
 }
 
 #app {
-    padding: 0 2rem;
+    padding: 0 .1rem;
     width: 100%
 }
 
