@@ -52,7 +52,7 @@ end
         imagesrc = "/cosmosys_issues/"+item.id.to_s+"/dep_gv.svg"
       %>
         <% if show_images then %>
-          <p style="text-align:right"><a href="<%= imagesrc %>" ><img src="<%= imagesrc %>" alt="Dependence diagram"></a></p>
+          <figure><a href="<%= imagesrc %>" ><img src="<%= imagesrc %>" alt="Dependence diagram"></a></figure>
         <% end %>
       <% end %>
       </div>
@@ -61,13 +61,101 @@ end
     }
 %>
 <div class="<%= "cSysProject" %>">
-<% if show_chapters %><h1><%= @project.csys.code %>: <%= @project.name %></h1><% end %>
-
-    <%
-    roots = @project.issues.select{|obj| obj.parent == nil and obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}
-      if roots.size == 0 then
-        roots = @project.issues.select { |n| n.parent.project != @project and n.csys.shall_draw}
-      end
-      roots.each { |i| draw_items.(i, draw_items) }
-    %>
+  <% if show_chapters %><h1><%= @project.csys.code %>: <%= @project.name %></h1><% end %>
+  <%
+  roots = @project.issues.select{|obj| obj.parent == nil and obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}
+    if roots.size == 0 then
+      roots = @project.issues.select { |n| n.parent.project != @project and n.csys.shall_draw}
+    end
+    roots.each { |i| draw_items.(i, draw_items) }
+  %>
+  <div style="text-align: right;"><button onClick="<%= "downloadReport('#{@project.name}')" %>">Download</button></div>
 </div>
+
+<script>
+const getBase64StringFromDataURL = (dataURL) =>
+  dataURL.replace('data:', '').replace(/^.+,/, '');
+
+function readFile(file){
+  return new Promise((resolve, reject) => {
+    var fr = new FileReader();  
+    fr.onload = () => {
+      resolve(fr.result )
+    };
+    fr.onerror = reject;
+    fr.readAsText(file.blob);
+  });
+}
+
+function downloadReport(title) {
+  let projectElement = document.querySelector('.cSysProject').cloneNode(true);
+
+  let image_promises = [].map.call(projectElement.querySelectorAll('img'), (img) => {
+    return fetch(img.src)
+      .then((res) => res.blob())
+      .then((blob) => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            resolve(reader.result)
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      })
+      .then((dataURL) => {
+        img.src = dataURL;
+        img.style.width = Math.round(2 * img.width) + 'px';
+        img.style.height = Math.round(2 * img.height) + 'px';
+      });
+  });
+
+  let link_promises = [].map.call(projectElement.querySelectorAll('[href]'), (link) => {
+    const r = new RegExp('^(?:[a-z+]+:)?//', 'i');
+    
+    return new Promise((resolve, reject) => {
+      let href = link.getAttribute('href');
+      if (!r.test(href)) {
+          link.setAttribute('href',
+              (href.indexOf('/')) === 0 ?
+              document.location.origin + href :
+              document.location.href + '/' + link.getAttribute('href')
+            );
+      }
+      return resolve(link.href)
+    });
+  });
+
+  let promises = image_promises.concat(link_promises);
+
+  Promise.allSettled(promises)
+    .then(() => {
+      projectElement.querySelectorAll('button').forEach((button) => {button.remove();});
+    })
+    .then(() => {
+      let html = projectElement.innerHTML;
+      let head = '<!DOCTYPE html><head><meta charset="utf-8" /><title>' + title + '</title></head>';
+        html = head + '<body><div class="cSysProject">' + html + '</div></body>';
+
+      let file = new File([html], title + ".html");
+      
+      // Create a link and set the URL using `createObjectURL`
+      const link = document.createElement("a");
+      link.style.display = "none";
+      link.href = URL.createObjectURL(file);
+      link.download = file.name;
+
+      // It needs to be added to the DOM so it can be clicked
+      document.body.appendChild(link);
+      link.click();
+
+      // To make this work on Firefox we need to wait
+      // a little while before removing it.
+      setTimeout(() => {
+        URL.revokeObjectURL(link.href);
+        link.parentNode.removeChild(link);
+      }, 0);
+    })
+
+}
+</script>
