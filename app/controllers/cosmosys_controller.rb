@@ -158,7 +158,7 @@ class CosmosysController < ApplicationController
       output += ("\nissue_new_url: " + issue_new_url.to_s)
       cfprefixvalue = thisproject.code
       childrentypevector = thisproject.trackers.map{|t| t.name}
-      # TODO: CHANGE THIS PATCH
+      # TODO: CHANGE THESE PATCHES BY A CALLBACK OR SOME PROPERTY, SO COSMOSYS DOES NOT KNOW ANYTHING ABOUT CSYSREQ
       if childrentypevector.include?("rq") then
         childrentypevector += ["rqInfo","rqComplex","rqOpt","rqMech","rqHw","rqSw"]
       end
@@ -209,9 +209,18 @@ class CosmosysController < ApplicationController
           infobox += [["-> "+translate_rel(false,r.relation_type)+" '"+r.issue_to.subject+"'","/issues/"+r.issue_to_id.to_s,r.issue_to.csys.identifier]]
         }
       end
-      
+      if (current_issue.children.size > 0) then
+        titlestring = cfchapterstring + " : " + cftitlevalue
+      else
+        # TODO: CHANGE THESE PATCHES BY A CALLBACK OR SOME PROPERTY, SO COSMOSYS DOES NOT KNOW ANYTHING ABOUT CSYSREQ
+        if currentnodetype == "rqInfo" then
+          titlestring = cfchapterstring + " " + cftitlevalue
+        else
+          titlestring = cfchapterstring + " " + current_issue.csys.get_identifier  + ": " + cftitlevalue
+        end
+      end
       tree_node = {
-        'title':  cfchapterstring + " " + current_issue.csys.get_identifier  + ": " + cftitlevalue,
+        'title':  titlestring,
         'subtitle': current_issue.description,
         'expanded': true,
         'id': current_issue.id.to_s,
