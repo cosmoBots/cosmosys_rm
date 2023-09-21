@@ -40,12 +40,12 @@ end
 
 %>
 <%
-    draw_items = lambda {|item, recursion|
+    draw_items = lambda {|item, recursion, current_level|
       chapstr, classdiv = calculate_heading(show_chapters, item)
       title = item.subject
     %>
       <div class="<%= classdiv %>">
-      <h1><%= link_to chapstr, issue_path(item.id) %> <%= title %></h1>
+      <h<%= current_level %>><%= link_to chapstr, issue_path(item.id) %> <%= title %></h<%= current_level %>>
 
       <div class="<%= classdiv %>descr"><%= textilizable item, :description %></div>
       <% if not(item.csys.is_chapter?) then
@@ -57,7 +57,7 @@ end
       <% end %>
       </div>
     <%
-      item.children.select{|obj| obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}.each {|subitem| recursion.(subitem, recursion)}
+      item.children.select{|obj| obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}.each {|subitem| recursion.(subitem, recursion,current_level+1)}
     }
 %>
 <div class="<%= "cSysProject" %>">
@@ -67,7 +67,8 @@ end
     if roots.size == 0 then
       roots = @project.issues.select { |n| n.parent.project != @project and n.csys.shall_draw}
     end
-    roots.each { |i| draw_items.(i, draw_items) }
+    roots.each { |i| 
+    draw_items.(i, draw_items,1) }
   %>
   <div style="text-align: right;"><button onClick="<%= "downloadReport('#{@project.name}')" %>">Download</button></div>
 </div>
