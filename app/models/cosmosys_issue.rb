@@ -309,6 +309,9 @@ class CosmosysIssue < ActiveRecord::Base
     inner_get_label_issue(baseproj,boundary_node)
   end
 
+  def get_title
+    self.get_identifier+":"+self.class.word_wrap(self.issue.subject, line_width: 12)
+  end
   # -----------------------------------
 
   def to_graphviz_depupn(cl,n_node,upn,isfirst,torecalc,root_url,levels_counter,force_end,colordep, max_graph_siblings, max_graph_levels)
