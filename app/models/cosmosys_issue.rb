@@ -310,7 +310,11 @@ class CosmosysIssue < ActiveRecord::Base
   end
 
   def get_title
-    self.get_identifier+":"+self.class.word_wrap(self.issue.subject, line_width: 12)
+    if self.shall_show_id
+      self.get_identifier+":"+self.class.word_wrap(self.issue.subject, line_width: 12)
+    else
+      self.issue.subject
+    end
   end
   # -----------------------------------
 
