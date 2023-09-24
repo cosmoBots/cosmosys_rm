@@ -1,4 +1,16 @@
 
+#content > div.cSysProject > table > tbody > tr > td {
+  background: white;
+  border: white;
+}
+
+body > div > table > tbody > tr > td > div > table {
+  border-style: solid !important;
+  border-width: 0.5px !important;
+  border-spacing: 0px;
+  background-color: white;
+}
+
 div > table {
   background-color: aliceblue !important;
   border-spacing: 0px;
@@ -11,6 +23,7 @@ div > table > tbody > tr > td {
   border-style: solid !important;
   border-width: 0.5px !important;
   border-spacing: 0px;
+  background-color: white;
 }
 
 div > table > thead > tr > th {
@@ -45,6 +58,46 @@ td.description {
     margin-top: 5px;
 }
 
+.cSysIssuedataColumn {
+  text-align: -webkit-right;
+}
+.cSysIssuedata {
+  /* background: aliceblue; */
+  /* border: lightgray; */
+  /* border-style: dashed; */
+  border-width: thin;
+}
+
+.cSysIssuedata td {
+  background-color: white;
+  border-width: thin;
+  color: gray;
+  font-size: xx-small;
+  font-style: italic;
+  text-align: right;
+}
+
+
+.cSysParentIssuedataColumn {
+  text-align: -webkit-right;
+}
+
+.cSysParentIssuedata {
+  /* background: aliceblue; */
+  /* border: lightgray; */
+  /* border-style: dashed; */
+  border-width: thin;
+}
+
+.cSysParentIssuedata td {
+  background-color: white;
+  border-width: thin;
+  color: gray;
+  font-size: xx-small;
+  font-style: italic;
+  text-align: right;
+}
+
 .cSysParentIssue h2, .cSysParentIssue h3,
 .cSysParentIssue h4, .cSysParentIssue h5,
 .cSysParentIssue h6, .cSysParentIssue h7,
@@ -57,7 +110,7 @@ td.description {
     padding: 0 18px;
     overflow: hidden;
     transition: max-height 0.2s ease-out;
-    background-color: #f1f1f1;    
+    background-color: white;    
 }
 
 .cSysIssue {

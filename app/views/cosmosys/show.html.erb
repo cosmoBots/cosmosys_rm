@@ -10,6 +10,10 @@ if params[:noimages]
 else
 	show_images = true
 end
+cftype = IssueCustomField.find_by_name("rqType")
+cflevel = IssueCustomField.find_by_name("rqLevel")
+cfvar = IssueCustomField.find_by_name("rqVar")
+cfvalue = IssueCustomField.find_by_name("rqValue")
 
 def calculate_heading(show_chapters,i)
 	if (i.csys.is_chapter?) then
@@ -45,22 +49,57 @@ end
       title = item.subject
     %>
       <div class="<%= classdiv %>">
+      <tr><td>
       <h<%= current_level %>><%= link_to chapstr, issue_path(item.id) %> <%= title %></h<%= current_level %>>
 
       <div class="<%= classdiv %>descr"><%= textilizable item, :description %></div>
       <% if not(item.csys.is_chapter?) then
         imagesrc = "/cosmosys_issues/"+item.id.to_s+"/dep_gv.svg"
       %>
-        <% if show_images then %>
+        <% if show_images then 
+            if (item.relations.size > 0) then
+        %>
+          
           <figure><a href="<%= imagesrc %>" ><img src="<%= imagesrc %>" alt="Dependence diagram"></a></figure>
-        <% end %>
-      <% end %>
+        <!---% else %> 
+          <p> (no relations) </p-->
+         <% end 
+           end
+         end %>
+        </td>
+        <td class="<%= classdiv %>dataColumn">
+      <% if not(item.csys.is_chapter?) then 
+            thistype = item.custom_values.where(custom_field: cftype).first.value
+            if thistype != nil and thistype.size > 0 then thistype = "t:"+thistype end
+            thislevel = item.custom_values.where(custom_field: cflevel).first.value
+            if thislevel != nil and thislevel.size > 0 then thislevel = "l:"+thislevel end
+          end
+          thisvar = item.custom_values.where(custom_field: cfvar).first.value
+          if thisvar != nil and thisvar.size > 0 then thisvar = "v:"+thisvar end
+          thisvalue = item.custom_values.where(custom_field: cfvalue).first.value
+          if thisvalue != nil and thisvalue.size > 0 then thisvalue = "c:"+thisvalue end
+      %>
+        <table class="<%= classdiv %>data">
+        <tbody>
+      <% if not(item.csys.is_chapter?) then %>
+        <tr><td><%= thistype %></td></tr>
+        <tr><td><%= thislevel %></td></tr>
+      <% end%>
+        <tr><td><%= thisvar %></td></tr>
+        <tr><td><%= thisvalue %></td></tr>
+        </tbody>
+        </table>
+        </td>
+        </tr>
       </div>
     <%
       item.children.select{|obj| obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}.each {|subitem| recursion.(subitem, recursion,current_level+1)}
     }
 %>
+
 <div class="<%= "cSysProject" %>">
+<table>
+<tbody>
   <% if show_chapters %><h1><%= @project.csys.code %>: <%= @project.name %></h1><% end %>
   <%
   roots = @project.issues.select{|obj| obj.parent == nil and obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}
@@ -71,6 +110,8 @@ end
     draw_items.(i, draw_items,1) }
   %>
   <div style="text-align: right;"><button onClick="<%= "downloadReport('#{@project.name}')" %>">Download</button></div>
+</tbody>
+</table>
 </div>
 
 <script>
@@ -87,6 +128,22 @@ function readFile(file){
     fr.readAsText(file.blob);
   });
 }
+
+    function transferComputedStyle(node) {
+        var cs = getComputedStyle(node, null);
+        var i;
+        for (i = 0; i < cs.length; i++) {
+            var s = cs[i] + "";
+              node.style[s] = cs[s];
+        }
+    }
+    function transferAll() {
+        var all = document.getElementsByTagName("*");
+        var i;
+        for (i = 0; i < all.length; i++) {
+            transferComputedStyle(all[i]);
+        }
+    }
 
 function downloadReport(title) {
   let projectElement = document.querySelector('.cSysProject').cloneNode(true);
