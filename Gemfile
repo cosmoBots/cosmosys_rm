@@ -2,4 +2,4 @@ gem 'rspreadsheet'
 gem 'libxml-ruby'
 gem 'ruby-graphviz'
 gem 'slim-rails'
-
+gem 'loofah', '~> 2.19.0'
