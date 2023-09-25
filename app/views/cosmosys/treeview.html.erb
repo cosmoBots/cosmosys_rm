@@ -7,7 +7,7 @@ end %>
 
 <% content_for :header_tags do %>
     <%= stylesheet_link_tag 'cosmosys', :plugin => 'cosmosys' %>
-    <%= stylesheet_link_tag 'treeview/index.4403b48e', :plugin => 'cosmosys' %>
+    <%= stylesheet_link_tag 'treeview/index.0133e6a6', :plugin => 'cosmosys' %>
 <% end %>
 
 <% if show_rpt then %>
@@ -75,7 +75,7 @@ end
 <div class="<%= classdiv %>">
 <h1><%= link_to chapstr, issue_path(i.id) %> <%= title %></h1>
 <div class="<%= classdiv %>descr"><%= textilizable i, :description %></div>
-<% if not(i.csys.is_chapter?) then
+<% if (i.csys.shall_show_dependences?) then
 	imagesrc = "/cosmosys_issues/"+i.id.to_s+"/dep_gv.svg"
 %>
 <% if show_images then %>
@@ -90,7 +90,7 @@ end
 <div class="<%= classdiv %>">
 <h2><%= link_to chapstr, issue_path(i2.id) %> <%= title %></h2>
 <div class="<%= classdiv %>descr"><%= textilizable i2, :description %></div>
-<% if not(i2.csys.is_chapter?) then 
+<% if (i2.csys.shall_show_dependences?) then 
 	imagesrc = "/cosmosys_issues/"+i2.id.to_s+"/dep_gv.svg"
 %>
 <% if show_images then %>
@@ -105,7 +105,7 @@ end
 <div class="<%= classdiv %>">
 <h3><%= link_to chapstr, issue_path(i3.id) %> <%= title %></h3>
 <div class="<%= classdiv %>descr"><%= textilizable i3, :description %></div>
-<% if not(i3.csys.is_chapter?) then 
+<% if (i3.csys.shall_show_dependences?) then 
 	imagesrc = "/cosmosys_issues/"+i3.id.to_s+"/dep_gv.svg"
 %>
 <% if show_images then %>
@@ -120,7 +120,7 @@ end
 <div class="<%= classdiv %>">
 <h4><%= link_to chapstr, issue_path(i4.id) %> <%= title %></h4>
 <div class="<%= classdiv %>descr"><%= textilizable i4, :description %></div>
-<% if not(i4.csys.is_chapter?) then 
+<% if (i4.csys.shall_show_dependences?) then 
 	imagesrc = "/cosmosys_issues/"+i4.id.to_s+"/dep_gv.svg"
 %>
 <% if show_images then %>
@@ -134,7 +134,7 @@ end
 <div class="<%= classdiv %>">
 <h5><%= link_to chapstr, issue_path(i5.id) %> <%= title %></h5>
 <div class="<%= classdiv %>descr"><%= textilizable i5, :description %></div>
-<% if not(i5.csys.is_chapter?) then 
+<% if (i5.csys.shall_show_dependences?) then 
 	imagesrc = "/cosmosys_issues/"+i5.id.to_s+"/dep_gv.svg"
 %>
 <% if show_images then %>
@@ -148,7 +148,7 @@ end
 <div class="<%= classdiv %>">
 <h6><%= link_to chapstr, issue_path(i6.id) %> <%= title %></h6>
 <div class="<%= classdiv %>descr"><%= textilizable i6, :description %></div>
-<% if not(i6.csys.is_chapter?) then 
+<% if (i6.csys.shall_show_dependences?) then 
 	imagesrc = "/cosmosys_issues/"+i6.id.to_s+"/dep_gv.svg"
 %>
 <% if show_images then %>
@@ -162,7 +162,7 @@ end
 <div class="<%= classdiv %>">
 <h7><%= link_to chapstr, issue_path(i7.id) %> <%= title %></h7>
 <div class="<%= classdiv %>descr"><%= textilizable i7, :description %></div>
-<% if not(i7.csys.is_chapter?) then 
+<% if (i7.csys.shall_show_dependences?) then 
 	imagesrc = "/cosmosys_issues/"+i7.id.to_s+"/dep_gv.svg"
 %>
 <% if show_images then %>
@@ -176,7 +176,7 @@ end
 <div class="<%= classdiv %>">
 <h8><%= link_to chapstr, issue_path(i8.id) %> <%= title %></h8>
 <div class="<%= classdiv %>descr"><%= textilizable i8, :description %></div>
-<% if not(i8.csys.is_chapter?) then 
+<% if (i8.csys.shall_show_dependences?) then 
 	imagesrc = "/cosmosys_issues/"+i8.id.to_s+"/dep_gv.svg"
 %>
 <% if show_images then %>
@@ -190,7 +190,7 @@ end
 <div class="<%= classdiv %>">
 <h9><%= link_to chapstr, issue_path(i9.id) %> <%= title %></h8>
 <div class="<%= classdiv %>descr"><%= textilizable i9, :description %></div>
-<% if not(i9.csys.is_chapter?) then 
+<% if (i9.csys.shall_show_dependences?) then 
 	imagesrc = "/cosmosys_issues/"+i9.id.to_s+"/dep_gv.svg"
 %>
 <% if show_images then %>
@@ -221,4 +221,4 @@ end
 <% end %>
 <script>thiskey="<%=@key%>"</script>
 <script>treeviewpath="<%=@treeviewpath%>"</script>
-<%= javascript_include_tag 'treeview/index.ec74437b', :plugin => 'cosmosys', :type => 'module' %>
+<%= javascript_include_tag 'treeview/index.8cdf0a09', :plugin => 'cosmosys', :type => 'module' %>

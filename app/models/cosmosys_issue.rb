@@ -88,9 +88,15 @@ class CosmosysIssue < ActiveRecord::Base
   def is_valid?
     true
   end
+
   def is_chapter?
     self.issue.children.size > 0
   end
+
+  def shall_show_dependences?
+    true
+  end
+
   def shall_show_id
     true
   end
@@ -309,6 +315,13 @@ class CosmosysIssue < ActiveRecord::Base
     inner_get_label_issue(baseproj,boundary_node)
   end
 
+  def get_title
+    if self.shall_show_id
+      self.get_identifier+":"+self.class.word_wrap(self.issue.subject, line_width: 12)
+    else
+      self.issue.subject
+    end
+  end
   # -----------------------------------
 
   def to_graphviz_depupn(cl,n_node,upn,isfirst,torecalc,root_url,levels_counter,force_end,colordep, max_graph_siblings, max_graph_levels)

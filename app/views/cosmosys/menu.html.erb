@@ -3,5 +3,7 @@
 <p><%= link_to 'Tree', { :action => 'treeview'}, :method => :get %></p>
 <p><%= link_to 'Directory', { :action => 'treeview', :includerpt => 'yes'}, :method => :get %></p>
 <p><%= link_to 'MainReport', { :action => 'show'}, :method => :get %></p>
-<p><%= link_to 'Exportable Report', { :action => 'show', :nochapters => 'yes'}, :method => :get %></p>
+<p><%= link_to 'MainReport with no chapters', { :action => 'show', :nochapters => 'yes'}, :method => :get %></p>
+<p><%= link_to 'MainReport with no images', { :action => 'show', :noimages => 'yes'}, :method => :get %></p>
+<p><%= link_to 'MainReport with no chapters and no images', { :action => 'show', :nochapters => 'yes', :noimages => 'yes'}, :method => :get %></p>
 
