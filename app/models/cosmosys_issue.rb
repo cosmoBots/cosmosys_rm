@@ -88,9 +88,15 @@ class CosmosysIssue < ActiveRecord::Base
   def is_valid?
     true
   end
+
   def is_chapter?
     self.issue.children.size > 0
   end
+
+  def shall_show_dependences?
+    true
+  end
+
   def shall_show_id
     true
   end
@@ -199,9 +205,7 @@ class CosmosysIssue < ActiveRecord::Base
   
   ################## Diagrams support #######################
   
-  @@max_graph_levels = 12
-  @@max_graph_siblings = 7
-  
+ 
   def self.word_wrap( text, line_width: 80, break_sequence: "\n")
     text.split("\n").collect! do |line|
       line.length > line_width ? line.gsub(/(.{1,#{line_width}})(\s+|$)/, "\\1#{break_sequence}").rstrip : line
@@ -214,6 +218,18 @@ class CosmosysIssue < ActiveRecord::Base
 
   def self.shall_draw_relation(r,t)
     return t.csys.paint_pref[:shall_draw_relation][r.relation_type]
+  end
+
+  def shall_draw
+    return true
+  end
+
+  def self.get_childrentype(i,t)
+    return t.csys.childrentype(i)
+  end
+
+  def self.get_nodetype(i,t)
+    return t.csys.nodetype(i)
   end
   
   def inner_get_fill_color
@@ -299,124 +315,267 @@ class CosmosysIssue < ActiveRecord::Base
     inner_get_label_issue(baseproj,boundary_node)
   end
 
+  def get_title
+    if self.shall_show_id
+      self.get_identifier+":"+self.class.word_wrap(self.issue.subject, line_width: 12)
+    else
+      self.issue.subject
+    end
+  end
   # -----------------------------------
 
-  def to_graphviz_depupn(cl,n_node,upn,isfirst,torecalc,root_url,levels_counter,force_end,colordep)
-    if (levels_counter >= @@max_graph_levels)
-      stylestr = 'dotted'
-    else
-      stylestr = 'filled'
-    end
-    if (not(upn.csys.shall_show_id)) then
-      shapestr =  upn.tracker.csys.paint_pref[:chapter_shape]
-      labelstr = upn.csys.get_label_noid(self.issue.project)
-      fontnamestr = 'times italic'
-    else
-      shapestr =  upn.tracker.csys.paint_pref[:issue_shape]
-      labelstr = upn.csys.get_label_issue(self.issue.project)
-      fontnamestr = 'times'
-    end
+  def to_graphviz_depupn(cl,n_node,upn,isfirst,torecalc,root_url,levels_counter,force_end,colordep, max_graph_siblings, max_graph_levels)
+    if upn.csys.shall_draw then
+      if (levels_counter >= max_graph_levels)
+        stylestr = 'dotted'
+      else
+        stylestr = 'filled'
+      end
+      if (not(upn.csys.shall_show_id)) then
+        shapestr =  upn.tracker.csys.paint_pref[:chapter_shape]
+        labelstr = upn.csys.get_label_noid(self.issue.project)
+        fontnamestr = 'times italic'
+      else
+        shapestr =  upn.tracker.csys.paint_pref[:issue_shape]
+        labelstr = upn.csys.get_label_issue(self.issue.project)
+        fontnamestr = 'times'
+      end
 
-    if not(force_end) then
-      colorstr = upn.csys.get_border_color
-      fillstr = upn.csys.get_fill_color
-      upn_node = cl.add_nodes( upn.id.to_s, :label => labelstr, :fontname => fontnamestr,
-        :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-        :URL => root_url + "/issues/" + upn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => upn.description)
-    else
-      colorstr = upn.csys.get_border_color
-      upn_node = cl.add_nodes( upn.id.to_s, :label => "{ ... }", :fontname => fontnamestr,
-        :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-        :URL => root_url + "/issues/" + upn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => upn.description)
-      
-    end
-    cl.add_edges(upn_node, n_node, :color => colordep,:arrowsize => 0.5)
-    if upn.project == self.issue.project then
       if not(force_end) then
-        if (levels_counter < @@max_graph_levels) then
-          relup = []
-          upn.relations_from.each {|upn2|
-            if (CosmosysIssue.shall_draw_relation(upn2,upn.tracker)) then
-              relup += [upn2.issue_from]
-            end
-          }
-          siblings_counter = 0
-          levels_counter += 1
-          upn.relations_to.each {|upn2|
-            if (CosmosysIssue.shall_draw_relation(upn2,upn.tracker)) then
-              colordep2 = CosmosysIssue.get_relation_color(upn2,upn.tracker)
-              if not(relup.include?(upn2.issue_from.parent)) then
-                if (siblings_counter < @@max_graph_siblings) then
-                  cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn2.issue_from,isfirst,torecalc,root_url,levels_counter,force_end,colordep2)
-                else
-                  if (siblings_counter <= @@max_graph_siblings) then
-                    cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn2.issue_from,isfirst,torecalc,root_url,levels_counter,true,colordep2)
-                  end
-                end
-                siblings_counter += 1
+        colorstr = upn.csys.get_border_color
+        fillstr = upn.csys.get_fill_color
+        upn_node = cl.add_nodes( upn.id.to_s, :label => labelstr, :fontname => fontnamestr,
+          :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
+          :URL => root_url + "/issues/" + upn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => upn.description)
+      else
+        colorstr = upn.csys.get_border_color
+        upn_node = cl.add_nodes( upn.id.to_s, :label => "{ ... }", :fontname => fontnamestr,
+          :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
+          :URL => root_url + "/issues/" + upn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => upn.description)
+        
+      end
+      cl.add_edges(upn_node, n_node, :color => colordep,:arrowsize => 0.5)
+      if upn.project == self.issue.project then
+        if not(force_end) then
+          if (levels_counter < max_graph_levels) then
+            relup = []
+            upn.relations_from.each {|upn2|
+              if (CosmosysIssue.shall_draw_relation(upn2,upn.tracker)) then
+                relup += [upn2.issue_from]
               end
-            end
-          }
+            }
+            siblings_counter = 0
+            levels_counter += 1
+            upn.relations_to.each {|upn2|
+              if (CosmosysIssue.shall_draw_relation(upn2,upn.tracker)) then
+                colordep2 = CosmosysIssue.get_relation_color(upn2,upn.tracker)
+                if not(relup.include?(upn2.issue_from.parent)) then
+                  if (siblings_counter < max_graph_siblings) then
+                    cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn2.issue_from,isfirst,torecalc,root_url,levels_counter,force_end,colordep2,max_graph_siblings,max_graph_levels)
+                  else
+                    if (siblings_counter <= max_graph_siblings) then
+                      cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn2.issue_from,isfirst,torecalc,root_url,levels_counter,true,colordep2,max_graph_siblings,max_graph_levels)
+                    end
+                  end
+                  siblings_counter += 1
+                end
+              end
+            }
+          end
         end
       end
+      if (isfirst) then
+        torecalc[upn.id.to_s.to_sym] = upn.id
+      end
     end
-    if (isfirst) then
-      torecalc[upn.id.to_s.to_sym] = upn.id
-    end      
     return cl,torecalc
   end
 
 
 
-  def to_graphviz_depdwn(cl,n_node,dwn,isfirst,torecalc,root_url,levels_counter,force_end,colordep)
-    if (levels_counter >= @@max_graph_levels) then
-      stylestr = 'dotted'
-    else
-      stylestr = 'filled'
-    end
-    if (not(dwn.csys.shall_show_id)) then
-      shapestr = dwn.tracker.csys.paint_pref[:chapter_shape]
-      labelstr = dwn.csys.get_label_noid(self.issue.project)
-      fontnamestr = 'times italic'
-    else
-      shapestr = dwn.tracker.csys.paint_pref[:issue_shape]
-      labelstr = dwn.csys.get_label_issue(self.issue.project)
-      fontnamestr = 'times'
-    end
-    if not(force_end) then
-      colorstr = dwn.csys.get_border_color
-      fillstr = dwn.csys.get_fill_color
-      dwn_node = cl.add_nodes( dwn.id.to_s, :label => labelstr, :fontname => :fontnamestr,
-        :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-        :URL => root_url + "/issues/" + dwn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => dwn.description)
-    else
-      colorstr = dwn.csys.get_border_color
-      dwn_node = cl.add_nodes( dwn.id.to_s, :label => "{ ... }", :fontname => :fontnamestr,
-        :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-        :URL => root_url + "/issues/" + dwn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => dwn.description)
-    end
-    cl.add_edges(n_node, dwn_node, :color => colordep,:arrowsize => 0.5)
-    if dwn.project == self.issue.project then
+  def to_graphviz_depdwn(cl,n_node,dwn,isfirst,torecalc,root_url,levels_counter,force_end,colordep,max_graph_siblings,max_graph_levels)
+    if dwn.csys.shall_draw then
+      if (levels_counter >= max_graph_levels) then
+        stylestr = 'dotted'
+      else
+        stylestr = 'filled'
+      end
+      if (not(dwn.csys.shall_show_id)) then
+        shapestr = dwn.tracker.csys.paint_pref[:chapter_shape]
+        labelstr = dwn.csys.get_label_noid(self.issue.project)
+        fontnamestr = 'times italic'
+      else
+        shapestr = dwn.tracker.csys.paint_pref[:issue_shape]
+        labelstr = dwn.csys.get_label_issue(self.issue.project)
+        fontnamestr = 'times'
+      end
       if not(force_end) then
-        if (levels_counter < @@max_graph_levels) then
-          reldown = []
-          dwn.relations_from.each {|dwn2|
-            if (CosmosysIssue.shall_draw_relation(dwn2,dwn.tracker)) then
-              reldown += [dwn2.issue_to]
+        colorstr = dwn.csys.get_border_color
+        fillstr = dwn.csys.get_fill_color
+        dwn_node = cl.add_nodes( dwn.id.to_s, :label => labelstr, :fontname => :fontnamestr,
+          :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
+          :URL => root_url + "/issues/" + dwn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => dwn.description)
+      else
+        colorstr = dwn.csys.get_border_color
+        dwn_node = cl.add_nodes( dwn.id.to_s, :label => "{ ... }", :fontname => :fontnamestr,
+          :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
+          :URL => root_url + "/issues/" + dwn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => dwn.description)
+      end
+      cl.add_edges(n_node, dwn_node, :color => colordep,:arrowsize => 0.5)
+      if dwn.project == self.issue.project then
+        if not(force_end) then
+          if (levels_counter < max_graph_levels) then
+            reldown = []
+            dwn.relations_from.each {|dwn2|
+              if (CosmosysIssue.shall_draw_relation(dwn2,dwn.tracker)) then
+                reldown += [dwn2.issue_to]
+              end
+            }
+            levels_counter += 1
+            siblings_counter = 0
+            dwn.relations_from.each {|dwn2|
+              #if dwn2.issue_to.project == self.issue.project then
+                if (CosmosysIssue.shall_draw_relation(dwn2,dwn.tracker)) then
+                  colordep2 = CosmosysIssue.get_relation_color(dwn2,dwn.tracker)
+                  if not(reldown.include?(dwn2.issue_to.parent)) then
+                    if (siblings_counter < max_graph_siblings) then
+                      cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn2.issue_to,isfirst,torecalc,root_url, levels_counter, force_end,colordep2,max_graph_siblings,max_graph_levels)
+                    else
+                      if (siblings_counter <= max_graph_siblings) then
+                        cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn2.issue_to,isfirst,torecalc,root_url, levels_counter, true,colordep2,max_graph_siblings,max_graph_levels)
+                      end
+                    end
+                    siblings_counter += 1
+                  end
+                end
+              #end
+            }
+          end
+        end
+      end
+      if (isfirst) then
+        torecalc[dwn.id.to_s.to_sym] = dwn.id
+      end
+    end
+    return cl,torecalc
+  end
+
+  def to_graphviz_depcluster(cl,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
+    if self.shall_draw then
+      if ((self.issue.children.size > 0)) then
+        desc = self.get_descendents_in_project
+        added_nodes = []
+        relnode = []
+        self.issue.relations_from.each{|rn|
+          if (CosmosysIssue.shall_draw_relation(rn,self.issue.tracker)) then
+            relnode += [rn.issue_to]
+          end
+        }
+        # Increment one level to show the boundaries
+        descbound = []
+
+          desc.each { |e| 
+            if (e.relations.size>0) then
+              e.relations_from.each {|r|
+                if (CosmosysIssue.shall_draw_relation(r,e.tracker)) then
+                  if not(desc.include?(r.issue_to)) then
+                    descbound += [r.issue_to]
+                  end 
+                end
+              }
+              e.relations_to.each {|r|
+                if (CosmosysIssue.shall_draw_relation(r,e.tracker)) then
+                  if not(desc.include?(r.issue_from)) then
+                    descbound += [r.issue_from]
+                  end 
+                end
+              }          
             end
           }
-          levels_counter += 1
+
+        (desc+descbound).each { |e|
+          if e.csys.shall_draw then
+            anyrel = false
+            fillstr = e.csys.get_fill_color
+            boundary_node = descbound.include?(e)      
+            if (e.relations.size>0) then
+              e.relations_from.each {|r|
+                if r.issue_to != e then
+                  if r.issue_to.csys.shall_draw then
+                    if (CosmosysIssue.shall_draw_relation(r,e.tracker)) then
+                      if (desc+descbound).include?(r.issue_to) then
+                        colorstr = CosmosysIssue.get_relation_color(r,e.tracker)
+                        cl.add_edges(e.id.to_s, r.issue_to_id.to_s, :color => colorstr, :arrowsize => 0.5)
+                        anyrel = true
+                      end
+                    end
+                  end
+                end
+              }
+              e.relations_to.each {|r|
+                if r.issue_from != e then
+                  if r.issue_from.csys.shall_draw then                  
+                    if (CosmosysIssue.shall_draw_relation(r,e.tracker)) then
+                      if (desc+descbound).include?(r.issue_from) then
+                        colorstr = CosmosysIssue.get_relation_color(r,e.tracker)
+                        cl.add_edges(r.issue_from_id.to_s, e.id.to_s, :color => colorstr, :arrowsize => 0.5)
+                        anyrel = true
+                      end 
+                    end
+                  end
+                end
+              }
+              if anyrel then
+                if not(e.csys.shall_show_id) then
+                  shapestr =  e.tracker.csys.paint_pref[:chapter_shape]
+                  labelstr = e.csys.get_label_noid(self.issue.project,boundary_node)
+                  fontnamestr = 'times italic'
+                else
+                  shapestr =  e.tracker.csys.paint_pref[:issue_shape]
+                  labelstr = e.csys.get_label_issue(self.issue.project,boundary_node)
+                  fontnamestr = 'times'
+                end
+        
+                e_node = cl.add_nodes(e.id.to_s, :label => labelstr, :fontname => :fontnamestr,
+                  :style => 'filled', :color => 'black', :fillcolor => fillstr, :shape => shapestr,
+                  :URL => root_url + "/issues/" + e.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => e.description)
+              end
+            end
+          end
+        }
+        if self.issue.relations.size > 0 then
+          # here
+          dwnrel = []
+          self.issue.relations_from.each{|dwn|
+            if (CosmosysIssue.shall_draw_relation(dwn,self.issue.tracker)) then
+              dwnrel += [dwn.issue_to]
+            end
+          }
+          colorstr = self.get_border_color
+          fillstr = self.get_fill_color
+          if not(self.shall_show_id)
+            shapestr = self.issue.tracker.csys.paint_pref[:chapter_shape]
+            labelstr = self.get_label_noid(self.issue.project)
+            fontnamestr = 'times italic'
+          else
+            shapestr = self.issue.tracker.csys.paint_pref[:issue_shape]
+            labelstr = self.get_label_issue(self.issue.project)
+            fontnamestr = 'times'
+          end
+          n_node = cl.add_nodes( self.issue.id.to_s, :label => labelstr, :fontname => :fontnamestr,
+            :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr, :penwidth => 1.5,
+            :URL => root_url + "/issues/" + self.issue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :tooltip => self.issue.description)
           siblings_counter = 0
-          dwn.relations_from.each {|dwn2|
-            #if dwn2.issue_to.project == self.issue.project then
-              if (CosmosysIssue.shall_draw_relation(dwn2,dwn.tracker)) then
-                colordep2 = CosmosysIssue.get_relation_color(dwn2,dwn.tracker)
-                if not(reldown.include?(dwn2.issue_to.parent)) then
-                  if (siblings_counter < @@max_graph_siblings) then
-                    cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn2.issue_to,isfirst,torecalc,root_url, levels_counter, force_end,colordep2)
+          self.issue.relations_from.each{|dwn|
+            #if dwn.issue_to.project == self.issue.project then
+              if (CosmosysIssue.shall_draw_relation(dwn,self.issue.tracker)) then
+                colordep2 = CosmosysIssue.get_relation_color(dwn,self.issue.tracker)
+                if not(dwnrel.include?(dwn.issue_to.parent)) then
+                  if (siblings_counter < max_graph_siblings) then          
+                    cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,false,colordep2,max_graph_siblings,max_graph_levels)
                   else
-                    if (siblings_counter <= @@max_graph_siblings) then
-                      cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn2.issue_to,isfirst,torecalc,root_url, levels_counter, true,colordep2)
+                    if (siblings_counter <= max_graph_siblings) then
+                      cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,true,colordep2,max_graph_siblings,max_graph_levels)
                     end
                   end
                   siblings_counter += 1
@@ -424,126 +583,58 @@ class CosmosysIssue < ActiveRecord::Base
               end
             #end
           }
-        end
-      end
-    end
-    if (isfirst) then
-      torecalc[dwn.id.to_s.to_sym] = dwn.id
-    end  
-    return cl,torecalc
-  end
-
-  def to_graphviz_depcluster(cl,isfirst,torecalc,root_url)
-    if ((self.issue.children.size > 0)) then
-      desc = self.get_descendents_in_project
-      added_nodes = []
-      relnode = []
-      self.issue.relations_from.each{|rn|
-        if (CosmosysIssue.shall_draw_relation(rn,self.issue.tracker)) then
-          relnode += [rn.issue_to]
-        end
-      }
-      # Increment one level to show the boundaries
-      descbound = []
-
-        desc.each { |e| 
-          if (e.relations.size>0) then
-            e.relations_from.each {|r|
-              if (CosmosysIssue.shall_draw_relation(r,e.tracker)) then
-                if not(desc.include?(r.issue_to)) then
-                  descbound += [r.issue_to]
-                end 
-              end
-            }
-            e.relations_to.each {|r|
-              if (CosmosysIssue.shall_draw_relation(r,e.tracker)) then
-                if not(desc.include?(r.issue_from)) then
-                  descbound += [r.issue_from]
-                end 
-              end
-            }          
-          end
-        }
-
-      (desc+descbound).each { |e|
-        anyrel = false
-        fillstr = e.csys.get_fill_color
-        boundary_node = descbound.include?(e)      
-        if (e.relations.size>0) then
-          e.relations_from.each {|r|
-            if r.issue_to != e then
-              if (CosmosysIssue.shall_draw_relation(r,e.tracker)) then
-                if (desc+descbound).include?(r.issue_to) then
-                  colorstr = CosmosysIssue.get_relation_color(r,e.tracker)
-                  cl.add_edges(e.id.to_s, r.issue_to_id.to_s, :color => colorstr, :arrowsize => 0.5)
-                  anyrel = true
+          siblings_counter = 0
+          self.issue.relations_to.each{|upn|
+            #if upn.issue_from.project == self.issue.project then
+              if (CosmosysIssue.shall_draw_relation(upn,self.issue.tracker)) then
+                colordep2 = CosmosysIssue.get_relation_color(upn,self.issue.tracker)
+                if (siblings_counter < max_graph_siblings) then
+                  cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,false,colordep2,max_graph_siblings,max_graph_levels)
+                else
+                  if (siblings_counter <= max_graph_siblings) then
+                    cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,true,colordep2,max_graph_siblings,max_graph_levels)
+                  end
                 end
+                siblings_counter += 1
               end
-            end
+            #end
           }
-          e.relations_to.each {|r|
-            if r.issue_from != e then            
-              if (CosmosysIssue.shall_draw_relation(r,e.tracker)) then
-                if (desc+descbound).include?(r.issue_from) then
-                  colorstr = CosmosysIssue.get_relation_color(r,e.tracker)
-                  cl.add_edges(r.issue_from_id.to_s, e.id.to_s, :color => colorstr, :arrowsize => 0.5)
-                  anyrel = true
-                end 
-              end
-            end
-          }
-          if anyrel then
-            if not(e.csys.shall_show_id) then
-              shapestr =  e.tracker.csys.paint_pref[:chapter_shape]
-              labelstr = e.csys.get_label_noid(self.issue.project,boundary_node)
-              fontnamestr = 'times italic'
-            else
-              shapestr =  e.tracker.csys.paint_pref[:issue_shape]
-              labelstr = e.csys.get_label_issue(self.issue.project,boundary_node)
-              fontnamestr = 'times'
-            end
-    
-            e_node = cl.add_nodes(e.id.to_s, :label => labelstr, :fontname => :fontnamestr,
-              :style => 'filled', :color => 'black', :fillcolor => fillstr, :shape => shapestr,
-              :URL => root_url + "/issues/" + e.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => e.description)
-          end
         end
-      }
-      if self.issue.relations.size > 0 then
-        # here
-        dwnrel = []
-        self.issue.relations_from.each{|dwn|
-          if (CosmosysIssue.shall_draw_relation(dwn,self.issue.tracker)) then
-            dwnrel += [dwn.issue_to]
-          end
-        }
-        colorstr = self.get_border_color
-        fillstr = self.get_fill_color
-        if not(self.shall_show_id)
-          shapestr = self.issue.tracker.csys.paint_pref[:chapter_shape]
+        return cl,torecalc
+      else
+        if not(self.shall_show_id) then
+          shapestr =  self.issue.tracker.csys.paint_pref[:chapter_shape]
           labelstr = self.get_label_noid(self.issue.project)
           fontnamestr = 'times italic'
         else
-          shapestr = self.issue.tracker.csys.paint_pref[:issue_shape]
+          shapestr =  self.issue.tracker.csys.paint_pref[:issue_shape]
           labelstr = self.get_label_issue(self.issue.project)
           fontnamestr = 'times'
         end
+        colorstr = self.get_border_color
+        fillstr = self.get_fill_color
         n_node = cl.add_nodes( self.issue.id.to_s, :label => labelstr, :fontname => :fontnamestr,
           :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr, :penwidth => 1.5,
           :URL => root_url + "/issues/" + self.issue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :tooltip => self.issue.description)
+        downrel = []
+        self.issue.relations_from.each{|dwn|
+          if (CosmosysIssue.shall_draw_relation(dwn,self.issue.tracker)) then
+            downrel += [dwn.issue_to]
+          end
+        }
         siblings_counter = 0
         self.issue.relations_from.each{|dwn|
           #if dwn.issue_to.project == self.issue.project then
             if (CosmosysIssue.shall_draw_relation(dwn,self.issue.tracker)) then
               colordep2 = CosmosysIssue.get_relation_color(dwn,self.issue.tracker)
-              if not(dwnrel.include?(dwn.issue_to.parent)) then
-                if (siblings_counter < @@max_graph_siblings) then
-                  cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,false,colordep2)
+              if not(downrel.include?(dwn.issue_to.parent)) then 
+                if (siblings_counter < max_graph_siblings) then
+                  cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,false,colordep2,max_graph_siblings,max_graph_levels)
                 else
-                  if (siblings_counter <= @@max_graph_siblings) then
-                    cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,true,colordep2)
-                  end
-                end
+                  if (siblings_counter <= max_graph_siblings) then
+                    cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,true,colordep2,max_graph_siblings,max_graph_levels)
+                  end        
+                end        
                 siblings_counter += 1
               end
             end
@@ -554,81 +645,25 @@ class CosmosysIssue < ActiveRecord::Base
           #if upn.issue_from.project == self.issue.project then
             if (CosmosysIssue.shall_draw_relation(upn,self.issue.tracker)) then
               colordep2 = CosmosysIssue.get_relation_color(upn,self.issue.tracker)
-              if (siblings_counter < @@max_graph_siblings) then
-                cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,false,colordep2)
+              if (siblings_counter < max_graph_siblings) then
+                cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,false,colordep2,max_graph_siblings,max_graph_levels)
               else
-                if (siblings_counter <= @@max_graph_siblings) then
-                  cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,true,colordep2)
-                end
-              end
+                if (siblings_counter <= max_graph_siblings) then
+                  cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,true,colordep2,max_graph_siblings,max_graph_levels)
+                end        
+              end        
               siblings_counter += 1
             end
           #end
         }
       end
-      return cl,torecalc
-    else
-      if not(self.shall_show_id) then
-        shapestr =  self.issue.tracker.csys.paint_pref[:chapter_shape]
-        labelstr = self.get_label_noid(self.issue.project)
-        fontnamestr = 'times italic'
-      else
-        shapestr =  self.issue.tracker.csys.paint_pref[:issue_shape]
-        labelstr = self.get_label_issue(self.issue.project)
-        fontnamestr = 'times'
-      end
-      colorstr = self.get_border_color
-      fillstr = self.get_fill_color
-      n_node = cl.add_nodes( self.issue.id.to_s, :label => labelstr, :fontname => :fontnamestr,
-        :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr, :penwidth => 1.5,
-        :URL => root_url + "/issues/" + self.issue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :tooltip => self.issue.description)
-      downrel = []
-      self.issue.relations_from.each{|dwn|
-        if (CosmosysIssue.shall_draw_relation(dwn,self.issue.tracker)) then
-          downrel += [dwn.issue_to]
-        end
-      }
-      siblings_counter = 0
-      self.issue.relations_from.each{|dwn|
-        #if dwn.issue_to.project == self.issue.project then
-          if (CosmosysIssue.shall_draw_relation(dwn,self.issue.tracker)) then
-            colordep2 = CosmosysIssue.get_relation_color(dwn,self.issue.tracker)
-            if not(downrel.include?(dwn.issue_to.parent)) then 
-              if (siblings_counter < @@max_graph_siblings) then
-                cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,false,colordep2)
-              else
-                if (siblings_counter <= @@max_graph_siblings) then
-                  cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,true,colordep2)
-                end        
-              end        
-              siblings_counter += 1
-            end
-          end
-        #end
-      }
-      siblings_counter = 0
-      self.issue.relations_to.each{|upn|
-        #if upn.issue_from.project == self.issue.project then
-          if (CosmosysIssue.shall_draw_relation(upn,self.issue.tracker)) then
-            colordep2 = CosmosysIssue.get_relation_color(upn,self.issue.tracker)
-            if (siblings_counter < @@max_graph_siblings) then
-              cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,false,colordep2)
-            else
-              if (siblings_counter <= @@max_graph_siblings) then
-                cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,true,colordep2)
-              end        
-            end        
-            siblings_counter += 1
-          end
-        #end
-      }
-      return cl,torecalc
-    end    
+    end
+    return cl,torecalc   
   end
 
-  def to_graphviz_depgraph(isfirst,torecalc,root_url)
+  def to_graphviz_depgraph(isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
     # Create a new graph
-    g = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "30,30", :strict => true, :rankdir => self.get_deprankdir)
+    g = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "3000,3000", :strict => true, :rankdir => self.get_deprankdir)
     if (self.issue.children.size > 0) then
       labelstr = 'Dependences (in subtree)'
       colorstr = 'orange'
@@ -640,120 +675,143 @@ class CosmosysIssue < ActiveRecord::Base
     end    
     cl = g.add_graph(:clusterD, :fontname => fontnamestr, :label => labelstr, :labeljust => 'l', :labelloc=>'t', :margin=> '5', :color => colorstr)
     # Generate output image
-    cl,torecalc = self.to_graphviz_depcluster(cl,isfirst,torecalc,root_url)  
+    cl,torecalc = self.to_graphviz_depcluster(cl,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)  
     return g,torecalc
   end
 
 
-  def to_graphviz_hieupn(cl,n_node,upn,isfirst,torecalc,root_url)
-    colorstr = upn.csys.get_border_color
-    if not(upn.csys.shall_show_id) then
+  def to_graphviz_hieupn(cl,upn,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
+    ucl = nil
+    if upn.csys.shall_draw then
+      if upn.project == self.issue.project then
+        if (upn.parent != nil) then
+          cl,torecalc,ucl=self.to_graphviz_hieupn(cl,upn.parent,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
+        end
+      end
+      colorstr = upn.csys.get_border_color
       shapestr = upn.tracker.csys.paint_pref[:chapter_shape]
       labelstr = upn.csys.get_label_noid(self.issue.project)
       fontnamestr = 'times italic'            
-    else
-      shapestr = upn.tracker.csys.paint_pref[:issue_shape]
-      labelstr = upn.csys.get_label_issue(self.issue.project)
-      fontnamestr = 'times'
+      fillstr = upn.csys.get_fill_color
+      if ucl == nil then
+        ucl = cl
+      end
+      upcl = ucl.add_graph(("cluster"+upn.id.to_s).to_sym, :label => labelstr, :fontname => fontnamestr, :penwidth => 1,
+      :URL => root_url + "/issues/" + upn.id.to_s,:fontsize => 10, :margin => 4, :tooltip => upn.description, 
+      :labeljust => 'l', :labelloc=>'t')
+      if (isfirst) then
+        torecalc[upn.id.to_s.to_sym] = upn.id
+      end  
     end
-    fillstr = upn.csys.get_fill_color
-    upn_node = cl.add_nodes( upn.id.to_s, :label => labelstr, :fontname => fontnamestr,
-      :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-      :URL => root_url + "/issues/" + upn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => upn.description)
-    cl.add_edges(upn_node, n_node, :arrowsize => 0.5)
-    if upn.project == self.issue.project then
-      if (upn.parent != nil) then
-        cl,torecalc=self.to_graphviz_hieupn(cl,upn_node,upn.parent,isfirst,torecalc,root_url)
+    return cl,torecalc,upcl
+  end
+
+  def to_graphviz_hiedwn(cl,n_node,dwn,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
+    if dwn.csys.shall_draw then
+      colorstr = dwn.csys.get_border_color
+      if (dwn.children.size == 0) then
+        if not(dwn.csys.shall_show_id) then
+          shapestr =  dwn.tracker.csys.paint_pref[:chapter_shape]
+          labelstr = dwn.csys.get_label_noid(self.issue.project)
+          fontnamestr = 'times italic'            
+        else
+          shapestr = dwn.tracker.csys.paint_pref[:issue_shape]
+          labelstr = dwn.csys.get_label_issue(self.issue.project)
+          fontnamestr = 'times'
+        end
+
+        fillstr = dwn.csys.get_fill_color
+        dwn_node = cl.add_nodes( dwn.id.to_s, :label => labelstr, :fontname => fontnamestr, 
+          :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
+          :URL => root_url + "/issues/" + dwn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => dwn.description)
+      else
+        labelstr = dwn.csys.get_label_noid(self.issue.project)
+        fontnamestr = 'times italic'
+        scl = cl.add_graph(("cluster"+dwn.id.to_s).to_sym, :label => labelstr, :fontname => fontnamestr, :penwidth => 1,
+        :URL => root_url + "/issues/" + dwn.id.to_s,:fontsize => 10, :margin => 4, :tooltip => dwn.description, 
+        :labeljust => 'l', :labelloc=>'t')
+        if dwn.project == self.issue.project then
+          dwn.children.each {|dwn2|
+            scl,torecalc=self.to_graphviz_hiedwn(scl,dwn_node,dwn2,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
+          }
+        end  
+      end
+      if (isfirst) then
+        torecalc[dwn.id.to_s.to_sym] = dwn.id
       end
     end
-    if (isfirst) then
-      torecalc[upn.id.to_s.to_sym] = upn.id
-    end  
-    return cl,torecalc
-  end
-
-  def to_graphviz_hiedwn(cl,n_node,dwn,isfirst,torecalc,root_url)
-    colorstr = dwn.csys.get_border_color
-    if not(dwn.csys.shall_show_id) then
-      shapestr =  dwn.tracker.csys.paint_pref[:chapter_shape]
-      labelstr = dwn.csys.get_label_noid(self.issue.project)
-      fontnamestr = 'times italic'            
-    else
-      shapestr = dwn.tracker.csys.paint_pref[:issue_shape]
-      labelstr = dwn.csys.get_label_issue(self.issue.project)
-      fontnamestr = 'times'
-    end
-
-    fillstr = dwn.csys.get_fill_color
-    dwn_node = cl.add_nodes( dwn.id.to_s, :label => labelstr, :fontname => fontnamestr, 
-      :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
-      :URL => root_url + "/issues/" + dwn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => dwn.description)
-    cl.add_edges(n_node, dwn_node, :arrowsize => 0.5)
-    if dwn.project == self.issue.project then
-      dwn.children.each {|dwn2|
-        cl,torecalc=self.to_graphviz_hiedwn(cl,dwn_node,dwn2,isfirst,torecalc,root_url)
-      }
-    end
-    if (isfirst) then
-      torecalc[dwn.id.to_s.to_sym] = dwn.id
-    end      
     return cl,torecalc
   end
 
 
-  def to_graphviz_hiecluster(cl,isfirst,torecalc,root_url)
-    colorstr = self.get_border_color
-    if not(self.shall_show_id) then
-      shapestr =  self.issue.tracker.csys.paint_pref[:chapter_shape]
-      labelstr = self.get_label_noid(self.issue.project)
-      fontnamestr = 'times italic'
-    else
-      shapestr =  self.issue.tracker.csys.paint_pref[:issue_shape]
-      labelstr = self.get_label_issue(self.issue.project)
-      fontnamestr = 'times'
-    end
-    fillstr = self.get_fill_color
-    n_node = cl.add_nodes( self.issue.id.to_s, :label => labelstr, :fontname => fontnamestr, 
-      :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr, :penwidth => 1.5,
-      :URL => root_url + "/issues/" + self.issue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :tooltip => self.issue.description)
-    self.issue.children.each{|dwn|
-      cl,torecalc=self.to_graphviz_hiedwn(cl,n_node,dwn,isfirst,torecalc,root_url)
-    }
-    if (self.issue.parent != nil) then
-      cl,torecalc=self.to_graphviz_hieupn(cl,n_node,self.issue.parent,isfirst,torecalc,root_url)
+  def to_graphviz_hiecluster(cl,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)    
+    if self.shall_draw then
+      ucl = nil
+      if (self.issue.parent != nil) then
+        cl,torecalc,ucl=self.to_graphviz_hieupn(cl,self.issue.parent,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
+      end
+      if ucl == nil then
+        ucl = cl
+      end      
+      colorstr = self.get_border_color
+      if (self.issue.children.size == 0) then
+        if not(self.shall_show_id) then
+          shapestr =  self.issue.tracker.csys.paint_pref[:chapter_shape]
+          labelstr = self.get_label_noid(self.issue.project)
+          fontnamestr = 'times italic'
+        else
+          shapestr =  self.issue.tracker.csys.paint_pref[:issue_shape]
+          labelstr = self.get_label_issue(self.issue.project)
+          fontnamestr = 'times'
+        end
+        fillstr = self.get_fill_color
+        n_node = ucl.add_nodes( self.issue.id.to_s, :label => labelstr, :fontname => fontnamestr, 
+        :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr, :penwidth => 1,
+        :URL => root_url + "/issues/" + self.issue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :tooltip => self.issue.description)
+
+      else
+        labelstr = self.get_label_noid(self.issue.project)
+        fontnamestr = 'times italic'
+        scl = ucl.add_graph(("cluster"+self.issue.id.to_s).to_sym, :label => labelstr, :fontname => fontnamestr, :penwidth => 1,
+        :URL => root_url + "/issues/" + self.issue.id.to_s,:fontsize => 10, :margin => 4, :tooltip => self.issue.description, 
+        :labeljust => 'l', :labelloc=>'t',:rankdir => "TD")
+        self.issue.children.each{|dwn|
+          scl,torecalc=self.to_graphviz_hiedwn(scl,n_node,dwn,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
+        }
+      end
     end
     return cl,torecalc
   end
 
-  def to_graphviz_hiegraph(isfirst,torecalc,root_url)
+  def to_graphviz_hiegraph(isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
     # Create a new graph
-    g = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "30,30", :strict => true, :rankdir => self.get_hierankdir)
-    cl = g.add_graph(:clusterD, :label => 'Hierarchy', :labeljust => 'l', :labelloc=>'t', :margin=> '5')
-    cl,torecalc = self.to_graphviz_hiecluster(cl,isfirst,torecalc,root_url)
+    g = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "3000,3000", :strict => true, :rankdir => "DT", :layout => :fdp)
+    cl = g.add_graph(:clusterH, :label => 'Hierarchy', :labeljust => 'l', :labelloc=>'t', :margin=> '1')
+    cl,torecalc = self.to_graphviz_hiecluster(cl,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
     return g,torecalc
   end
 
-  def to_graphviz_graph_str(isfirst,torecalc,root_url)
-    g,torecalc = self.to_graphviz_depgraph(isfirst,torecalc,root_url)
+  def to_graphviz_graph_str(isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
+    g,torecalc = self.to_graphviz_depgraph(isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
     result="{{graphviz_link()\n" + g.to_s + "\n}}"
-    g2,torecalc = self.to_graphviz_hiegraph(isfirst,torecalc,root_url)
+    g2,torecalc = self.to_graphviz_hiegraph(isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
     result+=" {{graphviz_link()\n" + g2.to_s + "\n}}"
     return result,torecalc
   end
 
-  def show_graphs(root_url)
-    strdiag,torecalc = self.to_graphviz_graph_str(true,{},root_url)
+  def show_graphs(root_url,max_graph_siblings,max_graph_levels)
+    strdiag,torecalc = self.to_graphviz_graph_str(true,{},root_url,max_graph_siblings,max_graph_levels)
     return strdiag
   end
 
-  def show_depgraph(root_url)
-    g,torecalc = self.to_graphviz_depgraph(true,{},root_url)
+  def show_depgraph(root_url,max_graph_siblings,max_graph_levels)
+    g,torecalc = self.to_graphviz_depgraph(true,{},root_url,max_graph_siblings,max_graph_levels)
     result = "{{graphviz_link()\n" + g.to_s + "\n}}"
     return result
   end
 
-  def show_hiegraph(root_url)
-    g2,torecalc = self.to_graphviz_hiegraph(true,{},root_url)
+  def show_hiegraph(root_url,max_graph_siblings,max_graph_levels)
+    g2,torecalc = self.to_graphviz_hiegraph(true,{},root_url,max_graph_siblings,max_graph_levels)
     result = "{{graphviz_link()\n" + g2.to_s + "\n}}"
     return result    
   end

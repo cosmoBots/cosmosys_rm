@@ -42,100 +42,19 @@ class CosmosysController < ApplicationController
   end
 
   def show
-  end
-
-  def up
-    @issue.csys.chapter_order -= 1.1
-    @issue.csys.save
-    @issue.csys.update_cschapter
-    @issue.reenumerate_group
-    redirect_to :action => 'show', :method => :get, :id => @project.id 
-  end
-  
-  def down
-    @issue.csys.chapter_order += 1.1
-    @issue.csys.save
-    @issue.csys.update_cschapter
-    @issue.reenumerate_group
-    redirect_to :action => 'show', :method => :get, :id => @project.id 
-  end
-  
-  def create_tree(current_issue, root_url, is_project, thisproject,thiskey)
-    if (is_project) then
-      output = ""
-      output += ("\project: " + thisproject.name)
-      issue_url = root_url + '/projects/' + thisproject.identifier
-      output += ("\nissue_url: " + issue_url.to_s)
-      issue_new_url = root_url + '/projects/' + thisproject.identifier + '/issues/new'
-      output += ("\nissue_new_url: " + issue_new_url.to_s)
-      cfprefixvalue = thisproject.code
-
-      tree_node = {
-        'title':  cfprefixvalue + ". " + thisproject.identifier  + ": " + thisproject.name,
-        'subtitle': thisproject.description,
-        'expanded': true,
-        'id': thisproject.id.to_s,
-        'return_url': root_url+'/cosmosys/'+thisproject.id.to_s+'/treeview.json'+'?key='+thiskey,
-        'issue_show_url': issue_url+'?key='+thiskey,
-        'issue_new_url': issue_new_url+'?key='+thiskey,
-        'issue_edit_url': issue_url+"/edit"+'?key='+thiskey,
-        'children': []
-      }
-    else
-      output = ""
-      output += ("\nissue: " + current_issue.subject)
-      issue_url = root_url + '/issues/' + current_issue.id.to_s
-      output += ("\nissue_url: " + issue_url.to_s)
-      issue_new_url = root_url + '/projects/' + thisproject.identifier + '/issues/new?issue[parent_issue_id]=' + current_issue.id.to_s + '&issue[tracker_id]=' + "Feature"
-      output += ("\nissue_new_url: " + issue_new_url.to_s)
-      cftitlevalue = current_issue.subject
-      cfchapterstring = current_issue.chapter_str
-      tree_node = {
-        'title':  cfchapterstring + " " + current_issue.csys.get_identifier  + ": " + cftitlevalue,
-        'subtitle': current_issue.description,
-        'expanded': true,
-        'id': current_issue.id.to_s,
-        'return_url': root_url+'/cosmosys/'+thisproject.id.to_s+'/treeview.json?issue_id='+current_issue.id.to_s+'?key='+thiskey,
-        'issue_show_url': issue_url+'?key='+thiskey,
-        'issue_new_url': issue_new_url+'?key='+thiskey,
-        'issue_edit_url': issue_url+"/edit"+'?key='+thiskey,
-        'children': []
-      }
-    end
-
-    #print tree_node
-    #print "children: " + tree_node[:children].to_s + "++++\n"
-    if (is_project) then
-      childrenitems = thisproject.issues.where(:parent => nil).sort_by {|obj| obj.csys.chapter_order}
-      if childrenitems.size == 0 then
-        childrenitems = thisproject.issues.select { |n| n.parent.project != thisproject }
-      end
-    else
-      childrenitems = current_issue.children.sort_by {|obj| obj.csys.chapter_order}
-    end
-    childrenitems.each{|c|
-      child_node = create_tree(c,root_url,false,thisproject,thiskey)
-      tree_node[:children] << child_node
-    }
-    if (is_project) then
-      thisproject.csys.update_cschapters
-    end
-    return tree_node
-  end
-  
-  
-  def treeview
     require 'json'
 
     is_project = false
 
+    u = nil
     if params[:key] != nil then
       u = User.find_by_api_key(params[:key])
-    else
+    end
+    if u == nil then
       u = User.current
     end
 
-    unless u.allowed_to?(:csys_treeview, @project)
+     unless u.allowed_to?(:csys_treeview, @project)
       raise ::Unauthorized
     end
     if request.get? then
@@ -144,6 +63,7 @@ class CosmosysController < ApplicationController
         format.html {
           # calculate 
           @key = User.current.api_key
+          @treeviewpath = "/cosmosys/"+@project.identifier+"/treeview"
         }
         format.json { 
           treedata = []
@@ -181,6 +101,229 @@ class CosmosysController < ApplicationController
           #print("\nhost ",request.host)
           #print("\nremote_host ",request.remote_host)
     
+          tree_node = create_tree(thisnode,root_url,is_project,@project,u.api_key)
+    
+          #print treedata
+          treedata << tree_node
+
+          require 'json'
+          ActiveSupport.escape_html_entities_in_json = false
+          render json: treedata
+          ActiveSupport.escape_html_entities_in_json = true        
+        }
+      end
+    end
+   
+  end
+
+  def up
+    @issue.csys.chapter_order -= 1.1
+    @issue.csys.save
+    @issue.csys.update_cschapter
+    @issue.reenumerate_group
+    redirect_to :action => 'show', :method => :get, :id => @project.id 
+  end
+  
+  def down
+    @issue.csys.chapter_order += 1.1
+    @issue.csys.save
+    @issue.csys.update_cschapter
+    @issue.reenumerate_group
+    redirect_to :action => 'show', :method => :get, :id => @project.id 
+  end
+  
+  def translate_rel(is_dir_to,reltype)
+    if is_dir_to then
+      if (reltype == "blocks") then
+        return "blocked by"
+      else 
+          if (reltype == "precedes") then
+            return "follows"
+          else 
+            return reltype
+          end
+        end
+    else
+      return reltype
+    end
+  end
+
+  def create_tree(current_issue, root_url, is_project, thisproject,thiskey)
+    if (is_project) then
+      output = ""
+      output += ("\project: " + thisproject.name)
+      issue_url = root_url + '/projects/' + thisproject.identifier
+      output += ("\nissue_url: " + issue_url.to_s)
+      issue_new_url = root_url + '/projects/' + thisproject.identifier + '/issues/new'
+      output += ("\nissue_new_url: " + issue_new_url.to_s)
+      cfprefixvalue = thisproject.code
+      childrentypevector = thisproject.trackers.map{|t| t.name}
+      # TODO: CHANGE THESE PATCHES BY A CALLBACK OR SOME PROPERTY, SO COSMOSYS DOES NOT KNOW ANYTHING ABOUT CSYSREQ
+      if childrentypevector.include?("rq") then
+        childrentypevector += ["rqInfo","rqComplex","rqOpt","rqMech","rqHw","rqSw"]
+      end
+      infobox = [
+        ["Project:"],
+        [thisproject.name,"/projects/"+thisproject.identifier,"link"],
+        [thisproject.description],
+      ]
+      tree_node = {
+        'title':  cfprefixvalue + ". " + thisproject.identifier  + ": " + thisproject.name,
+        'subtitle': thisproject.description,
+        'expanded': true,
+        'id': thisproject.id.to_s,
+        'return_url': root_url+'/cosmosys/'+thisproject.id.to_s+'/treeview.json'+'?key='+thiskey,
+        'issue_show_url': issue_url+'?key='+thiskey,
+        'issue_new_url': issue_new_url+'?key='+thiskey,
+        'issue_edit_url': issue_url+"/edit"+'?key='+thiskey,
+        'leaf': childrentypevector.size <= 0,
+        'nodetype': "project",
+        'childrentype': childrentypevector,
+        'info': infobox,
+        'children': []
+      }
+    else
+      output = ""
+      output += ("\nissue: " + current_issue.subject)
+      issue_url = root_url + '/issues/' + current_issue.id.to_s
+      output += ("\nissue_url: " + issue_url.to_s)
+      issue_new_url = root_url + '/projects/' + thisproject.identifier + '/issues/new?issue[parent_issue_id]=' + current_issue.id.to_s + '&issue[tracker_id]=' + "Feature"
+      output += ("\nissue_new_url: " + issue_new_url.to_s)
+      cftitlevalue = current_issue.subject
+      cfchapterstring = current_issue.chapter_str
+      childrentypevector = CosmosysIssue.get_childrentype(current_issue,current_issue.tracker)
+      currentnodetype = CosmosysIssue.get_nodetype(current_issue,current_issue.tracker)
+      infobox = [
+        [currentnodetype+": "+current_issue.csys.identifier],
+        [current_issue.description],
+      ]
+      if current_issue.relations_to.size > 0 then
+        infobox += [["*** Incoming relations ***"]]
+        current_issue.relations_to.each{|r|
+          infobox += [["<- "+translate_rel(true,r.relation_type)+" '"+r.issue_from.subject+"'","/issues/"+r.issue_from_id.to_s,r.issue_from.csys.identifier]]
+        }
+      end
+      if current_issue.relations_from.size > 0 then
+        infobox += [["*** Outgoing relations ***"]]
+        current_issue.relations_from.each{|r|
+          infobox += [["-> "+translate_rel(false,r.relation_type)+" '"+r.issue_to.subject+"'","/issues/"+r.issue_to_id.to_s,r.issue_to.csys.identifier]]
+        }
+      end
+      if (current_issue.children.size > 0) then
+        titlestring = cfchapterstring + " : " + cftitlevalue
+      else
+        # TODO: CHANGE THESE PATCHES BY A CALLBACK OR SOME PROPERTY, SO COSMOSYS DOES NOT KNOW ANYTHING ABOUT CSYSREQ
+        if currentnodetype == "rqInfo" then
+          titlestring = cfchapterstring + " " + cftitlevalue
+        else
+          titlestring = cfchapterstring + " " + current_issue.csys.get_identifier  + ": " + cftitlevalue
+        end
+      end
+      tree_node = {
+        'title':  titlestring,
+        'subtitle': current_issue.description,
+        'expanded': true,
+        'id': current_issue.id.to_s,
+        'return_url': root_url+'/cosmosys/'+thisproject.id.to_s+'/treeview.json?issue_id='+current_issue.id.to_s+'?key='+thiskey,
+        'issue_show_url': issue_url+'?key='+thiskey,
+        'issue_new_url': issue_new_url+'?key='+thiskey,
+        'issue_edit_url': issue_url+"/edit"+'?key='+thiskey,
+        'leaf': childrentypevector.size <= 0,
+        'nodetype': currentnodetype,
+        'childrentype': childrentypevector,
+        'info': infobox,
+        'children': []
+      }
+    end
+
+    #print tree_node
+    #print "children: " + tree_node[:children].to_s + "++++\n"
+    if (is_project) then
+      childrenitems = thisproject.issues.where(:parent => nil).sort_by {|obj| obj.csys.chapter_order}
+      if childrenitems.size == 0 then
+        childrenitems = thisproject.issues.select { |n| n.parent.project != thisproject }
+      end
+    else
+      childrenitems = current_issue.children.sort_by {|obj| obj.csys.chapter_order}
+    end
+    childrenitems.each{|c|
+      if c.csys.shall_draw then
+        child_node = create_tree(c,root_url,false,thisproject,thiskey)
+        tree_node[:children] << child_node
+      end
+    }
+    if (is_project) then
+      thisproject.csys.update_cschapters
+    end
+    return tree_node
+  end
+  
+  
+  def treeview
+    require 'json'
+
+    is_project = false
+
+    u = nil
+    if params[:key] != nil then
+      u = User.find_by_api_key(params[:key])
+    end
+    if u == nil then
+      u = User.current
+    end
+
+    unless u.allowed_to?(:csys_treeview, @project)
+      raise ::Unauthorized
+    end
+    if request.get? then
+      print("GET!!!!!")
+      respond_to do |format|
+        format.html {
+          # calculate 
+          puts("key")
+          @key = User.current.api_key
+          puts(@key)
+          splitted_url = request.fullpath.split('/cosmosys')
+          root_url = splitted_url[0]
+          @treeviewpath = root_url+"/cosmosys/"+@project.identifier+"/treeview"
+        }
+        format.json { 
+          treedata = []
+          if (@issue) then
+            thisnodeid = params[:issue_id]
+          else
+            res = @project.issues.where(:parent => nil).limit(1)
+            if res.size > 0 then
+              thisnodeid = res.first.id
+            else
+              thisnodeid = nil
+            end
+            is_project = true
+          end
+          if (thisnodeid != nil) then
+            thisnode=Issue.find(thisnodeid)
+          end
+          splitted_url = request.fullpath.split('/cosmosys')
+          #print("\nsplitted_url: ",splitted_url)
+          root_url = splitted_url[0]
+          #print("\nroot_url: ",root_url)
+          #print("\nbase_url: ",request.base_url)
+          #print("\nurl: ",request.url)
+          #print("\noriginal: ",request.original_url)
+          #print("\nhost: ",request.host)
+          #print("\nhost wp: ",request.host_with_port)
+          #print("\nfiltered_path: ",request.filtered_path)
+          #print("\nfullpath: ",request.fullpath)
+          #print("\npath_translated: ",request.path_translated)
+          #print("\noriginal_fullpath ",request.original_fullpath)
+          #print("\nserver_name ",request.server_name)
+          #print("\noriginal_fullpath ",request.original_fullpath)
+          #print("\npath ",request.path)
+          #print("\nserver_addr ",request.server_addr)
+          #print("\nhost ",request.host)
+          #print("\nremote_host ",request.remote_host)
+    
+          puts("---->User",u)
           tree_node = create_tree(thisnode,root_url,is_project,@project,u.api_key)
     
           #print treedata

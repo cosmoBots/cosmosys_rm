@@ -2,7 +2,7 @@ Redmine::Plugin.register :cosmosys do
   name 'Cosmosys plugin'
   author 'Txinto Vaz'
   description 'This is a plugin for Redmine, which converts it into a CosmoSys instance'
-  version '0.0.2'
+  version '0.0.3'
   url 'http://cosmobots.eu'
   author_url 'http://cosmobots.eu'
 
@@ -24,9 +24,9 @@ Redmine::Plugin.register :cosmosys do
   permission :csys_dep_gv, :cosmosys => :dep_gv
   permission :csys_hie_gv, :cosmosys => :hie_gv
 
+  menu :project_menu, :cosmosys_show, {:controller => 'cosmosys', :action => 'show' }, :caption => 'MainReport', :after => :activity, :param => :id
+  menu :project_menu, :cosmosys_treeview, {:controller => 'cosmosys', :action => 'treeview' }, :caption => 'Tree', :after => :activity, :param => :id
   menu :project_menu, :cosmosys, {:controller => 'cosmosys', :action => 'menu' }, :caption => 'cosmoSys', :after => :activity, :param => :id
-  menu :project_menu, :cosmosys_treeview, {:controller => 'cosmosys', :action => 'treeview' }, :caption => 'cSysTreeView', :after => :issues, :param => :id
-  menu :project_menu, :cosmosys_show, {:controller => 'cosmosys', :action => 'show' }, :caption => 'cSysShow', :after => :issues, :param => :id
   #menu :project_menu, :cosmosys_issues_index, {:controller => 'cosmosys_issues', :action => 'index' }, :caption => 'cSysIssues', :after => :issues, :param => :id
 
   settings :default => {

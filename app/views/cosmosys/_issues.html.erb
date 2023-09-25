@@ -8,13 +8,13 @@ root_url = request.base_url+splitted_url[0]
   <button class="tablink" onclick="openIssueTab('Dependences', this, 'green')" id="defaultOpenTab">Dependences</button>
   <button class="tablink" onclick="openIssueTab('Hierarchy', this, 'green')">Hierarchy</button>
   <div id="Dependences" class="tabcontent">
-  <%= textilizable(@issue.csys.show_depgraph(root_url)) %>
+  <%= textilizable(@issue.csys.show_depgraph(root_url,7,12)) %>
     <p style="color: blue;">Links for downloading GraphViz and SVG:</p>
   <p><%= link_to 'GV', { :controller => 'cosmosys_issues', :action => 'dep_gv', :format => 'gv'}, :method => :get %> 
 <%= link_to 'SVG', { :controller => 'cosmosys_issues', :action => 'dep_gv', :format => 'svg'}, :method => :get %></p>
   </div>
   <div id="Hierarchy" class="tabcontent">
-  <%= textilizable(@issue.csys.show_hiegraph(root_url)) %>
+  <%= textilizable(@issue.csys.show_hiegraph(root_url,7,12)) %>
     <p style="color: blue;">Links for downloading GraphViz and SVG:</p>
   <p><%= link_to 'GV', { :controller => 'cosmosys_issues', :action => 'hie_gv', :format => 'gv'}, :method => :get %> 
 <%= link_to 'SVG', { :controller => 'cosmosys_issues', :action => 'hie_gv', :format => 'svg'}, :method => :get %></p>  

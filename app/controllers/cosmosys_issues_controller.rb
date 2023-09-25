@@ -55,11 +55,11 @@ class CosmosysIssuesController < ApplicationController
     end
     respond_to do |format|  ## Add this
       format.svg {
-        g,torecalc = @issue.csys.to_graphviz_depgraph(true,{},root_url)
+        g,torecalc = @issue.csys.to_graphviz_depgraph(true,{},root_url,99,99)
         render :inline => g.output(:svg => String)
       }
       format.gv {
-        g,torecalc = @issue.csys.to_graphviz_depgraph(true,{},root_url)
+        g,torecalc = @issue.csys.to_graphviz_depgraph(true,{},root_url,99,99)
         render :inline => g.to_s
       }
     end
@@ -75,11 +75,11 @@ class CosmosysIssuesController < ApplicationController
     end
     respond_to do |format|
       format.svg {
-        g,torecalc = @issue.csys.to_graphviz_hiegraph(true,{},root_url)
+        g,torecalc = @issue.csys.to_graphviz_hiegraph(true,{},root_url,99,99)
         render :inline => g.output(:svg => String)
       }
       format.gv {
-        g,torecalc = @issue.csys.to_graphviz_hiegraph(true,{},root_url)
+        g,torecalc = @issue.csys.to_graphviz_hiegraph(true,{},root_url,99,99)
         render :inline => g.to_s
       }
     end

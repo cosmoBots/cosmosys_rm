@@ -1,157 +1,246 @@
 <% content_for :header_tags do %>
     <%= stylesheet_link_tag 'cosmosys', :plugin => 'cosmosys' %>
+	<%= stylesheet_link_tag 'cosmosys', :plugin => 'cosmosys', :media => "print" %>
 <% end %>
 
-<div class="<%= "cSysProject" %>">
-<h1><strong><%= @project.identifier %>: </strong><%= @project.name %></h1>
-<% roots = @project.issues.where(:parent => nil).sort_by{|obj| obj.chapter_order}
-	if roots.size == 0 then
-		roots = @project.issues.select { |n| n.parent.project != @project }
+<% 
+
+if params[:noimages] 
+	show_images = false
+else
+	show_images = true
+end
+
+# TODO: This should not be in cosmosys, but in cosmosys_req.  We need a callback
+rqtracker = Tracker.find_by_name("rq")
+cftype = IssueCustomField.find_by_name("rqType")
+cflevel = IssueCustomField.find_by_name("rqLevel")
+cfvar = IssueCustomField.find_by_name("rqVar")
+cfvalue = IssueCustomField.find_by_name("rqValue")
+cfdepgraph = IssueCustomField.find_by_name("depGrahInReports")
+
+
+def calculate_heading(show_chapters,i)
+	if (i.csys.is_chapter?) then
+		classdiv = "cSysParentIssue"
+		chapstr = ""
+		if show_chapters
+			chapstr = i.chapter_str
+		end
+	else
+		classdiv = "cSysIssue"
+		chapstr = ""
+		if show_chapters
+			chapstr += i.chapter_str + " "
+		end		
+		chapstr += i.csys.get_identifier
 	end
-	roots.each { |i| 
-          if (i.csys.is_chapter?) then
-		classdiv = "cSysParentIssue"
-		chapstr = i.chapter_str
-          else
-		classdiv = "cSysIssue"
-		chapstr = i.chapter_str +  ' ' + i.csys.get_identifier
-          end          
-	  title = i.subject
-	%>
-<div class="<%= classdiv %>">
-<h1><strong><%= link_to chapstr, issue_path(i.id) %>: </strong><%= title %></h1>
-<div class="<%= classdiv %>descr"><%= textilizable i, :description %></div>
-<% i.children.sort_by{|obj| obj.chapter_order}.each { |i2| 
-          if (i2.csys.is_chapter?) then 
-		classdiv = "cSysParentIssue"
-		chapstr = i2.chapter_str
-          else
-		classdiv = "cSysIssue"
-		chapstr = i2.chapter_str +  ' ' + i2.csys.get_identifier
-          end          
-	  title = i2.subject
+	if show_chapters
+		chapstr += ':'
+	end
+	return chapstr,classdiv
+end
 
-	%>
-<div class="<%= classdiv %>">
-<h2><strong><%= link_to chapstr, issue_path(i2.id) %>: </strong><%= title %></h2>
-<div class="<%= classdiv %>descr"><%= textilizable i2, :description %></div>
-<% i2.children.sort_by{|obj| obj.chapter_order}.each { |i3| 
-          if (i3.csys.is_chapter?) then 
-		classdiv = "cSysParentIssue"
-		chapstr = i3.chapter_str
-          else
-		classdiv = "cSysIssue"
-		chapstr = i3.chapter_str +  ' ' + i3.csys.get_identifier
-          end          
-	  title = i3.subject
+if params[:nochapters] 
+	show_chapters = false
+else
+	show_chapters = true
+end
 
-	%>
-<%= link_to chapstr, issue_path(i2.id) %><div class="<%= classdiv %>">
-<h3><strong><%= link_to chapstr, issue_path(i3.id) %>: </strong><%= title %></h3>
-<div class="<%= classdiv %>descr"><%= textilizable i3, :description %></div>
-<% i3.children.sort_by{|obj| obj.chapter_order}.each { |i4| 
-          if (i4.csys.is_chapter?) then 
-		classdiv = "cSysParentIssue"
-		chapstr = i4.chapter_str
-          else
-		classdiv = "cSysIssue"
-		chapstr = i4.chapter_str +  ' ' + i4.csys.get_identifier
-          end          
-	  title = i4.subject
-	%>
-<div class="<%= classdiv %>">
-<h4><strong><%= link_to chapstr, issue_path(i4.id) %>: </strong><%= title %></h4>
-<div class="<%= classdiv %>descr"><%= textilizable i4, :description %></div>
-<% i4.children.sort_by{|obj| obj.chapter_order}.each { |i5| 
-          if (i5.csys.is_chapter?) then 
-		classdiv = "cSysParentIssue"
-		chapstr = i5.chapter_str
-          else
-		classdiv = "cSysIssue"
-		chapstr = i5.chapter_str +  ' ' + i5.csys.get_identifier
-          end          
-	  title = i5.subject
-	%>
-<div class="<%= classdiv %>">
-<h5><strong><%= link_to chapstr, issue_path(i5.id) %>: </strong><%= title %></h5>
-<div class="<%= classdiv %>descr"><%= textilizable i5, :description %></div>
-<% i5.children.sort_by{|obj| obj.chapter_order}.each { |i6| 
-          if (i6.csys.is_chapter?) then 
-		classdiv = "cSysParentIssue"
-		chapstr = i6.chapter_str
-          else
-		classdiv = "cSysIssue"
-		chapstr = i6.chapter_str +  ' ' + i6.csys.get_identifier
-          end          
-		title = i6.subject	
-	%>
-<div class="<%= classdiv %>">
-<h6><strong><%= link_to chapstr, issue_path(i6.id) %>: </strong><%= title %></h6>
-<div class="<%= classdiv %>descr"><%= textilizable i6, :description %></div>
-<% i6.children.sort_by{|obj| obj.chapter_order}.each { |i7| 
-          if (i7.csys.is_chapter?) then 
-		classdiv = "cSysParentIssue"
-		chapstr = i7.chapter_str     
-          else
-		classdiv = "cSysIssue"
-		chapstr = i7.chapter_str +  ' ' + i7.csys.get_identifier
-          end          
-		title = i7.subject	
-	%>
-<div class="<%= classdiv %>">
-<h7><strong><%= link_to chapstr, issue_path(i7.id) %>: </strong><%= title %></h7>
-<div class="<%= classdiv %>descr"><%= textilizable i7, :description %></div>
-<% i7.children.sort_by{|obj| obj.chapter_order}.each { |i8| 
-          if (i8.csys.is_chapter?) then 
-		classdiv = "cSysParentIssue"
-		chapstr = i8.chapter_str
-          else
-		classdiv = "cSysIssue"
-		chapstr = i8.chapter_str +  ' ' + i8.csys.get_identifier
-          end          
-		title = i8.subject	
-	%>
-<div class="<%= classdiv %>">
-<h8><strong><%= link_to chapstr, issue_path(i8.id) %>: </strong><%= title %></h8>
-<div class="<%= classdiv %>descr"><%= textilizable i8, :description %></div>
-<% i8.children.sort_by{|obj| obj.chapter_order}.each { |i9| 
-          if (i9.csys.is_chapter?) then 
-		classdiv = "cSysParentIssue"
-		chapstr = i9.chapter_str
-          else
-		classdiv = "cSysIssue"
-		chapstr = i9.chapter_str +  ' ' + i9.csys.get_identifier
-          end          
-		title = i9.subject	
-	%>
-<div class="<%= classdiv %>">
-<h9><strong><%= link_to chapstr, issue_path(i9.id) %>: </strong><%= title %></h8>
-<div class="<%= classdiv %>descr"><%= textilizable i9, :description %></div>
+%>
+<%
+    draw_items = lambda {|item, recursion, current_level|
+      chapstr, classdiv = calculate_heading(show_chapters, item)
+      title = item.subject
+    %>
+      <div class="<%= classdiv %>">
+      <tr><td>
+      <h<%= current_level %>><%= link_to chapstr, issue_path(item.id) %> <%= title %></h<%= current_level %>>
+
+      <div class="<%= classdiv %>descr"><%= textilizable item, :description %></div>
+      <% if (item.csys.shall_show_dependences?) then
+        imagesrc = "/cosmosys_issues/"+item.id.to_s+"/dep_gv.svg"
+      %>
+        <% if show_images then 
+            show_this_image = false
+            thisdepgraphflag = item.custom_values.where(custom_field: cfdepgraph).first.value
+            if (thisdepgraphflag == 'Include') then
+              show_this_image = true
+            else
+              if (thisdepgraphflag == 'Include if has relations') then
+                show_this_image = (item.relations.size > 0)
+              end
+            end
+            
+            if (show_this_image) then
+        %>
+          
+          <figure><a href="<%= imagesrc %>" ><img src="<%= imagesrc %>" alt="Dependence diagram"></a></figure>
+        <!---% else %> 
+          <p> (no relations) </p-->
+         <% end 
+           end
+         end %>
+        </td>
+        <td class="<%= classdiv %>dataColumn">
+      <% if not(item.csys.is_chapter?) then 
+            # TODO: This should not be in cosmosys, but in cosmosys_req.  We need a callback
+            if (rqtracker != nil and item.tracker == rqtracker) then
+              thistype = item.custom_values.where(custom_field: cftype).first.value
+              if thistype != nil and thistype.size > 0 then thistype = "t:"+thistype end
+              thislevel = item.custom_values.where(custom_field: cflevel).first.value
+              if thislevel != nil and thislevel.size > 0 then thislevel = "l:"+thislevel end
+            end
+          end
+          # TODO: This should not be in cosmosys, but in cosmosys_req.  We need a callback
+          if (rqtracker != nil and item.tracker == rqtracker) then
+            thisvar = item.custom_values.where(custom_field: cfvar).first.value
+            if thisvar != nil and thisvar.size > 0 then thisvar = "v:"+thisvar end
+            thisvalue = item.custom_values.where(custom_field: cfvalue).first.value
+            if thisvalue != nil and thisvalue.size > 0 then thisvalue = "c:"+thisvalue end
+          end
+      %>
+        <table class="<%= classdiv %>data">
+        <tbody>
+      <% if not(item.csys.is_chapter?) then %>
+      <%  # TODO: This should not be in cosmosys, but in cosmosys_req.  We need a callback
+           if (rqtracker != nil and item.tracker == rqtracker) then%>
+            <tr><td><%= thistype %></td></tr>
+            <tr><td><%= thislevel %></td></tr>
+      <%   end%>
+      <% end%>
+      <%  # TODO: This should not be in cosmosys, but in cosmosys_req.  We need a callback
+        if (rqtracker != nil and item.tracker == rqtracker) then%>
+          <tr><td><%= thisvar %></td></tr>
+          <tr><td><%= thisvalue %></td></tr>
+      <% end%>
+        </tbody>
+        </table>
+        </td>
+        </tr>
+      </div>
+    <%
+      item.children.select{|obj| obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}.each {|subitem| recursion.(subitem, recursion,current_level+1)}
+    }
+%>
+
+<div class="<%= "cSysProject" %>">
+<table>
+<tbody>
+  <% if show_chapters %><h1><%= @project.csys.code %>: <%= @project.name %></h1><% end %>
+  <%
+  roots = @project.issues.select{|obj| obj.parent == nil and obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}
+    if roots.size == 0 then
+      roots = @project.issues.select { |n| n.parent.project != @project and n.csys.shall_draw}
+    end
+    roots.each { |i| 
+    draw_items.(i, draw_items,1) }
+  %>
+  <div style="text-align: right;"><button onClick="<%= "downloadReport('#{@project.name}')" %>">Download</button></div>
+</tbody>
+</table>
 </div>
-<p><%= link_to 'Up', { :action => 'up', :issue_id => i9.id}, :method => :post %> <%= link_to 'Down', { :action => 'down', :issue_id => i9.id}, :method => :post %></p>
-<% } %>
-</div>
-<p><%= link_to 'Up', { :action => 'up', :issue_id => i8.id}, :method => :post %> <%= link_to 'Down', { :action => 'down', :issue_id => i8.id}, :method => :post %></p>
-<% } %>
-</div>
-<p><%= link_to 'Up', { :action => 'up', :issue_id => i7.id}, :method => :post %> <%= link_to 'Down', { :action => 'down', :issue_id => i7.id}, :method => :post %></p>
-<% } %>
-</div>
-<p><%= link_to 'Up', { :action => 'up', :issue_id => i6.id}, :method => :post %> <%= link_to 'Down', { :action => 'down', :issue_id => i6.id}, :method => :post %></p>
-<% } %>
-</div>
-<p><%= link_to 'Up', { :action => 'up', :issue_id => i5.id}, :method => :post %> <%= link_to 'Down', { :action => 'down', :issue_id => i5.id}, :method => :post %></p>
-<% } %>
-</div>
-<p><%= link_to 'Up', { :action => 'up', :issue_id => i4.id}, :method => :post %> <%= link_to 'Down', { :action => 'down', :issue_id => i4.id}, :method => :post %></p>
-<% } %>
-</div>
-<p><%= link_to 'Up', { :action => 'up', :issue_id => i3.id}, :method => :post %> <%= link_to 'Down', { :action => 'down', :issue_id => i3.id}, :method => :post %></p>
-<% } %>
-</div>
-<p><%= link_to 'Up', { :action => 'up', :issue_id => i2.id}, :method => :post %> <%= link_to 'Down', { :action => 'down', :issue_id => i2.id}, :method => :post %></p>
-<% } %>
-</div>
-<p><%= link_to 'Up', { :action => 'up', :issue_id => i.id}, :method => :post %> <%= link_to 'Down', { :action => 'down', :issue_id => i.id}, :method => :post %></p>
-<% } %>
-</div>
+
+<script>
+const getBase64StringFromDataURL = (dataURL) =>
+  dataURL.replace('data:', '').replace(/^.+,/, '');
+
+function readFile(file){
+  return new Promise((resolve, reject) => {
+    var fr = new FileReader();  
+    fr.onload = () => {
+      resolve(fr.result )
+    };
+    fr.onerror = reject;
+    fr.readAsText(file.blob);
+  });
+}
+
+    function transferComputedStyle(node) {
+        var cs = getComputedStyle(node, null);
+        var i;
+        for (i = 0; i < cs.length; i++) {
+            var s = cs[i] + "";
+              node.style[s] = cs[s];
+        }
+    }
+    function transferAll() {
+        var all = document.getElementsByTagName("*");
+        var i;
+        for (i = 0; i < all.length; i++) {
+            transferComputedStyle(all[i]);
+        }
+    }
+
+function downloadReport(title) {
+  let projectElement = document.querySelector('.cSysProject').cloneNode(true);
+
+  let image_promises = [].map.call(projectElement.querySelectorAll('img'), (img) => {
+    return fetch(img.src)
+      .then((res) => res.blob())
+      .then((blob) => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            resolve(reader.result)
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      })
+      .then((dataURL) => {
+        img.src = dataURL;
+        img.style.width = Math.round(2 * img.width) + 'px';
+        img.style.height = Math.round(2 * img.height) + 'px';
+      });
+  });
+
+  let link_promises = [].map.call(projectElement.querySelectorAll('[href]'), (link) => {
+    const r = new RegExp('^(?:[a-z+]+:)?//', 'i');
+    
+    return new Promise((resolve, reject) => {
+      let href = link.getAttribute('href');
+      if (!r.test(href)) {
+          link.setAttribute('href',
+              (href.indexOf('/')) === 0 ?
+              document.location.origin + href :
+              document.location.href + '/' + link.getAttribute('href')
+            );
+      }
+      return resolve(link.href)
+    });
+  });
+
+  let promises = image_promises.concat(link_promises);
+
+  Promise.allSettled(promises)
+    .then(() => {
+      projectElement.querySelectorAll('button').forEach((button) => {button.remove();});
+    })
+    .then(() => {
+      let html = projectElement.innerHTML;
+      let head = '<!DOCTYPE html><head><meta charset="utf-8" /><title>' + title + '</title></head>';
+        html = head + '<body><div class="cSysProject">' + html + '</div></body>';
+
+      let file = new File([html], title + ".html");
+      
+      // Create a link and set the URL using `createObjectURL`
+      const link = document.createElement("a");
+      link.style.display = "none";
+      link.href = URL.createObjectURL(file);
+      link.download = file.name;
+
+      // It needs to be added to the DOM so it can be clicked
+      document.body.appendChild(link);
+      link.click();
+
+      // To make this work on Firefox we need to wait
+      // a little while before removing it.
+      setTimeout(() => {
+        URL.revokeObjectURL(link.href);
+        link.parentNode.removeChild(link);
+      }, 0);
+    })
+
+}
+</script>
