@@ -191,38 +191,12 @@ module IssuePatch
         end
         j.save
       end
-    end	
+    end
 
     def csys_save_post_process
       # "Constants"
-      psandbox = Project.find("sandbox").csys
-      # Preparing the C1 and C2 list (CustomField part)
-      c1 = []
-      c2 = []
-      cf = CustomField.find_by_name("rqType")
-      c1 << cf 
-      c2 << cf
-      cf = CustomField.find_by_name("rqLevel")
-      c1 << cf 
-      c2 << cf
-      cf = CustomField.find_by_name("rqVar")
-      c1 << cf 
-      c2 << cf
-      cf = CustomField.find_by_name("rqValue")
-      c1 << cf 
-      c2 << cf
-      cf = CustomField.find_by_name("Verification")
-      c1 << cf 
-      c2 << cf
-      cf = CustomField.find_by_name("Verif_Descr")
-      c1 << cf 
-      c2 << cf
-      cf = CustomField.find_by_name("rqRationale")
-      c1 << cf 
-      c2 << cf
-
-
-
+      # Preparing the list of CF to sync during the copy
+      c1 = self.csys.csys_cfields_to_sync_with_copy
       #p1 = self.project.csys.find_root
       #if (p1 == psandbox) then
         self.relations_from.where(relation_type:'copied_to').each{|r|

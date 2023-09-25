@@ -859,6 +859,14 @@ class CosmosysIssue < ActiveRecord::Base
     return self.identifier
   end
 
+  def csys_cfields_to_sync_with_copy
+    ret = []
+    cf = CustomField.find_by_name("depGrahInReports")
+    ret << cf 
+
+    return ret
+  end
+
   private
 
   def init_attr
