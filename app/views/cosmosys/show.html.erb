@@ -17,6 +17,8 @@ cftype = IssueCustomField.find_by_name("rqType")
 cflevel = IssueCustomField.find_by_name("rqLevel")
 cfvar = IssueCustomField.find_by_name("rqVar")
 cfvalue = IssueCustomField.find_by_name("rqValue")
+cfdepgraph = IssueCustomField.find_by_name("depGrahInReports")
+
 
 def calculate_heading(show_chapters,i)
 	if (i.csys.is_chapter?) then
@@ -56,11 +58,21 @@ end
       <h<%= current_level %>><%= link_to chapstr, issue_path(item.id) %> <%= title %></h<%= current_level %>>
 
       <div class="<%= classdiv %>descr"><%= textilizable item, :description %></div>
-      <% if not(item.csys.is_chapter?) then
+      <% if (item.csys.shall_show_dependences?) then
         imagesrc = "/cosmosys_issues/"+item.id.to_s+"/dep_gv.svg"
       %>
         <% if show_images then 
-            if (item.relations.size > 0) then
+            show_this_image = false
+            thisdepgraphflag = item.custom_values.where(custom_field: cfdepgraph).first.value
+            if (thisdepgraphflag == 'Include') then
+              show_this_image = true
+            else
+              if (thisdepgraphflag == 'Include if has relations') then
+                show_this_image = (item.relations.size > 0)
+              end
+            end
+            
+            if (show_this_image) then
         %>
           
           <figure><a href="<%= imagesrc %>" ><img src="<%= imagesrc %>" alt="Dependence diagram"></a></figure>

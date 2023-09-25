@@ -88,9 +88,15 @@ class CosmosysIssue < ActiveRecord::Base
   def is_valid?
     true
   end
+
   def is_chapter?
     self.issue.children.size > 0
   end
+
+  def shall_show_dependences?
+    true
+  end
+
   def shall_show_id
     true
   end
