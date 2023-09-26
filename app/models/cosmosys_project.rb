@@ -115,9 +115,9 @@ class CosmosysProject < ActiveRecord::Base
     if self.project.issues.first != nil then
       # Create a new hierarchy graph
       hg = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "3000,3000", :strict => true, :rankdir => self.project.issues.first.csys.get_hierankdir, :layout => :fdp)
-      hcl = hg.add_graph(:clusterD, :label => 'Hierarchy', :labeljust => 'l', :labelloc=>'t', :margin=> '5') 
+      hcl = hg.add_graph(:clusterD, :label => 'Hierarchy', :labeljust => 'l', :labelloc=>'t', :margin=> '5', :fontsize => 10) 
       dg = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "3000,3000", :strict => true, :rankdir => self.project.issues.first.csys.get_deprankdir, :layout => :dot)
-      dcl = dg.add_graph(:clusterD, :label => 'Dependences', :labeljust => 'l', :labelloc=>'t', :margin=> '5') 
+      dcl = dg.add_graph(:clusterD, :label => 'Dependences', :labeljust => 'l', :labelloc=>'t', :margin=> '5', :fontsize => 10) 
 
       # First we will draw the hierarchy diagram
       roots = self.get_project_root_issues(false)

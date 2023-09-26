@@ -673,7 +673,7 @@ class CosmosysIssue < ActiveRecord::Base
       colorstr = 'black'
       fontnamestr = 'times'
     end    
-    cl = g.add_graph(:clusterD, :fontname => fontnamestr, :label => labelstr, :labeljust => 'l', :labelloc=>'t', :margin=> '5', :color => colorstr)
+    cl = g.add_graph(:clusterD, :fontname => fontnamestr, :label => labelstr, :labeljust => 'l', :labelloc=>'t', :margin=> '5', :color => colorstr, :fontsize => 10)
     # Generate output image
     cl,torecalc = self.to_graphviz_depcluster(cl,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)  
     return g,torecalc
@@ -786,7 +786,7 @@ class CosmosysIssue < ActiveRecord::Base
   def to_graphviz_hiegraph(isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
     # Create a new graph
     g = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "3000,3000", :strict => true, :rankdir => "DT", :layout => :fdp)
-    cl = g.add_graph(:clusterH, :label => 'Hierarchy', :labeljust => 'l', :labelloc=>'t', :margin=> '1')
+    cl = g.add_graph(:clusterH, :label => 'Hierarchy', :labeljust => 'l', :labelloc=>'t', :margin=> '1', :fontsize => 10)
     cl,torecalc = self.to_graphviz_hiecluster(cl,isfirst,torecalc,root_url,max_graph_siblings,max_graph_levels)
     return g,torecalc
   end
