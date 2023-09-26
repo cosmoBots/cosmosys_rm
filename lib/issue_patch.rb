@@ -60,7 +60,9 @@ module IssuePatch
     
     def csys
       if self.cosmosys_issue == nil then
-        self.reload
+        if (self.id != nil) then
+          self.reload
+        end
         chapter = self.reenumerate_group
         CosmosysIssue.create!(issue:self,chapter_order:chapter)
       end      
