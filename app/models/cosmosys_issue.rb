@@ -867,6 +867,12 @@ class CosmosysIssue < ActiveRecord::Base
     return ret
   end
 
+  def save_post_process
+  end
+
+  def save_pre_process
+  end
+
   private
 
   def init_attr

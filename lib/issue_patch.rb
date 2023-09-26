@@ -13,6 +13,7 @@ module IssuePatch
       
       has_one :cosmosys_issue
       after_save :csys_save_post_process
+      before_save :csys_save_pre_process
 
     end
 
@@ -193,26 +194,26 @@ module IssuePatch
       end
     end
 
+    def csys_save_pre_process
+      # Let's see if there are other processes to do in the cosmosys classes
+      self.csys.save_pre_process
+    end
+
     def csys_save_post_process
-      # "Constants"
-      # Preparing the list of CF to sync during the copy
-      c1 = self.csys.csys_cfields_to_sync_with_copy
-      #p1 = self.project.csys.find_root
-      #if (p1 == psandbox) then
-        self.relations_from.where(relation_type:'copied_to').each{|r|
+
+      # Let's see if there are copies
+      copies = self.relations_from.where(relation_type:'copied_to')
+      if copies.size > 0 then
+        c1 = self.csys.csys_cfields_to_sync_with_copy
+        copies.each{|r|
           # We obtain the other instance in the relation
           idest = r.issue_to
-          #p2 = idest.project.csys.find_root
-          # As a temporary protection, we will only process the ones below the Sandbox tree
-          #if p2 == psandbox then
-            # After selecting the pair, we will propagate
-            puts ("From "+self.csys.identifier)
-            puts ("To "+idest.csys.identifier)
-            puts "Propagating!"
-            self.propagate(idest,c1)	    
-          #end
+          puts ("From "+self.csys.identifier)
+          puts ("To "+idest.csys.identifier)
+          puts "Propagating!"
+          self.propagate(idest,c1)
         }
-      #end
+      end
     end
 
   end    

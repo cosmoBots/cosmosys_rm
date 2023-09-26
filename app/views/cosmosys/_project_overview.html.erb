@@ -10,8 +10,8 @@ end
  %>
 <%= stylesheet_link_tag 'cosmosys', plugin: 'cosmosys' %> 
 <div class="project-content">
-  <button class="tablink" onclick="openIssueTab('Dependences', this, 'green')">Dependences</button>
-  <button class="tablink" onclick="openIssueTab('Hierarchy', this, 'green')" id="defaultOpenTab">Hierarchy</button>
+  <button class="tablink" onclick="openIssueTab('Dependences', this, 'steelblue')">Dependences</button>
+  <button class="tablink" onclick="openIssueTab('Hierarchy', this, 'steelblue')" id="defaultOpenTab">Hierarchy</button>
   <div id="Dependences" class="tabcontent">
     <%= textilizable(project_overview_content_dep) %>
     <p style="color: blue;">Links for downloading GraphViz and SVG:</p>
