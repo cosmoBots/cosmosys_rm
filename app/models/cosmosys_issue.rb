@@ -844,6 +844,15 @@ class CosmosysIssue < ActiveRecord::Base
     end
   end
 
+
+  def update_cschapter_no_bd
+    cvchap = self.issue.custom_field_values.select{|a| a.custom_field_id == @@cfchapter.id }.first
+    sortchap = self.sortable_chapter_str
+    if cvchap.value != sortchap then
+      cvchap.value = sortchap
+    end
+  end
+
   def get_identifier
     if self.csid == nil then
       cvid = self.issue.custom_values.find_by_custom_field_id(@@cfid.id)
