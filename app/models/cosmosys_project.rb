@@ -122,15 +122,16 @@ class CosmosysProject < ActiveRecord::Base
       # First we will draw the hierarchy diagram
       roots = self.get_project_root_issues(false)
       roots.each{|n|
-
-        labelstr = n.csys.get_label_noid(n.project)
-        fontnamestr = 'times italic'
-        scl = hcl.add_graph(("cluster"+n.id.to_s).to_sym, :label => labelstr, :fontname => fontnamestr, :penwidth => 1,
-        :URL => root_url + "/issues/" + n.id.to_s,:fontsize => 10, :margin => 4, :tooltip => n.description, 
-        :labeljust => 'l', :labelloc=>'t',:rankdir => "TD")
-        n.children.each{|dwn|
-          scl,torecalc=n.csys.to_graphviz_hiedwn(scl,nil,dwn,true,{},root_url,99,99)
-        }
+        if n.csys.shall_draw then
+          labelstr = n.csys.get_label_noid(n.project)
+          fontnamestr = 'times italic'
+          scl = hcl.add_graph(("cluster"+n.id.to_s).to_sym, :label => labelstr, :fontname => fontnamestr, :penwidth => 1,
+          :URL => root_url + "/issues/" + n.id.to_s,:fontsize => 10, :margin => 4, :tooltip => n.description, 
+          :labeljust => 'l', :labelloc=>'t',:rankdir => "TD")
+          n.children.each{|dwn|
+            scl,torecalc=n.csys.to_graphviz_hiedwn(scl,nil,dwn,true,{},root_url,99,99)
+          }
+        end
       }
       # Then we will draw the dependences
       self.project.issues.each{|n|
