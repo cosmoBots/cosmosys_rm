@@ -220,3 +220,7 @@ h6 {
   border-width: thin;
   background-color: white;
 }
+
+figure {
+  float: right;
+}
