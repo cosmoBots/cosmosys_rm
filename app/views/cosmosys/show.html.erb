@@ -71,11 +71,15 @@ end
       %>
         <% if show_images then 
             show_this_image = false
-            thisdepgraphflag = item.custom_values.where(custom_field: cfdepgraph).first.value
-            if (thisdepgraphflag == 'Include') then
+            thisdepgraphflag = item.custom_field_values.select{|a| a.custom_field_id == cfdepgraph.id }.first
+            if (thisdepgraphflag.value == nil) then
+              thisdepgraphflag.value = cfdepgraph.default_value
+              item.save
+            end
+            if (thisdepgraphflag.value == 'Include') then
               show_this_image = true
             else
-              if (thisdepgraphflag == 'Include if has relations') then
+              if (thisdepgraphflag.value == 'Include if has relations') then
                 show_this_image = (item.relations.size > 0)
               end
             end
