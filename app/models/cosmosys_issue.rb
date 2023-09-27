@@ -334,11 +334,11 @@ class CosmosysIssue < ActiveRecord::Base
       if (not(upn.csys.shall_show_id)) then
         shapestr =  upn.tracker.csys.paint_pref[:chapter_shape]
         labelstr = upn.csys.get_label_noid(self.issue.project)
-        fontnamestr = 'times italic'
+        fontnamestr = "times italic"
       else
         shapestr =  upn.tracker.csys.paint_pref[:issue_shape]
         labelstr = upn.csys.get_label_issue(self.issue.project)
-        fontnamestr = 'times'
+        fontnamestr = "times"
       end
 
       if not(force_end) then
@@ -412,12 +412,12 @@ class CosmosysIssue < ActiveRecord::Base
       if not(force_end) then
         colorstr = dwn.csys.get_border_color
         fillstr = dwn.csys.get_fill_color
-        dwn_node = cl.add_nodes( dwn.id.to_s, :label => labelstr, :fontname => :fontnamestr,
+        dwn_node = cl.add_nodes( dwn.id.to_s, :label => labelstr, :fontname => fontnamestr,
           :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
           :URL => root_url + "/issues/" + dwn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => dwn.description)
       else
         colorstr = dwn.csys.get_border_color
-        dwn_node = cl.add_nodes( dwn.id.to_s, :label => "{ ... }", :fontname => :fontnamestr,
+        dwn_node = cl.add_nodes( dwn.id.to_s, :label => "{ ... }", :fontname => fontnamestr,
           :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
           :URL => root_url + "/issues/" + dwn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => dwn.description)
       end
@@ -536,7 +536,7 @@ class CosmosysIssue < ActiveRecord::Base
                   fontnamestr = 'times'
                 end
         
-                e_node = cl.add_nodes(e.id.to_s, :label => labelstr, :fontname => :fontnamestr,
+                e_node = cl.add_nodes(e.id.to_s, :label => labelstr, :fontname => fontnamestr,
                   :style => 'filled', :color => 'black', :fillcolor => fillstr, :shape => shapestr,
                   :URL => root_url + "/issues/" + e.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => e.description)
               end
@@ -562,7 +562,7 @@ class CosmosysIssue < ActiveRecord::Base
             labelstr = self.get_label_issue(self.issue.project)
             fontnamestr = 'times'
           end
-          n_node = cl.add_nodes( self.issue.id.to_s, :label => labelstr, :fontname => :fontnamestr,
+          n_node = cl.add_nodes( self.issue.id.to_s, :label => labelstr, :fontname => fontnamestr,
             :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr, :penwidth => 1.5,
             :URL => root_url + "/issues/" + self.issue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :tooltip => self.issue.description)
           siblings_counter = 0
@@ -613,7 +613,7 @@ class CosmosysIssue < ActiveRecord::Base
         end
         colorstr = self.get_border_color
         fillstr = self.get_fill_color
-        n_node = cl.add_nodes( self.issue.id.to_s, :label => labelstr, :fontname => :fontnamestr,
+        n_node = cl.add_nodes( self.issue.id.to_s, :label => labelstr, :fontname => fontnamestr,
           :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr, :penwidth => 1.5,
           :URL => root_url + "/issues/" + self.issue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :tooltip => self.issue.description)
         downrel = []
