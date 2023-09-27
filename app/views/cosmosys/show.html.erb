@@ -63,7 +63,7 @@ end
       title = item.subject
     %>
       <div class="<%= classdiv %>">
-      <h<%= current_level %>><%= calculate_complete_title(show_chapters, item, chapstr) %> <%= title %></h<%= current_level %>>
+      <<%= if current_level + 1 > 6 then "span"; else "h" + (current_level + 1).to_s end %> class="heading_<%= current_level %>"><%= calculate_complete_title(show_chapters, item, chapstr) %> <%= title %></<%= if current_level + 1 > 6 then "span"; else "h" + (current_level + 1).to_s end %>>
 
       <div class="<%= classdiv %>descr"><%= textilizable item, :description %></div>
       <% if (item.csys.shall_show_dependences?) then
@@ -71,7 +71,13 @@ end
       %>
         <% if show_images then 
             show_this_image = false
-            thisdepgraphflag = item.custom_values.where(custom_field: cfdepgraph).first.value
+            thisdepgraph = item.custom_values.where(custom_field: cfdepgraph).first
+            if thisdepgraph != nil then
+              thisdepgraphflag = item.custom_values.where(custom_field: cfdepgraph).first.value
+            else
+              thisdepgraphflag = 0
+            end
+
             if (thisdepgraphflag == 'Include') then
               show_this_image = true
             else
