@@ -54,6 +54,7 @@ end
       title = item.subject
     %>
       <div class="<%= classdiv %>">
+      <tr><td>
       <h<%= current_level %>><%= link_to chapstr, issue_path(item.id) %> <%= title %></h<%= current_level %>>
 
       <div class="<%= classdiv %>descr"><%= textilizable item, :description %></div>
@@ -80,6 +81,8 @@ end
          <% end 
            end
          end %>
+        </td>
+        <td class="<%= classdiv %>dataColumn">
       <% if not(item.csys.is_chapter?) then 
             # TODO: This should not be in cosmosys, but in cosmosys_req.  We need a callback
             if (rqtracker != nil and item.tracker == rqtracker) then
@@ -97,15 +100,33 @@ end
             if thisvalue != nil and thisvalue.size > 0 then thisvalue = "c:"+thisvalue end
           end
       %>
+        <table class="<%= classdiv %>data">
+        <tbody>
+      <% if not(item.csys.is_chapter?) then %>
+      <%  # TODO: This should not be in cosmosys, but in cosmosys_req.  We need a callback
+           if (rqtracker != nil and item.tracker == rqtracker) then%>
+            <tr><td><%= thistype %></td></tr>
+            <tr><td><%= thislevel %></td></tr>
+      <%   end%>
+      <% end%>
+      <%  # TODO: This should not be in cosmosys, but in cosmosys_req.  We need a callback
+        if (rqtracker != nil and item.tracker == rqtracker) then%>
+          <tr><td><%= thisvar %></td></tr>
+          <tr><td><%= thisvalue %></td></tr>
+      <% end%>
+        </tbody>
+        </table>
+        </td>
+        </tr>
       </div>
     <%
       item.children.select{|obj| obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}.each {|subitem| recursion.(subitem, recursion,current_level+1)}
     }
 %>
 
-<div style="text-align: right;"><button onClick="<%= "downloadReport('#{@project.name}')" %>">Download</button></div>
 <div class="<%= "cSysProject" %>">
-
+<table>
+<tbody>
   <% if show_chapters %><h1><%= @project.csys.code %>: <%= @project.name %></h1><% end %>
   <%
   roots = @project.issues.select{|obj| obj.parent == nil and obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}
@@ -115,6 +136,9 @@ end
     roots.each { |i| 
     draw_items.(i, draw_items,1) }
   %>
+  <div style="text-align: right;"><button onClick="<%= "downloadReport('#{@project.name}')" %>">Download</button></div>
+</tbody>
+</table>
 </div>
 
 <script>
