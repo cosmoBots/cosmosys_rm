@@ -125,7 +125,7 @@ module IssuePatch
       end
       if (self.description != dest.description) then
         is_changed = true
-        notes += "* Updating description from '"+dest.description+"' to '"+self.description+"'\n"
+        notes += "* Updating description from '"+dest.description.to_s+"' to '"+self.description.to_s+"'\n"
         dest.description = self.description
       end
       if (self.status != dest.status) then
