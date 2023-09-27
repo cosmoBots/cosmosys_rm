@@ -20,25 +20,34 @@ cfvalue = IssueCustomField.find_by_name("rqValue")
 cfdepgraph = IssueCustomField.find_by_name("depGrahInReports")
 
 
-def calculate_heading(show_chapters,i)
+def calculate_heading(showchap,i)
 	if (i.csys.is_chapter?) then
 		classdiv = "cSysParentIssue"
 		chapstr = ""
-		if show_chapters
+		if showchap then
 			chapstr = i.chapter_str
 		end
 	else
 		classdiv = "cSysIssue"
 		chapstr = ""
-		if show_chapters
+		if showchap then
 			chapstr += i.chapter_str + " "
 		end		
 		chapstr += i.csys.get_identifier
 	end
-	if show_chapters
+	if showchap then
 		chapstr += ':'
 	end
 	return chapstr,classdiv
+end
+
+
+def calculate_complete_title(showchap, i, chapstr)
+  if showchap then
+    link_to chapstr, issue_path(i.id)
+  else
+    chapstr
+  end
 end
 
 if params[:nochapters] 
@@ -54,7 +63,7 @@ end
       title = item.subject
     %>
       <div class="<%= classdiv %>">
-      <h<%= current_level %>><%= link_to chapstr, issue_path(item.id) %> <%= title %></h<%= current_level %>>
+      <h<%= current_level %>><%= calculate_complete_title(show_chapters, item, chapstr) %> <%= title %></h<%= current_level %>>
 
       <div class="<%= classdiv %>descr"><%= textilizable item, :description %></div>
       <% if (item.csys.shall_show_dependences?) then
