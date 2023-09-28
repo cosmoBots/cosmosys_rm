@@ -525,6 +525,10 @@ class CosmosysIssue < ActiveRecord::Base
                   end
                 end
               }
+              # See https://github.com/cosmoBots/cosmosys_rm/compare/main...estpo#diff-45e496d0fd1820bc4c83e4ef9f44d1da005bfd18c2a5a2fad1ecd01ac9ee43df
+              e_node = cl.add_nodes(e.id.to_s, :label => labelstr, :fontname => fontnamestr,
+                :style => 'filled', :color => 'black', :fillcolor => fillstr, :shape => shapestr,
+                :URL => root_url + "/issues/" + e.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => e.description)
               if anyrel then
                 if not(e.csys.shall_show_id) then
                   shapestr =  e.tracker.csys.paint_pref[:chapter_shape]
@@ -534,11 +538,7 @@ class CosmosysIssue < ActiveRecord::Base
                   shapestr =  e.tracker.csys.paint_pref[:issue_shape]
                   labelstr = e.csys.get_label_issue(self.issue.project,boundary_node)
                   fontnamestr = 'times'
-                end
-        
-                e_node = cl.add_nodes(e.id.to_s, :label => labelstr, :fontname => fontnamestr,
-                  :style => 'filled', :color => 'black', :fillcolor => fillstr, :shape => shapestr,
-                  :URL => root_url + "/issues/" + e.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => e.description)
+                end        
               end
             end
           end
