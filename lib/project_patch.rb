@@ -50,11 +50,11 @@ module ProjectPatch
           ch.save
           #puts('Despues: '+i.to_s+' '+ch.csys.get_identifier+' '+ch.chapter_order.to_s)
           if (updatecf) then
-            puts("-----------")
+            # puts("-----------")
             ch.update_cschapter
           end                  
         end
-        puts("+++++++++")
+        # puts("+++++++++")
         i += 1
       }
       return i   

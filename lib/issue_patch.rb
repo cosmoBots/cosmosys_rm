@@ -43,7 +43,7 @@ module IssuePatch
           end     
           ch.save
         end
-        puts("+++++++++")
+        # puts("+++++++++")
         i += 1
       }
       return i
@@ -60,8 +60,8 @@ module IssuePatch
     
     def csys
       if self.cosmosys_issue == nil then
-        if (self.id != nil) then
-          self.reload
+                if (self.id != nil) then
+                    self.reload
         end
         chapter = self.reenumerate_group
         CosmosysIssue.create!(issue:self,chapter_order:chapter)
