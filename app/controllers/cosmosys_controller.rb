@@ -1,6 +1,7 @@
 class CosmosysController < ApplicationController
   before_action :find_this_project
-  before_action :authorize, :except => [:find_this_project, :treeview,:treeview_commit,:dep_gv,:hie_gv]
+  before_action :authorize, :except => [:find_this_project, :treeview,:treeview_commit,:dep_gv,:hie_gv, :convert_to]
+  skip_before_action :verify_authenticity_token, only: [:convert_to]
 
   @@tmpdir = './tmp/csys_plugin/'
 
@@ -423,5 +424,54 @@ class CosmosysController < ApplicationController
     end
     #print("Project: "+@project.to_s+"\n")
   end  
+
+  def convert_to
+    uploaded_file = params[:file]
+    destination_format = params[:format]
+
+    if uploaded_file.blank? || destination_format.blank?
+      render json: { error: 'Missing file or format' }, status: :bad_request
+      return
+    end
+    
+    begin
+      temp_dir = Dir.mktmpdir
+
+      # Construct the expected output file name and path
+      expected_output_file_name = "#{File.basename(uploaded_file.path, File.extname(uploaded_file.path))}.#{destination_format}"
+      expected_output_file_path = File.join(temp_dir, expected_output_file_name)
+
+      # Execute LibreOffice command to convert the file
+      command = "/usr/bin/soffice --headless --convert-to #{destination_format} --outdir #{temp_dir} #{uploaded_file.path}"
+      output = `#{command} 2>&1`
+
+      success = $?.success?
+
+      unless success
+        Rails.logger.error "Conversion command failed with output: #{output}"
+        render json: { error: 'Conversion failed', output: output }, status: :internal_server_error
+        return
+      else
+        # If conversion is successful, send the file back to the client
+        if File.exist?(expected_output_file_path)
+          send_file(
+            expected_output_file_path,
+            filename: expected_output_file_name,
+            disposition: 'attachment'
+          )
+
+        else
+          render json: { error: 'Conversion failed' }, status: :internal_server_error
+        end
+      end
+      
+    ensure
+      Thread.new do
+        sleep 60 # sleep for 60 seconds
+        FileUtils.remove_entry_secure(temp_dir)
+        File.delete(expected_output_file_path) if File.exist?(expected_output_file_path)
+      end
+    end
+  end
 
 end
