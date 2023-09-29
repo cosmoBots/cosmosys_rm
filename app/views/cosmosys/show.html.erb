@@ -5,11 +5,16 @@
 
 <% 
 
-if params[:noimages] 
-	show_images = false
-else
-	show_images = true
+def truthy?(value, nilistrue = false)
+  if (nilistrue and value == nil) then 
+    return true 
+  end
+  options = [1, "1", true, "true", "t","yes","y"]
+  return options.include?(value)
 end
+
+show_images = truthy?(params[:depdiag],true)
+show_chapters = truthy?(params[:chapnums],true)
 
 # TODO: This should not be in cosmosys, but in cosmosys_req.  We need a callback
 rqtracker = Tracker.find_by_name("rq")
@@ -48,12 +53,6 @@ def calculate_complete_title(showchap, i, chapstr)
   else
     chapstr
   end
-end
-
-if params[:nochapters] 
-	show_chapters = false
-else
-	show_chapters = true
 end
 
 %>
