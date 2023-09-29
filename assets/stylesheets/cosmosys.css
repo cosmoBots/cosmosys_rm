@@ -190,3 +190,7 @@ h6 {
   border-width: thin;
   background-color: white;
 }
+
+figure {
+  text-align: right;
+}
