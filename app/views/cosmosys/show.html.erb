@@ -63,7 +63,7 @@ end
       title = item.subject
     %>
       <div class="<%= classdiv %>">
-      <h<%= current_level %>><%= calculate_complete_title(show_chapters, item, chapstr) %> <%= title %></h<%= current_level %>>
+      <<%= if current_level + 1 > 6 then "span"; else "h" + (current_level + 1).to_s end %> class="heading_<%= current_level %>"><%= calculate_complete_title(show_chapters, item, chapstr) %> <%= title %></<%= if current_level + 1 > 6 then "span"; else "h" + (current_level + 1).to_s end %>>
 
       <div class="<%= classdiv %>descr"><%= textilizable item, :description %></div>
       <% if (item.csys.shall_show_dependences?) then
@@ -116,7 +116,7 @@ end
     }
 %>
 
-<div style="text-align: right;"><button onClick="<%= "downloadReport('#{@project.name}')" %>">Download</button></div>
+<div style="text-align: right;"><button onClick="<%= "downloadReport('#{@project.name}')" %>">Descargar</button></div>
 <div class="<%= "cSysProject" %>">
 
   <% if show_chapters %><h1><%= @project.csys.code %>: <%= @project.name %></h1><% end %>
@@ -161,8 +161,37 @@ function readFile(file){
         }
     }
 
-function downloadReport(title) {
+async function downloadReport(title) {
   let projectElement = document.querySelector('.cSysProject').cloneNode(true);
+
+  let page_style_elements = document.querySelectorAll('style, link[rel="stylesheet"]');
+  var page_styles = Array.apply(null, Array(page_style_elements.length)).map(function () {})
+  let style_promises = [];
+
+  for (var i = 0; i < page_style_elements.length; i++){
+     style_or_link = page_style_elements[i];
+     let index = i;
+     if(style_or_link.tagName == "STYLE"){
+       page_styles.splice(index, 1, style_or_link.innerText);
+     } else {
+       style_promises.push(fetch(style_or_link.href)
+         .then((res) => res.blob())
+         .then((blob) => {
+           return new Promise((resolve, reject) => {
+             const reader = new FileReader();
+             reader.onloadend = () => {
+               resolve(reader.result)
+             };
+             reader.onerror = reject;
+             reader.readAsText(blob);
+           });
+         })
+         .then((text) => {
+           page_styles.splice(index, 1, text);
+           return text;
+         }))
+     }
+  }
 
   let image_promises = [].map.call(projectElement.querySelectorAll('img'), (img) => {
     return fetch(img.src)
@@ -179,8 +208,8 @@ function downloadReport(title) {
       })
       .then((dataURL) => {
         img.src = dataURL;
-        img.style.width = Math.round(2 * img.width) + 'px';
-        img.style.height = Math.round(2 * img.height) + 'px';
+        img.style.width = img.width + 'px';
+        img.style.height = img.height + 'px';
       });
   });
 
@@ -200,16 +229,17 @@ function downloadReport(title) {
     });
   });
 
-  let promises = image_promises.concat(link_promises);
+  let promises = image_promises.concat(link_promises).concat(style_promises);
 
   Promise.allSettled(promises)
     .then(() => {
       projectElement.querySelectorAll('button').forEach((button) => {button.remove();});
     })
-    .then(() => {
+    .then(async() => {
+      console.log(page_styles);
       let html = projectElement.innerHTML;
-      let head = '<!DOCTYPE html><head><meta charset="utf-8" /><title>' + title + '</title></head>';
-        html = head + '<body><div class="cSysProject">' + html + '</div></body>';
+      let head = '<!DOCTYPE html><head><meta charset="utf-8" /><title>' + title + '</title><style>' + page_styles.join("\n") + '</style></head>';
+      html = head + '<body><div class="cSysProject">' + html + '</div></body>';
 
       let file = new File([html], title + ".html");
       
