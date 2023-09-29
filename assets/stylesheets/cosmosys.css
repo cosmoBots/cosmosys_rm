@@ -98,10 +98,7 @@ td.description {
   text-align: right;
 }
 
-.cSysParentIssue h2, .cSysParentIssue h3,
-.cSysParentIssue h4, .cSysParentIssue h5,
-.cSysParentIssue h6, .cSysParentIssue h7,
-.cSysParentIssue h8, .cSysParentIssue h9{
+.cSysParentIssue :is(h2, h3, h4, h5, h6) {
     padding-left: 4px;
 }
 
@@ -123,74 +120,47 @@ td.description {
     border-right: hidden;*/
 }
 
-h1 { 
+h1, h2, h3, h4, h5, h6 { 
   display: block;
+  margin-left: 0;
+  margin-right: 0;
+  font-weight: bold;
+}
+
+h1 { 
   font-size: 2em;
   margin-top: 0.67em;
   margin-bottom: 0.67em;
-  margin-left: 0;
-  margin-right: 0;
-  font-weight: bold;
 }
 
 h2 {
-  display: block;
   font-size: 1.5em;
   margin-top: 0.83em;
   margin-bottom: 0.83em;
-  margin-left: 0;
-  margin-right: 0;
-  font-weight: bold;
 }
 
 h3 { 
-  display: block;
   font-size: 1.17em;
   margin-top: 1em;
   margin-bottom: 1em;
-  margin-left: 0;
-  margin-right: 0;
-  font-weight: bold;
 }
 
 h4 { 
-  display: block;
   font-size: 1em;
   margin-top: 1.33em;
   margin-bottom: 1.33em;
-  margin-left: 0;
-  margin-right: 0;
-  font-weight: bold;
 }
 
 h5 { 
-  display: block;
   font-size: .83em;
   margin-top: 1.67em;
   margin-bottom: 1.67em;
-  margin-left: 0;
-  margin-right: 0;
-  font-weight: bold;
 }
 
 h6 { 
-  display: block;
   font-size: .67em;
   margin-top: 2.33em;
   margin-bottom: 2.33em;
-  margin-left: 0;
-  margin-right: 0;
-  font-weight: bold;
-}
-
-h6 { 
-  display: block;
-  font-size: .60em;
-  margin-top: 2.50em;
-  margin-bottom: 2.50em;
-  margin-left: 0;
-  margin-right: 0;
-  font-weight: bold;
 }
 
 .tablink {
@@ -219,8 +189,4 @@ h6 {
   border-color: gray;
   border-width: thin;
   background-color: white;
-}
-
-figure {
-  /* float: right; */
 }
