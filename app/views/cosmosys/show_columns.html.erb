@@ -62,14 +62,22 @@ end
         imagesrc = "/cosmosys_issues/"+item.id.to_s+"/dep_gv.svg"
       %>
         <% if show_images then 
-            show_this_image = false
-            thisdepgraphflag = item.custom_values.where(custom_field: cfdepgraph).first.value
-            if (thisdepgraphflag == 'Include') then
-              show_this_image = true
-            else
-              if (thisdepgraphflag == 'Include if has relations') then
-                show_this_image = (item.relations.size > 0)
+           show_this_image = false
+            thisdepgraphflag = item.custom_field_values.select{|a| a.custom_field_id == cfdepgraph.id }.first
+            if (thisdepgraphflag != nil) then
+              if (thisdepgraphflag.value == nil) then
+                thisdepgraphflag.value = cfdepgraph.default_value
+                item.save
               end
+              if (thisdepgraphflag.value == 'Include') then
+                show_this_image = true
+              else
+                if (thisdepgraphflag.value == 'Include if has relations') then
+                  show_this_image = (item.relations.size > 0)
+                end
+              end
+            else
+              show_this_image = (item.relations.size > 0)
             end
             
             if (show_this_image) then
