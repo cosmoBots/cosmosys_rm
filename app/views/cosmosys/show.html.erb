@@ -273,27 +273,56 @@ async function downloadReport(title) {
       html = head + '<body><div class="cSysProject">' + html + '</div></body>';
 
       let file = new File([html], title + ".html");
-      
-      // Create a link and set the URL using `createObjectURL`
-      const link = document.createElement("a");
-      link.style.display = "none";
-      link.href = URL.createObjectURL(file);
-      link.download = file.name;
 
-      // It needs to be added to the DOM so it can be clicked
-      document.body.appendChild(link);
-      link.click();
+      let formData = new FormData();
+      formData.append('file', file);
 
-      // To make this work on Firefox we need to wait
-      // a little while before removing it.
-      setTimeout(() => {
-        URL.revokeObjectURL(link.href);
-        link.parentNode.removeChild(link);
+      let xhr = new XMLHttpRequest();
+      xhr.open('POST', '/cosmosys/convert_to/odt', true);
 
-        projectElement.parentElement.insertBefore(bakupElement, projectElement);
-        projectElement.parentNode.removeChild(projectElement);
-        
-      }, 0);
+      // When the request is loaded
+      xhr.onload = function () {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          // Convert the response to a Blob
+          let blob = new Blob([xhr.response], { type: xhr.getResponseHeader('Content-Type') });
+
+          // Create an object URL for the blob and create a link element to trigger the download
+          let link = document.createElement('a');
+          link.href = window.URL.createObjectURL(blob);
+          link.download = title + ".odt"; // Name of the downloaded file
+          link.style.display = 'none';
+
+          // It needs to be added to the DOM so it can be clicked
+          document.body.appendChild(link);
+          link.click();
+
+          // To make this work on Firefox we need to wait
+          // a little while before removing it.
+          setTimeout(() => {
+            URL.revokeObjectURL(link.href);
+            link.parentNode.removeChild(link);
+
+            projectElement.parentElement.insertBefore(bakupElement, projectElement);
+            projectElement.parentNode.removeChild(projectElement);
+            
+          }, 0);
+
+        } else {
+          // Handle the error
+          console.error('Server responded with an error:', xhr.statusText);
+        }
+      };
+
+      // Setting the response type to 'blob' as we are expecting a file
+      xhr.responseType = 'blob';
+
+      // Handling any error with the request
+      xhr.onerror = function () {
+        console.error('Request failed.');
+      };
+
+      // Sending the FormData with the file
+      xhr.send(formData);
     })
 
 }
