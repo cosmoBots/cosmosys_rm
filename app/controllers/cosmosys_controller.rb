@@ -438,11 +438,38 @@ class CosmosysController < ApplicationController
       temp_dir = Dir.mktmpdir
 
       # Construct the expected output file name and path
-      expected_output_file_name = "#{File.basename(uploaded_file.path, File.extname(uploaded_file.path))}.#{destination_format}"
+      #expected_output_file_name = "#{File.basename(uploaded_file.path, File.extname(uploaded_file.path))}.#{destination_format}"
+      expected_output_file_name = "#{File.basename(uploaded_file.path, File.extname(uploaded_file.path))}.odt"
       expected_output_file_path = File.join(temp_dir, expected_output_file_name)
 
-      # Execute LibreOffice command to convert the file
-      command = "/usr/bin/soffice --headless --convert-to #{destination_format} --outdir #{temp_dir} #{uploaded_file.path}"
+      # First we copy the macro to the LibreOffice profile
+      command = "cp ./plugins/cosmosys/assets/template/csys.xba /home/redmine/.config/libreoffice/4/user/basic/Standard/csys.xba"
+      puts command
+      output = `#{command} 2>&1`
+
+      # Copy the file where the macro can find it
+      # TODO: pass the upload_file.path as an argument and avoid using the same file for all the instances
+      command = "cp #{uploaded_file.path} /tmp/input.html"
+      puts command
+      output = `#{command} 2>&1`
+
+      # Copy the template as the base for the LibreOffice management
+      command = "cp ./plugins/cosmosys/assets/template/report_template.odt #{uploaded_file.path}.odt"
+      puts command
+      output = `#{command} 2>&1`
+
+
+      # Execute LibreOffice command to process the file
+      #command = "/usr/bin/soffice --headless #{uploaded_file.path}.odt macro:///Standard.csys.Main"
+      # soffice  --invisible --nofirststartwizard --headless --norestore  'macro:///Standard.csys.Headless("/home/txinto/Descargas/printtodoc/mydoc.odt")'
+      #command = "/usr/bin/soffice --headless --convert-to #{destination_format} --outdir #{temp_dir} #{uploaded_file.path}"
+      command = "/usr/bin/soffice --invisible --nofirststartwizard --headless --norestore  'macro:///Standard.csys.Headless(\"#{uploaded_file.path}.odt\")'"
+      puts command
+      output = `#{command} 2>&1`
+
+      # Copy the output file to its expected location
+      command = "cp #{uploaded_file.path}.odt #{expected_output_file_path}"
+      puts command
       output = `#{command} 2>&1`
 
       success = $?.success?
