@@ -119,7 +119,8 @@ end
     }
 %>
 
-<div style="text-align: right;"><button onClick="<%= "downloadReport('#{@project.name}')" %>">Descargar</button></div>
+<div style="text-align: right;"><button onClick="<%= "downloadReport('#{@project.name}')" %>">Generate Report</button></div>
+<div style="text-align: right;"><button onClick="<%= "downloadHTML('#{@project.name}')" %>">HTML Report</button></div>
 <div class="<%= "cSysProject" %>">
 
   <% if show_chapters %><h1><%= @project.csys.code %>: <%= @project.name %></h1><% end %>
@@ -274,55 +275,166 @@ async function downloadReport(title) {
 
       let file = new File([html], title + ".html");
 
-      let formData = new FormData();
-      formData.append('file', file);
+        let formData = new FormData();
+        formData.append('file', file);
 
-      let xhr = new XMLHttpRequest();
-      xhr.open('POST', '/cosmosys/convert_to/odt', true);
+        let xhr = new XMLHttpRequest();
+        xhr.open('POST', '/cosmosys/convert_to/odt', true);
 
-      // When the request is loaded
-      xhr.onload = function () {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          // Convert the response to a Blob
-          let blob = new Blob([xhr.response], { type: xhr.getResponseHeader('Content-Type') });
+        // When the request is loaded
+        xhr.onload = function () {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            // Convert the response to a Blob
+            let blob = new Blob([xhr.response], { type: xhr.getResponseHeader('Content-Type') });
 
-          // Create an object URL for the blob and create a link element to trigger the download
-          let link = document.createElement('a');
-          link.href = window.URL.createObjectURL(blob);
-          link.download = title + ".odt"; // Name of the downloaded file
-          link.style.display = 'none';
+            // Create an object URL for the blob and create a link element to trigger the download
+            let link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = title + ".odt"; // Name of the downloaded file
+            link.style.display = 'none';
 
-          // It needs to be added to the DOM so it can be clicked
-          document.body.appendChild(link);
-          link.click();
+            // It needs to be added to the DOM so it can be clicked
+            document.body.appendChild(link);
+            link.click();
 
-          // To make this work on Firefox we need to wait
-          // a little while before removing it.
-          setTimeout(() => {
-            URL.revokeObjectURL(link.href);
-            link.parentNode.removeChild(link);
+            // To make this work on Firefox we need to wait
+            // a little while before removing it.
+            setTimeout(() => {
+              URL.revokeObjectURL(link.href);
+              link.parentNode.removeChild(link);
 
-            projectElement.parentElement.insertBefore(bakupElement, projectElement);
-            projectElement.parentNode.removeChild(projectElement);
-            
-          }, 0);
+              projectElement.parentElement.insertBefore(bakupElement, projectElement);
+              projectElement.parentNode.removeChild(projectElement);
+              
+            }, 0);
 
-        } else {
-          // Handle the error
-          console.error('Server responded with an error:', xhr.statusText);
-        }
-      };
+          } else {
+            // Handle the error
+            console.error('Server responded with an error:', xhr.statusText);
+          }
+        };
 
-      // Setting the response type to 'blob' as we are expecting a file
-      xhr.responseType = 'blob';
+        // Setting the response type to 'blob' as we are expecting a file
+        xhr.responseType = 'blob';
 
-      // Handling any error with the request
-      xhr.onerror = function () {
-        console.error('Request failed.');
-      };
+        // Handling any error with the request
+        xhr.onerror = function () {
+          console.error('Request failed.');
+        };
 
-      // Sending the FormData with the file
-      xhr.send(formData);
+        // Sending the FormData with the file
+        xhr.send(formData);
+    })
+
+}
+
+async function downloadHTML(title) {
+  let bakupElement = document.querySelector('.cSysProject').cloneNode(true);
+  let projectElement = document.querySelector('.cSysProject')
+
+  inlineStyles(projectElement);
+
+  let page_style_elements = document.querySelectorAll('style, link[rel="stylesheet"]');
+  var page_styles = Array.apply(null, Array(page_style_elements.length)).map(function () {})
+  let style_promises = [];
+
+  for (var i = 0; i < page_style_elements.length; i++){
+     style_or_link = page_style_elements[i];
+     let index = i;
+     if(style_or_link.tagName == "STYLE"){
+       page_styles.splice(index, 1, style_or_link.innerText);
+     } else {
+       style_promises.push(fetch(style_or_link.href)
+         .then((res) => res.blob())
+         .then((blob) => {
+           return new Promise((resolve, reject) => {
+             const reader = new FileReader();
+             reader.onloadend = () => {
+               resolve(reader.result)
+             };
+             reader.onerror = reject;
+             reader.readAsText(blob);
+           });
+         })
+         .then((text) => {
+           page_styles.splice(index, 1, text);
+           return text;
+         }))
+     }
+  }
+
+  let image_promises = [].map.call(projectElement.querySelectorAll('img'), (img) => {
+    return fetch(img.src)
+      .then((res) => res.blob())
+      .then((blob) => {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            resolve(reader.result)
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      })
+      .then((dataURL) => {
+        img.src = dataURL;
+        img.setAttribute('style', "");
+        img.style.width = Math.round(img.width) + 'px';
+        img.style.height = Math.round(img.height) + 'px';
+      });
+  });
+
+  let link_promises = [].map.call(projectElement.querySelectorAll('[href]'), (link) => {
+    const r = new RegExp('^(?:[a-z+]+:)?//', 'i');
+    
+    return new Promise((resolve, reject) => {
+      let href = link.getAttribute('href');
+      if (!r.test(href)) {
+          link.setAttribute('href',
+              (href.indexOf('/')) === 0 ?
+              document.location.origin + href :
+              document.location.href + '/' + link.getAttribute('href')
+            );
+      }
+      return resolve(link.href)
+    });
+  });
+
+  let promises = image_promises.concat(link_promises).concat(style_promises);
+
+  Promise.allSettled(promises)
+    .then(() => {
+      projectElement.querySelectorAll('button').forEach((button) => {button.remove();});
+    })
+    .then(async() => {
+      let html = projectElement.innerHTML;
+      let head = '<!DOCTYPE html><head><meta charset="utf-8" /><title>' + title + '</title><style>' + page_styles.join("\n") + '</style></head>';
+      html = head + '<body><div class="cSysProject">' + html + '</div></body>';
+
+      let file = new File([html], title + ".html");
+
+      // Create a link and set the URL using `createObjectURL`
+      const link = document.createElement("a");
+      link.style.display = "none";
+      link.href = URL.createObjectURL(file);
+      link.download = file.name;
+
+      // It needs to be added to the DOM so it can be clicked
+      document.body.appendChild(link);
+      link.click();
+
+      // To make this work on Firefox we need to wait
+      // a little while before removing it.
+      setTimeout(() => {
+        URL.revokeObjectURL(link.href);
+        link.parentNode.removeChild(link);
+
+        projectElement.parentElement.insertBefore(bakupElement, projectElement);
+        projectElement.parentNode.removeChild(projectElement);
+
+      }, 0);
+
+
     })
 
 }
