@@ -455,6 +455,7 @@ class CosmosysController < ApplicationController
         output = `#{command} 2>&1`
 
         # Then we prepare the temporary directory
+        # TODO: Confirm and remove this step
         command = "mkdir -p #{temp_dir}"
         puts command
         output = `#{command} 2>&1`
