@@ -9,23 +9,21 @@ dim dispatcher as object
 rem ----------------------------------------------------------------------
 rem get access to the document
 
-Sub Teste4(oDoc)
+Sub UpdateAll(oDoc)
     for Each item in oDoc.DocumentIndexes()
         item.refresh()
     Next
 End Sub
 
-Sub Main(oDoc) 
+Sub Main(oDoc, HTMLPath as String) 
 
 dim oSearch as object
 dim oResult as object
 dim oCursor as object
 dim dispatcher as object
 
-rem dispatcher = createUnoService(&quot;com.sun.star.frame.DispatchHelper&quot;)
-rem document   = ThisComponent.CurrentController.Frame
-
 oText = oDoc.getText
+
 oCursor = oText.createTextCursor()
 rem oCursor=oDoc.CurrentController.getViewCursor()
 oSearch = oDoc.createSearchDescriptor()
@@ -40,16 +38,19 @@ oResult = oDoc.findFirst(oSearch)
 
 dim args3(1) as new com.sun.star.beans.PropertyValue
 args3(0).Name = &quot;Name&quot;
-args3(0).Value = &quot;file:///tmp/input.html&quot;
+args3(0).Value = &quot;file://&quot; &amp; HTMLPath
 args3(1).Name = &quot;Filter&quot;
 args3(1).Value = &quot;HTML (StarWriter)&quot;
-oResult.insertDocumentFromURL(&quot;file:///tmp/input.html&quot;, args3)
+oResult.insertDocumentFromURL(&quot;file://&quot; &amp; HTMLPath, args3)
 
 rem dispatcher.executeDispatch(document, &quot;.uno:UpdateAll&quot;, &quot;&quot;, 0, Array())
 
 rem oCursor.InsertMultiIndex()
 
-call Teste4(oDoc)
+rem call UpdateAll(oDoc)
+
+dispatcher = createUnoService(&quot;com.sun.star.frame.DispatchHelper&quot;)
+dispatcher.executeDispatch(oDoc.CurrentController.Frame, &quot;.uno:UpdateAllIndexes&quot;, &quot;&quot;, 0, Array())
 
 end sub
 
@@ -60,9 +61,9 @@ function OpenSilent(FilePath as String) as Object
   OpenSilent = StarDesktop.loadComponentFromURL(&quot;file://&quot; &amp; FilePath, &quot;_blank&quot;, 0, FileProperties())
 end function
 
-sub Headless(FilePath as String)
+sub Headless(FilePath as String, HTMLPath as String)
   Document = OpenSilent(FilePath)
-  call Main(Document)
+  call Main(Document,HTMLPath)
 	
   call Document.store()
   call Document.close(True)

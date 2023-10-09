@@ -438,22 +438,24 @@ class CosmosysController < ApplicationController
       temp_dir = Dir.mktmpdir
 
       # Choose the flavour to execute
-      flavour_use_template = false
+      flavour_use_template = true
 
       if (flavour_use_template) then
         # Construct the expected output file name and path
         #expected_output_file_name = "#{File.basename(uploaded_file.path, File.extname(uploaded_file.path))}.#{destination_format}"
         expected_output_file_name = "#{File.basename(uploaded_file.path, File.extname(uploaded_file.path))}.odt"
         expected_output_file_path = File.join(temp_dir, expected_output_file_name)
+        puts expected_output_file_name
+        puts expected_output_file_path
+        puts temp_dir
 
-        # First we copy the macro to the LibreOffice profile
-        command = "cp ./plugins/cosmosys/assets/template/csys.xba /home/redmine/.config/libreoffice/4/user/basic/Standard/csys.xba"
+        # First we copy the macro and the correct configuration to the LibreOffice profile
+        command = "cp -r plugins/cosmosys/assets/template/.config/ ~"
         puts command
         output = `#{command} 2>&1`
 
-        # Copy the file where the macro can find it
-        # TODO: pass the upload_file.path as an argument and avoid using the same file for all the instances
-        command = "cp #{uploaded_file.path} /tmp/input.html"
+        # Then we prepare the temporary directory
+        command = "mkdir -p #{temp_dir}"
         puts command
         output = `#{command} 2>&1`
 
@@ -462,14 +464,8 @@ class CosmosysController < ApplicationController
         puts command
         output = `#{command} 2>&1`
 
-
         # Execute LibreOffice command to process the file
-
-        #command = "/usr/bin/soffice --headless #{uploaded_file.path}.odt macro:///Standard.csys.Main"
-        # soffice  --invisible --nofirststartwizard --headless --norestore  'macro:///Standard.csys.Headless("/home/txinto/Descargas/printtodoc/mydoc.odt")'
-        #command = "/usr/bin/soffice --headless --convert-to #{destination_format} --outdir #{temp_dir} #{uploaded_file.path}"
-        # command = "/usr/local/bin/libreoffice7.6 --invisible --nofirststartwizard --headless --norestore  'macro:///Standard.csys.Headless(\"#{uploaded_file.path}.odt\")'"
-        command = "/usr/bin/soffice --invisible --nofirststartwizard --headless --norestore  'macro:///Standard.csys.Headless(\"#{uploaded_file.path}.odt\")'"
+        command = "/usr/bin/soffice --invisible --nofirststartwizard --headless --norestore  'macro:///Standard.csys.Headless(\"#{uploaded_file.path}.odt\",\"#{uploaded_file.path}\")'"
         puts command
         output = `#{command} 2>&1`
 
@@ -477,6 +473,14 @@ class CosmosysController < ApplicationController
         command = "cp #{uploaded_file.path}.odt #{expected_output_file_path}"        
         puts command
         output = `#{command} 2>&1`
+        
+        success = $?.success?
+
+        # Kill soffice
+        command = 'pkill soffice'
+        output = `#{command} 2>&1`
+        puts command
+
       else
         expected_output_file_name = "#{File.basename(uploaded_file.path, File.extname(uploaded_file.path))}.#{destination_format}"
         expected_output_file_path = File.join(temp_dir, expected_output_file_name)
@@ -485,11 +489,9 @@ class CosmosysController < ApplicationController
         command = "/usr/bin/soffice --invisible --nofirststartwizard --headless --norestore --convert-to #{destination_format} --outdir #{temp_dir} #{uploaded_file.path}"
         puts command
         output = `#{command} 2>&1`
+
+        success = $?.success?
       end
-
-
-
-      success = $?.success?
 
       unless success
         Rails.logger.error "Conversion command failed with output: #{output}"
