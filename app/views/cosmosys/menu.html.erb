@@ -1,9 +1,9 @@
 <h2>CosmosysController#menu</h2>
 <p>Actions:</p>
 <p><%= link_to 'Tree', { :action => 'treeview'}, :method => :get %></p>
-<p><%= link_to 'Directory', { :action => 'treeview', :includerpt => 'yes'}, :method => :get %></p>
+<p><%= link_to 'Directory', { :action => 'treeview', :includerpt => 'true'}, :method => :get %></p>
 <p><%= link_to 'MainReport', { :action => 'show'}, :method => :get %></p>
-<p><%= link_to 'MainReport with no chapters', { :action => 'show', :nochapters => 'yes'}, :method => :get %></p>
-<p><%= link_to 'MainReport with no images', { :action => 'show', :noimages => 'yes'}, :method => :get %></p>
-<p><%= link_to 'MainReport with no chapters and no images', { :action => 'show', :nochapters => 'yes', :noimages => 'yes'}, :method => :get %></p>
+<p><%= link_to 'MainReport with no chapters', { :action => 'show', :chapnums => 'false'}, :method => :get %></p>
+<p><%= link_to 'MainReport with no dependency diagrams', { :action => 'show', :depdiag => 'false'}, :method => :get %></p>
+<p><%= link_to 'MainReport with no chapter numbers and no dependency diagrams', { :action => 'show', :chapnums => 'false', :depdiag => 'false'}, :method => :get %></p>
 

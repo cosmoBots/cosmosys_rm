@@ -1,6 +1,7 @@
 class CosmosysController < ApplicationController
   before_action :find_this_project
-  before_action :authorize, :except => [:find_this_project, :treeview,:treeview_commit,:dep_gv,:hie_gv]
+  before_action :authorize, :except => [:find_this_project, :treeview,:treeview_commit,:dep_gv,:hie_gv, :convert_to]
+  skip_before_action :verify_authenticity_token, only: [:convert_to]
 
   @@tmpdir = './tmp/csys_plugin/'
 
@@ -423,5 +424,101 @@ class CosmosysController < ApplicationController
     end
     #print("Project: "+@project.to_s+"\n")
   end  
+
+  def convert_to
+    uploaded_file = params[:file]
+    destination_format = params[:format]
+
+    if uploaded_file.blank? || destination_format.blank?
+      render json: { error: 'Missing file or format' }, status: :bad_request
+      return
+    end
+    
+    begin
+      temp_dir = Dir.mktmpdir
+
+      # Choose the flavour to execute
+      flavour_use_template = true
+
+      if (flavour_use_template) then
+        # Construct the expected output file name and path
+        #expected_output_file_name = "#{File.basename(uploaded_file.path, File.extname(uploaded_file.path))}.#{destination_format}"
+        expected_output_file_name = "#{File.basename(uploaded_file.path, File.extname(uploaded_file.path))}.odt"
+        expected_output_file_path = File.join(temp_dir, expected_output_file_name)
+        puts expected_output_file_name
+        puts expected_output_file_path
+        puts temp_dir
+
+        # First we copy the macro and the correct configuration to the LibreOffice profile
+        command = "cp -r plugins/cosmosys/assets/template/.config/ ~"
+        puts command
+        output = `#{command} 2>&1`
+
+        # Then we prepare the temporary directory
+        # TODO: Confirm and remove this step
+        command = "mkdir -p #{temp_dir}"
+        puts command
+        output = `#{command} 2>&1`
+
+        # Copy the template as the base for the LibreOffice management
+        command = "cp ./plugins/cosmosys/assets/template/report_template.odt #{uploaded_file.path}.odt"
+        puts command
+        output = `#{command} 2>&1`
+
+        # Execute LibreOffice command to process the file
+        command = "/usr/bin/soffice --invisible --nofirststartwizard --headless --norestore  'macro:///Standard.csys.Headless(\"#{uploaded_file.path}.odt\",\"#{uploaded_file.path}\")'"
+        puts command
+        output = `#{command} 2>&1`
+
+        # Copy the output file to its expected location
+        command = "cp #{uploaded_file.path}.odt #{expected_output_file_path}"        
+        puts command
+        output = `#{command} 2>&1`
+        
+        success = $?.success?
+
+        # Kill soffice
+        command = 'pkill soffice'
+        output = `#{command} 2>&1`
+        puts command
+
+      else
+        expected_output_file_name = "#{File.basename(uploaded_file.path, File.extname(uploaded_file.path))}.#{destination_format}"
+        expected_output_file_path = File.join(temp_dir, expected_output_file_name)
+
+        # Execute LibreOffice command to convert the file
+        command = "/usr/bin/soffice --invisible --nofirststartwizard --headless --norestore --convert-to #{destination_format} --outdir #{temp_dir} #{uploaded_file.path}"
+        puts command
+        output = `#{command} 2>&1`
+
+        success = $?.success?
+      end
+
+      unless success
+        Rails.logger.error "Conversion command failed with output: #{output}"
+        render json: { error: 'Conversion failed', output: output }, status: :internal_server_error
+        return
+      else
+        # If conversion is successful, send the file back to the client
+        if File.exist?(expected_output_file_path)
+          send_file(
+            expected_output_file_path,
+            filename: expected_output_file_name,
+            disposition: 'attachment'
+          )
+
+        else
+          render json: { error: 'Conversion failed' }, status: :internal_server_error
+        end
+      end
+      
+    ensure
+      Thread.new do
+        sleep 60 # sleep for 60 seconds
+        FileUtils.remove_entry_secure(temp_dir)
+        File.delete(expected_output_file_path) if File.exist?(expected_output_file_path)
+      end
+    end
+  end
 
 end

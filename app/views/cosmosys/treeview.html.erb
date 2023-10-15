@@ -1,9 +1,17 @@
 <% 
-if params[:includerpt] 
-	show_rpt = true
-else
-	show_rpt = false
-end %>
+
+def truthy?(value, nilistrue = false)
+  if (nilistrue and value == nil) then 
+    return true 
+  end
+  options = [1, "1", true, "true", "t","yes","y"]
+  return options.include?(value)
+end
+
+show_images = false
+show_chapters = truthy?(params[:chapnums],true)
+show_rpt = truthy?(params[:includerpt],false)
+%>
 
 <% content_for :header_tags do %>
     <%= stylesheet_link_tag 'cosmosys', :plugin => 'cosmosys' %>
@@ -32,8 +40,6 @@ end %>
 </td><td>
 
 <% 
-show_images = false
-
 def calculate_heading(show_chapters,i)
 	if (i.csys.is_chapter?) then
 		classdiv = "cSysParentIssue"
@@ -53,12 +59,6 @@ def calculate_heading(show_chapters,i)
 		chapstr += ':'
 	end
 	return chapstr,classdiv
-end
-
-if params[:nochapters] 
-	show_chapters = false
-else
-	show_chapters = true
 end
 
 %>

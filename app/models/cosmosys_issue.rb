@@ -870,7 +870,7 @@ class CosmosysIssue < ActiveRecord::Base
 
   def csys_cfields_to_sync_with_copy
     ret = []
-    cf = CustomField.find_by_name("depGrahInReports")
+    cf = IssueCustomField.find_by_name("depGrahInReports")
     ret << cf 
 
     return ret

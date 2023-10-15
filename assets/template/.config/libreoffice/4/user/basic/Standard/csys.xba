@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE script:module PUBLIC "-//OpenOffice.org//DTD OfficeDocument 1.0//EN" "module.dtd">
+<script:module xmlns:script="http://openoffice.org/2000/script" script:name="csys" script:language="StarBasic" script:moduleType="normal">REM  *****  BASIC  *****
+
+
+rem ----------------------------------------------------------------------
+rem define variables
+dim dispatcher as object
+rem ----------------------------------------------------------------------
+rem get access to the document
+
+Sub UpdateAll(oDoc)
+    for Each item in oDoc.DocumentIndexes()
+        item.refresh()
+    Next
+End Sub
+
+Sub Main(oDoc, HTMLPath as String) 
+
+dim oSearch as object
+dim oResult as object
+dim oCursor as object
+dim dispatcher as object
+
+oText = oDoc.getText
+
+oCursor = oText.createTextCursor()
+rem oCursor=oDoc.CurrentController.getViewCursor()
+oSearch = oDoc.createSearchDescriptor()
+with oSearch
+   .SearchString = &quot;%REPLACEME%&quot;
+   .SearchRegularExpression = false
+   .SearchCaseSensitive = true
+end with
+
+oResult = oDoc.findFirst(oSearch)
+
+
+dim args3(1) as new com.sun.star.beans.PropertyValue
+args3(0).Name = &quot;Name&quot;
+args3(0).Value = &quot;file://&quot; &amp; HTMLPath
+args3(1).Name = &quot;Filter&quot;
+args3(1).Value = &quot;HTML (StarWriter)&quot;
+oResult.insertDocumentFromURL(&quot;file://&quot; &amp; HTMLPath, args3)
+
+rem dispatcher.executeDispatch(document, &quot;.uno:UpdateAll&quot;, &quot;&quot;, 0, Array())
+
+rem oCursor.InsertMultiIndex()
+
+rem call UpdateAll(oDoc)
+
+dispatcher = createUnoService(&quot;com.sun.star.frame.DispatchHelper&quot;)
+dispatcher.executeDispatch(oDoc.CurrentController.Frame, &quot;.uno:UpdateAllIndexes&quot;, &quot;&quot;, 0, Array())
+
+end sub
+
+function OpenSilent(FilePath as String) as Object
+  Dim FileProperties(1) As New com.sun.star.beans.PropertyValue
+  FileProperties(0).Name = &quot;Hidden&quot;
+  FileProperties(0).Value = True
+  OpenSilent = StarDesktop.loadComponentFromURL(&quot;file://&quot; &amp; FilePath, &quot;_blank&quot;, 0, FileProperties())
+end function
+
+sub Headless(FilePath as String, HTMLPath as String)
+  Document = OpenSilent(FilePath)
+  call Main(Document,HTMLPath)
+	
+  call Document.store()
+  call Document.close(True)
+end sub
+
+
+sub HeadlessWithArgs(FilePath as String, Arg1 as Variant, Arg2 as Variant)
+  Document = OpenSilent(FilePath)
+  call MyMacroWithArguments(Arg1, Arg2)
+  call Document.close(True)
+end sub
+
+
+
+</script:module>
