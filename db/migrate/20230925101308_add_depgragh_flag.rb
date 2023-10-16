@@ -11,8 +11,10 @@ class AddDepgraghFlag < ActiveRecord::Migration[5.2]
     Issue.all.each{|i|
       i.reload
       thiscv = i.custom_field_values.select{|a| a.custom_field_id == rqdephgraphsfield.id }.first
-      thiscv.value = rqdephgraphsfield.default_value
-      i.save
+      if (thiscv.value != rqdephgraphsfield.default_value) then
+        thiscv.value = rqdephgraphsfield.default_value
+        i.save
+      end
     }
   end
 
