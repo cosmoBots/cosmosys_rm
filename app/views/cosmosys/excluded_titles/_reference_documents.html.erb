@@ -1,0 +1,18 @@
+<div class="refdocstable">
+  <table>
+    <thead>
+      <tr>
+        <th>Subject</th>
+        <th>Description</th>
+      </tr>
+    </thead>
+    <tbody>
+<% item.children.each{|i| %>
+      <tr>
+        <td><%= link_to i.subject, issue_path(i.id) %></td>
+        <td><%= textilizable(i.description) %></td>
+      </tr>
+<% } %>
+    </tbody>
+  </table>
+</div>

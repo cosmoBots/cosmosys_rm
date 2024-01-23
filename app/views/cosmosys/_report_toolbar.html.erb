@@ -1,0 +1,24 @@
+<div style="width: 100%; display: flex; justify-content: space-between; flex-wrap: wrap;">
+  <div style="flex: 1; flex-shrink: 0;">
+
+    <button onClick="s = new URLSearchParams(window.location.search); s.set('depdiag','<%= flags[:depdiag] ? "false" : "true" %>'); window.location.search = s.toString();">
+      <%= flags[:depdiag] ? "Hide images" : "Show images" %>
+    </button>
+
+    <button onClick="s = new URLSearchParams(window.location.search); s.set('chapnums','<%= flags[:chapnums] ? "false" : "true" %>'); window.location.search = s.toString();">
+      <%= flags[:chapnums] ? "Hide chapters" : "Show chapters" %>
+    </button>
+
+  </div>
+
+  <div style="flex: 1; flex-shrink: 0; text-align: right;">
+    <label for="format">Format:
+      <select name="format">
+        <option value="html">HTML</option>
+        <option value="odt" selected>Odt</option>
+        <!--option value="docx" selected>Docx</option-->
+      </select>
+    </label>
+    <button onClick="<%= "downloadReport('#{@project.name}')" %>">Download</button>
+  </div>
+</div>
