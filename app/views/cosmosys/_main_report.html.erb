@@ -99,72 +99,72 @@ draw_items = lambda {|item, recursion, current_level|
 %>
 <div class="<%= classdiv %>">
   <<%= if current_level + 1 > 6 then "span"; else "h" + (current_level + 1).to_s end %> class="heading_<%= current_level %>"><%= calculate_complete_title(flags[:chapnums], item, chapstr) %> <%= title %></<%= if current_level + 1 > 6 then "span"; else "h" + (current_level + 1).to_s end %>>
+    <%                                                                                  #
   #######################################################################################
   #                                                                                     #
   # TODO: This should not be in cosmosys, but in cosmosys_req.                          #
   #       We need a callback.                                                           #
   #                                                                                     #
-    <%                                                                                  #
     if not (item.csys.is_chapter?) then                                                 #
     # TODO: if it is not a requirement, the status could be shown in a chapter          #
     if (flags[:status]) then                                                            #
-    %>                                                                                  #
-    <p> Showing the status </p>                                                         #
+    %>                                                                                  
+    <p> Showing the status </p>                                                         
     <%                                                                                  #
     end # status                                                                        #
-    %>                                                                                  #
-    <div class="<%= classdiv %>descr"><%= textilizable item, :description %></div>      #
+    %>                                                                                  
+    <div class="<%= classdiv %>descr"><%= textilizable item, :description %></div>      
     <%                                                                                  #
     if (flags[:ration]) and (thisrationale.length > 0) then                             #
-    %>                                                                                  #
-    <p><b>Rationale</b>:<br/>                                                           #
-    <div class="<%= classdiv %>ration"><%= textilizable(thisrationale)%></div>          #
-    </p>                                                                                #
+    %>                                                                                  
+    <p><b>Rationale</b>:<br/>                                                           
+    <div class="<%= classdiv %>ration"><%= textilizable(thisrationale)%></div>          
+    </p>                                                                                
     <%                                                                                  #
     end # ration                                                                        #
-    %>                                                                                  #
+    %>                                                                                  
     <%                                                                                  #
     if (flags[:verif]) then                                                             #
-    %>                                                                                  #
-    <p><b>Verification</b>:<br/>                                                        #
+    %>                                                                                  
+    <p><b>Verification</b>:<br/>                                                        
     <%                                                                                  #
     end # verif                                                                         #
-    %>                                                                                  #
+    %>                                                                                  
     <%                                                                                  #
     if (flags[:compl]) then                                                             #
-    %>                                                                                  #
-    <p><b>Compliance</b>:<br/>                                                          #
+    %>                                                                                  
+    <p><b>Compliance</b>:<br/>                                                          
     <%                                                                                  #
     end # compl                                                                         #
-    %>                                                                                  #
+    %>                                                                                  
     <%                                                                                  #
     if (flags[:refdoc]) then                                                            #
-    %>                                                                                  #
-    <p><b>RefDocs</b>:<br/>                                                             #
+    %>                                                                                  
+    <p><b>RefDocs</b>:<br/>                                                             
     <%                                                                                  #
     end # refdoc                                                                        #
-    %>                                                                                  #
+    %>                                                                                  
     <%                                                                                  #
     if (flags[:appldoc]) then                                                           #
-    %>                                                                                  #
-    <p><b>ApplDocs</b>:<br/>                                                            #
+    %>                                                                                  
+    <p><b>ApplDocs</b>:<br/>                                                            
     <%                                                                                  #
     end # appldoc                                                                       #
-    %>                                                                                  #
+    %>                                                                                  
     <%                                                                                  #
     # TODO: if it is not a requirement, the assigned could be shown in a chapter        #
     if (flags[:assigned]) then                                                          #
-    %>                                                                                  #
-    <p> Showing the assigned </p>                                                       #
+    %>                                                                                  
+    <p> Showing the assigned </p>                                                       
     <%                                                                                  #
     end # assigned                                                                      #
-    else # not(item.csys.is_chapter?)%>                                                 #
-        <div class="<%= classdiv %>descr"><%= textilizable item, :description %></div>  #
+    else # not(item.csys.is_chapter?)%>                                                 
+    <div class="<%= classdiv %>descr"><%= textilizable item, :description %></div>      
     <%                                                                                  #
     end # not(item.csys.is_chapter?)                                                    #
-    %>                                                                                  #
   #                                                                                     #
   #######################################################################################
+    %>                                                                                  
     <%
     if (item.csys.shall_show_dependences?) then
       imagesrc = "/cosmosys_issues/"+item.id.to_s+"/dep_gv.svg"
