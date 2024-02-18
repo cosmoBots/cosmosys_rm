@@ -376,9 +376,20 @@ class CosmosysController < ApplicationController
         output = `#{command} 2>&1`
 
         # Copy the template as the base for the LibreOffice management
-        command = "cp ./plugins/cosmosys/assets/template/report_template.odt #{uploaded_file.path}.odt"
+        # Check first if there is a custom template to use
+        # TODO: We are using the "public" folder for uploading an alternative document template for the repos
+        # Obviously this is not a good idea, we should find a better way to allow users to change their templates
+        command = "cp ./public/report_template.odt #{uploaded_file.path}.odt"
         puts command
         output = `#{command} 2>&1`
+        success = $?.success?
+        if (!success) then
+          # There were no template document in public folder
+          # copyin the one from the plugin
+          command = "cp ./plugins/cosmosys/assets/template/report_template.odt #{uploaded_file.path}.odt"
+          puts command
+          output = `#{command} 2>&1`
+        end
 
         # Execute LibreOffice command to process the file
         command = "/usr/bin/soffice --invisible --nofirststartwizard --headless --norestore  'macro:///Standard.csys.Headless(\"#{uploaded_file.path}.odt\",\"#{uploaded_file.path}\")'"
