@@ -1,12 +1,41 @@
 <div style="width: 100%; display: flex; justify-content: space-between; flex-wrap: wrap;">
   <div style="flex: 1; flex-shrink: 0;">
 
-    <button onClick="s = new URLSearchParams(window.location.search); s.set('depdiag','<%= flags[:depdiag] ? "false" : "true" %>'); window.location.search = s.toString();">
-      <%= flags[:depdiag] ? "Hide depgraphs" : "Show depgraphs" %>
+    <button onClick="s = new URLSearchParams(window.location.search); s.set('chapnums','<%= flags[:chapnums] ? "false" : "true" %>'); window.location.search = s.toString();">
+      <%= flags[:chapnums] ? "-Chapters" : "+Chapters" %>
     </button>
 
-    <button onClick="s = new URLSearchParams(window.location.search); s.set('chapnums','<%= flags[:chapnums] ? "false" : "true" %>'); window.location.search = s.toString();">
-      <%= flags[:chapnums] ? "Hide chapters" : "Show chapters" %>
+    <button onClick="s = new URLSearchParams(window.location.search); s.set('depdiag','<%= flags[:depdiag] ? "false" : "true" %>'); window.location.search = s.toString();">
+      <%= flags[:depdiag] ? "-DepGraphs" : "+DepGraphs" %>
+    </button>
+
+    <button onClick="s = new URLSearchParams(window.location.search); s.set('status','<%= flags[:status] ? "false" : "true" %>'); window.location.search = s.toString();">
+      <%= flags[:status] ? "-Status" : "+Status" %>
+    </button>
+<!--   TODO: BEGIN ---------------------------------------------------- This has to be moved to cosmosys_req!!! ----------------------------------------------------------- -->
+    <button onClick="s = new URLSearchParams(window.location.search); s.set('ration','<%= flags[:ration] ? "false" : "true" %>'); window.location.search = s.toString();">
+      <%= flags[:ration] ? "-Rationale" : "+Rationale" %>
+    </button>
+
+    <button onClick="s = new URLSearchParams(window.location.search); s.set('verif','<%= flags[:verif] ? "false" : "true" %>'); window.location.search = s.toString();">
+      <%= flags[:verif] ? "-Verif" : "+Verif" %>
+    </button>
+
+    <button onClick="s = new URLSearchParams(window.location.search); s.set('compl','<%= flags[:compl] ? "false" : "true" %>'); window.location.search = s.toString();">
+      <%= flags[:compl] ? "-Compliance" : "+Compliance" %>
+    </button>
+
+    <button onClick="s = new URLSearchParams(window.location.search); s.set('refdoc','<%= flags[:refdoc] ? "false" : "true" %>'); window.location.search = s.toString();">
+      <%= flags[:refdoc] ? "-RefDoc" : "+RefDoc" %>
+    </button>
+
+    <button onClick="s = new URLSearchParams(window.location.search); s.set('appldoc','<%= flags[:appldoc] ? "false" : "true" %>'); window.location.search = s.toString();">
+      <%= flags[:appldoc] ? "-ApplDoc" : "+ApplDoc" %>
+    </button>
+<!--   TODO: END   ---------------------------------------------------- This has to be moved to cosmosys_req!!! ----------------------------------------------------------- -->
+
+    <button onClick="s = new URLSearchParams(window.location.search); s.set('assigned','<%= flags[:assigned] ? "false" : "true" %>'); window.location.search = s.toString();">
+      <%= flags[:assigned] ? "-Assigned" : "+Assigned" %>
     </button>
 
   </div>
@@ -16,7 +45,7 @@
       <select name="format">
         <option value="html">HTML</option>
         <option value="odt" selected>Odt</option>
-        <!--option value="docx" selected>Docx</option-->
+        <option value="docx">Docx</option>
       </select>
     </label>
     <button onClick="<%= "downloadReport('#{@project.name}')" %>">Download</button>

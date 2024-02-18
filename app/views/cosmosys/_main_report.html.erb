@@ -39,7 +39,17 @@
 
     flags = {}
     # Reduce the atom list and store the value in the flags variable:
-    [:depdiag, :chapnums].each {|key| flags[key] = truthy?(params[key], true)}
+    # Txinto 2024-02-18 I've undertood this is the correct way to set the default values for the params
+    [:chapnums].each {|key| flags[key] = truthy?(params[key], true)}
+    [:depdiag, :status, :assigned].each {|key| flags[key] = truthy?(params[key], false)}
+    #####################################################################################################
+    #                                                                                                   #
+    # TODO: This should not be in cosmosys, but in cosmosys_req.                                        #
+    #       We need a callback.                                                                         #
+    #                                                                                                   #
+    [:verif, :ration, :compl, :refdoc, :appldoc].each {|key| flags[key] = truthy?(params[key], false)}  #
+    #                                                                                                   #
+    #####################################################################################################
 
     ###########################################################################
     #                                                                         #
@@ -52,19 +62,109 @@
     cfvar = IssueCustomField.find_by_name("rqVar")                            #
     cfvalue = IssueCustomField.find_by_name("rqValue")                        #
     cfdepgraph = IssueCustomField.find_by_name("depGrahInReports")            #
+    cfratio = IssueCustomField.find_by_name("rqRationale")                    #
     #                                                                         #
     ###########################################################################
+
 %>
 <%
 # This is a recursive lambda that draws the items and their children.
 draw_items = lambda {|item, recursion, current_level|
   chapstr, classdiv = calculate_heading(flags[:chapnums], item)
   title = item.subject
+
+  ###########################################################################
+  #                                                                         #
+  # TODO: This should not be in cosmosys, but in cosmosys_req.              #
+  #       We need a callback.                                               #
+  #                                                                         #
+  if (rqtracker != nil and item.tracker == rqtracker) then                  #
+    thistype = item.custom_values.where(custom_field: cftype).first.value   #
+    thistype = "t:"+thistype if thistype != nil and thistype.size > 0       #
+                                                                            #
+    thislevel = item.custom_values.where(custom_field: cflevel).first.value #
+    thislevel = "l:"+thislevel if thislevel != nil and thislevel.size > 0   #
+                                                                            #
+    thisvar = item.custom_values.where(custom_field: cfvar).first.value     #
+    thisvar = "v:"+thisvar if thisvar != nil and thisvar.size > 0           #
+                                                                            #
+    thisvalue = item.custom_values.where(custom_field: cfvalue).first.value #
+    thisvalue = "c:"+thisvalue if thisvalue != nil and thisvalue.size > 0   #
+                                                                            #
+    thisrationale = item.custom_values.where(custom_field: cfratio).first.value             #
+                                                                            #
+  end unless item.csys.is_chapter?                                          #
+  #                                                                         #
+  ###########################################################################
 %>
 <div class="<%= classdiv %>">
   <<%= if current_level + 1 > 6 then "span"; else "h" + (current_level + 1).to_s end %> class="heading_<%= current_level %>"><%= calculate_complete_title(flags[:chapnums], item, chapstr) %> <%= title %></<%= if current_level + 1 > 6 then "span"; else "h" + (current_level + 1).to_s end %>>
-
-    <div class="<%= classdiv %>descr"><%= textilizable item, :description %></div>
+  #######################################################################################
+  #                                                                                     #
+  # TODO: This should not be in cosmosys, but in cosmosys_req.                          #
+  #       We need a callback.                                                           #
+  #                                                                                     #
+    <%                                                                                  #
+    if not (item.csys.is_chapter?) then                                                 #
+    # TODO: if it is not a requirement, the status could be shown in a chapter          #
+    if (flags[:status]) then                                                            #
+    %>                                                                                  #
+    <p> Showing the status </p>                                                         #
+    <%                                                                                  #
+    end # status                                                                        #
+    %>                                                                                  #
+    <div class="<%= classdiv %>descr"><%= textilizable item, :description %></div>      #
+    <%                                                                                  #
+    if (flags[:ration]) and (thisrationale.length > 0) then                             #
+    %>                                                                                  #
+    <p><b>Rationale</b>:<br/>                                                           #
+    <div class="<%= classdiv %>ration"><%= textilizable(thisrationale)%></div>          #
+    </p>                                                                                #
+    <%                                                                                  #
+    end # ration                                                                        #
+    %>                                                                                  #
+    <%                                                                                  #
+    if (flags[:verif]) then                                                             #
+    %>                                                                                  #
+    <p><b>Verification</b>:<br/>                                                        #
+    <%                                                                                  #
+    end # verif                                                                         #
+    %>                                                                                  #
+    <%                                                                                  #
+    if (flags[:compl]) then                                                             #
+    %>                                                                                  #
+    <p><b>Compliance</b>:<br/>                                                          #
+    <%                                                                                  #
+    end # compl                                                                         #
+    %>                                                                                  #
+    <%                                                                                  #
+    if (flags[:refdoc]) then                                                            #
+    %>                                                                                  #
+    <p><b>RefDocs</b>:<br/>                                                             #
+    <%                                                                                  #
+    end # refdoc                                                                        #
+    %>                                                                                  #
+    <%                                                                                  #
+    if (flags[:appldoc]) then                                                           #
+    %>                                                                                  #
+    <p><b>ApplDocs</b>:<br/>                                                            #
+    <%                                                                                  #
+    end # appldoc                                                                       #
+    %>                                                                                  #
+    <%                                                                                  #
+    # TODO: if it is not a requirement, the assigned could be shown in a chapter        #
+    if (flags[:assigned]) then                                                          #
+    %>                                                                                  #
+    <p> Showing the assigned </p>                                                       #
+    <%                                                                                  #
+    end # assigned                                                                      #
+    else # not(item.csys.is_chapter?)%>                                                 #
+        <div class="<%= classdiv %>descr"><%= textilizable item, :description %></div>  #
+    <%                                                                                  #
+    end # not(item.csys.is_chapter?)                                                    #
+    %>                                                                                  #
+  #                                                                                     #
+  #######################################################################################
     <%
     if (item.csys.shall_show_dependences?) then
       imagesrc = "/cosmosys_issues/"+item.id.to_s+"/dep_gv.svg"
@@ -93,26 +193,6 @@ draw_items = lambda {|item, recursion, current_level|
       end
     end
 
-    ###########################################################################
-    #                                                                         #
-    # TODO: This should not be in cosmosys, but in cosmosys_req.              #
-    #       We need a callback.                                               #
-    #                                                                         #
-    if (rqtracker != nil and item.tracker == rqtracker) then                  #
-      thistype = item.custom_values.where(custom_field: cftype).first.value   #
-      thistype = "t:"+thistype if thistype != nil and thistype.size > 0       #
-                                                                              #
-      thislevel = item.custom_values.where(custom_field: cflevel).first.value #
-      thislevel = "l:"+thislevel if thislevel != nil and thislevel.size > 0   #
-                                                                              #
-      thisvar = item.custom_values.where(custom_field: cfvar).first.value     #
-      thisvar = "v:"+thisvar if thisvar != nil and thisvar.size > 0           #
-                                                                              #
-      thisvalue = item.custom_values.where(custom_field: cfvalue).first.value #
-      thisvalue = "c:"+thisvalue if thisvalue != nil and thisvalue.size > 0   #
-    end unless item.csys.is_chapter?                                          #
-    #                                                                         #
-    ###########################################################################
 %></div><%
   item.children.select{|obj| obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}.each {|subitem| recursion.(subitem, recursion,current_level+1)}
 }
