@@ -2,7 +2,7 @@
   <div style="flex: 1; flex-shrink: 0;">
 
     <button onClick="s = new URLSearchParams(window.location.search); s.set('depdiag','<%= flags[:depdiag] ? "false" : "true" %>'); window.location.search = s.toString();">
-      <%= flags[:depdiag] ? "Hide images" : "Show images" %>
+      <%= flags[:depdiag] ? "Hide depgraphs" : "Show depgraphs" %>
     </button>
 
     <button onClick="s = new URLSearchParams(window.location.search); s.set('chapnums','<%= flags[:chapnums] ? "false" : "true" %>'); window.location.search = s.toString();">
