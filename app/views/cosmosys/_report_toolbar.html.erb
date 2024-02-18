@@ -13,6 +13,14 @@
       <%= flags[:status] ? "-Status" : "+Status" %>
     </button>
 <!--   TODO: BEGIN ---------------------------------------------------- This has to be moved to cosmosys_req!!! ----------------------------------------------------------- -->
+    <button onClick="s = new URLSearchParams(window.location.search); s.set('rqtype','<%= flags[:rqtype] ? "false" : "true" %>'); window.location.search = s.toString();">
+      <%= flags[:rqtype] ? "-RqType" : "+RqType" %>
+    </button>
+
+    <button onClick="s = new URLSearchParams(window.location.search); s.set('rqlevel','<%= flags[:rqlevel] ? "false" : "true" %>'); window.location.search = s.toString();">
+      <%= flags[:rqlevel] ? "-RqLevel" : "+RqLevel" %>
+    </button>
+
     <button onClick="s = new URLSearchParams(window.location.search); s.set('ration','<%= flags[:ration] ? "false" : "true" %>'); window.location.search = s.toString();">
       <%= flags[:ration] ? "-Rationale" : "+Rationale" %>
     </button>

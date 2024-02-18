@@ -47,6 +47,7 @@
     # TODO: This should not be in cosmosys, but in cosmosys_req.                                        #
     #       We need a callback.                                                                         #
     #                                                                                                   #
+    [:rqtype, :rqlevel].each {|key| flags[key] = truthy?(params[key], true)}
     [:verif, :ration, :compl, :refdoc, :appldoc].each {|key| flags[key] = truthy?(params[key], false)}  #
     #                                                                                                   #
     #####################################################################################################
@@ -63,6 +64,7 @@
     cfvalue = IssueCustomField.find_by_name("rqValue")                        #
     cfdepgraph = IssueCustomField.find_by_name("depGrahInReports")            #
     cfratio = IssueCustomField.find_by_name("rqRationale")                    #
+    cfverif = IssueCustomField.find_by_name("rqVerif")                        #
     #                                                                         #
     ###########################################################################
 
@@ -80,16 +82,19 @@ draw_items = lambda {|item, recursion, current_level|
   #                                                                         #
   if (rqtracker != nil and item.tracker == rqtracker) then                  #
     thistype = item.custom_values.where(custom_field: cftype).first.value   #
-    thistype = "t:"+thistype if thistype != nil and thistype.size > 0       #
+    thistype = "<b>t</b>:"+thistype if thistype != nil and thistype.size > 0       #
                                                                             #
     thislevel = item.custom_values.where(custom_field: cflevel).first.value #
-    thislevel = "l:"+thislevel if thislevel != nil and thislevel.size > 0   #
+    thislevel = "<b>l</b>:"+thislevel if thislevel != nil and thislevel.size > 0   #
+                                                                            #
+    thisverif = item.custom_values.where(custom_field: cfverif).first.value #
+    thisverif = "<b>v</b>:"+thisverif if thisverif != nil and thisverif.size > 0   #
                                                                             #
     thisvar = item.custom_values.where(custom_field: cfvar).first.value     #
-    thisvar = "v:"+thisvar if thisvar != nil and thisvar.size > 0           #
+    thisvar = "<b>var</b>:"+thisvar if thisvar != nil and thisvar.size > 0          #
                                                                             #
     thisvalue = item.custom_values.where(custom_field: cfvalue).first.value #
-    thisvalue = "c:"+thisvalue if thisvalue != nil and thisvalue.size > 0   #
+    thisvalue = "<b>val</b>:"+thisvalue if thisvalue != nil and thisvalue.size > 0  #
                                                                             #
     thisrationale = item.custom_values.where(custom_field: cfratio).first.value             #
                                                                             #
@@ -109,9 +114,30 @@ draw_items = lambda {|item, recursion, current_level|
     # TODO: if it is not a requirement, the status could be shown in a chapter          #
     if (flags[:status]) then                                                            #
     %>                                                                                  
-    <p> Showing the status </p>                                                         
+    <b>s</b>:<%= item.status %>                                                         
     <%                                                                                  #
     end # status                                                                        #
+    %>
+    <%                                                                               
+    if (flags[:rqtype]) then                                                            #
+    %>                                                                                  
+    <%= sanitize thistype %>                                                         
+    <%                                                                                  #
+    end # rqtype                                                                        #
+    %>                                                                                  
+    <%                                                                               
+    if (flags[:rqlevel]) then                                                           #
+    %>                                                                                  
+    <%= sanitize thislevel %>                                                        
+    <%                                                                                  #
+    end # rqlevel                                                                       #
+    %>                                                                                  
+    <%                                                                                  #
+    if (flags[:verif]) then                                                             #
+    %>                                                                                  
+    <%= sanitize thisverif %>  
+    <%                                                                                  #
+    end # verif                                                                         #
     %>                                                                                  
     <div class="<%= classdiv %>descr"><%= textilizable item, :description %></div>
     <!-- TODO: BEGIN check if there is a better way to solve https://csys.cosmobots.eu:8443/issues/6613 -->
@@ -130,30 +156,23 @@ draw_items = lambda {|item, recursion, current_level|
     end # ration                                                                        #
     %>                                                                                  
     <%                                                                                  #
-    if (flags[:verif]) then                                                             #
-    %>                                                                                  
-    <p><b>Verification</b>:<br/>                                                        
-    <%                                                                                  #
-    end # verif                                                                         #
-    %>                                                                                  
-    <%                                                                                  #
     if (flags[:compl]) then                                                             #
     %>                                                                                  
-    <p><b>Compliance</b>:<br/>                                                          
+    <p><b>Compliance</b>:<br/></p>                                                          
     <%                                                                                  #
     end # compl                                                                         #
     %>                                                                                  
     <%                                                                                  #
     if (flags[:refdoc]) then                                                            #
     %>                                                                                  
-    <p><b>RefDocs</b>:<br/>                                                             
+    <p><b>RefDocs</b>:<br/></p>                                                             
     <%                                                                                  #
     end # refdoc                                                                        #
     %>                                                                                  
     <%                                                                                  #
     if (flags[:appldoc]) then                                                           #
     %>                                                                                  
-    <p><b>ApplDocs</b>:<br/>                                                            
+    <p><b>ApplDocs</b>:<br/></p>                                                            
     <%                                                                                  #
     end # appldoc                                                                       #
     %>                                                                                  
