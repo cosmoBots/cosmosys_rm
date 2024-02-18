@@ -353,13 +353,15 @@ class CosmosysController < ApplicationController
       # Choose the flavour to execute
       flavour_use_template = true
 
+      expected_output_file_name = "#{File.basename(uploaded_file.path, File.extname(uploaded_file.path))}.#{destination_format}"
+      expected_output_file_path = File.join(temp_dir, expected_output_file_name)
+
       if (flavour_use_template) then
         # Construct the expected output file name and path
-        #expected_output_file_name = "#{File.basename(uploaded_file.path, File.extname(uploaded_file.path))}.#{destination_format}"
-        expected_output_file_name = "#{File.basename(uploaded_file.path, File.extname(uploaded_file.path))}.odt"
-        expected_output_file_path = File.join(temp_dir, expected_output_file_name)
-        puts expected_output_file_name
-        puts expected_output_file_path
+        inner_output_file_name = "#{File.basename(uploaded_file.path, File.extname(uploaded_file.path))}.odt"
+        inner_output_file_path = File.join(temp_dir, inner_output_file_name)
+        puts inner_output_file_name
+        puts inner_output_file_path
         puts temp_dir
 
         # First we copy the macro and the correct configuration to the LibreOffice profile
@@ -384,20 +386,22 @@ class CosmosysController < ApplicationController
         output = `#{command} 2>&1`
 
         # Copy the output file to its expected location
-        command = "cp #{uploaded_file.path}.odt #{expected_output_file_path}"
+        command = "cp #{uploaded_file.path}.odt #{inner_output_file_path}"
         puts command
         output = `#{command} 2>&1`
 
         success = $?.success?
 
-        # Kill soffice
-        command = 'pkill soffice'
-        output = `#{command} 2>&1`
-        puts command
+        if success && destination_format != "odt" then
+          # Execute LibreOffice command to convert the file
+          command = "/usr/bin/soffice --invisible --nofirststartwizard --headless --norestore --convert-to #{destination_format} --outdir #{temp_dir} #{inner_output_file_path}"
+          puts command
+          output = `#{command} 2>&1`
+        end
+
+        success = $?.success?
 
       else
-        expected_output_file_name = "#{File.basename(uploaded_file.path, File.extname(uploaded_file.path))}.#{destination_format}"
-        expected_output_file_path = File.join(temp_dir, expected_output_file_name)
 
         # Execute LibreOffice command to convert the file
         command = "/usr/bin/soffice --invisible --nofirststartwizard --headless --norestore --convert-to #{destination_format} --outdir #{temp_dir} #{uploaded_file.path}"
@@ -406,6 +410,11 @@ class CosmosysController < ApplicationController
 
         success = $?.success?
       end
+
+      # Kill soffice
+      command = 'pkill soffice'
+      output = `#{command} 2>&1`
+      puts command
 
       unless success
         Rails.logger.error "Conversion command failed with output: #{output}"
