@@ -1,28 +1,34 @@
-<% splitted_url = request.fullpath.split('/projects')
-root_url = request.base_url+splitted_url[0]
-dg,hg = @project.csys.calculate_graphs(root_url)
-if (dg != nil) then
-  project_overview_content_dep = @project.csys.show_depgraphs_pr(dg)
-end
-if (hg != nil) then
-  project_overview_content_hie = @project.csys.show_hiegraphs_pr(hg)
-end
+<% 
+# splitted_url = request.fullpath.split('/projects')
+# root_url = request.base_url+splitted_url[0]
+# dg,hg = @project.csys.calculate_graphs(root_url)
+# if (dg != nil) then
+#  project_overview_content_dep = @project.csys.show_depgraphs_pr(dg)
+# end
+# if (hg != nil) then
+#  project_overview_content_hie = @project.csys.show_hiegraphs_pr(hg)
+# end
  %>
 <%= stylesheet_link_tag 'cosmosys', plugin: 'cosmosys' %> 
 <div class="project-content">
-  <button class="tablink" onclick="openIssueTab('Dependences', this, 'steelblue')">Dependences</button>
-  <button class="tablink" onclick="openIssueTab('Hierarchy', this, 'steelblue')" id="defaultOpenTab">Hierarchy</button>
-  <div id="Dependences" class="tabcontent">
-    <%= textilizable(project_overview_content_dep) %>
-    <p style="color: blue;">Links for downloading GraphViz and SVG:</p>
-  <p><%= link_to 'GV', { :controller => 'cosmosys', :action => 'dep_gv', :format => 'gv'}, :method => :get %> 
-<%= link_to 'SVG', { :controller => 'cosmosys', :action => 'dep_gv', :format => 'svg'}, :method => :get %></p>
-  </div>
-  <div id="Hierarchy" class="tabcontent">
-    <%= textilizable(project_overview_content_hie) %>
-    <p style="color: blue;">Links for downloading GraphViz and SVG:</p>
-  <p><%= link_to 'GV', { :controller => 'cosmosys', :action => 'hie_gv', :format => 'gv'}, :method => :get %> 
-<%= link_to 'SVG', { :controller => 'cosmosys', :action => 'hie_gv', :format => 'svg'}, :method => :get %></p>      
-  </div>  
+
+  <!-- button class="tablink" onclick="openIssueTab('Dependences', this, 'steelblue')">Dependences</button -->
+  <!-- button class="tablink" onclick="openIssueTab('Hierarchy', this, 'steelblue')" id="defaultOpenTab">Hierarchy</button -->
+  <!-- div id="Dependences" class="tabcontent" -->
+    <!-- % = textilizable(project_overview_content_dep) % -->
+    <!-- p style="color: blue;">Links for downloading GraphViz and SVG:</p -->
+  <!-- p>< % = link_to 'GV', { :controller => 'cosmosys', :action => 'dep_gv', :format => 'gv'}, :method => :get % -->
+<!-- %= link_to 'SVG', { :controller => 'cosmosys', :action => 'dep_gv', :format => 'svg'}, :method => :get %></p -->
+  <!-- /div -->
+  <!-- div id="Hierarchy" class="tabcontent" -->
+    <!-- % = textilizable(project_overview_content_hie) % -->
+    <!-- p style="color: blue;">Links for downloading GraphViz and SVG:</p -->
+  <!-- p>< % = link_to 'GV', { :controller => 'cosmosys', :action => 'hie_gv', :format => 'gv'}, :method => :get % --> 
+<!-- %= link_to 'SVG', { :controller => 'cosmosys', :action => 'hie_gv', :format => 'svg'}, :method => :get %></p -->
+  <!-- /div -->  
+
+
+<h2>Show diagrams</h2>
+<%= link_to 'Dependences', { :controller => 'cosmosys', :action => 'dep_gv', :format => 'svg'}, :method => :get %>       <%= link_to 'Hierarchy', { :controller => 'cosmosys', :action => 'hie_gv', :format => 'svg'}, :method => :get %>   
 </div>
 <%= javascript_include_tag 'cosmosys', :plugin => 'cosmosys' %>
