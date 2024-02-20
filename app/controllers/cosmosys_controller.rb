@@ -339,6 +339,8 @@ class CosmosysController < ApplicationController
   end
 
   def convert_to
+    project = params[:project]
+    code = params[:code]
     uploaded_file = params[:file]
     destination_format = params[:format]
 
@@ -392,7 +394,7 @@ class CosmosysController < ApplicationController
         end
 
         # Execute LibreOffice command to process the file
-        command = "/usr/bin/soffice --invisible --nofirststartwizard --headless --norestore  'macro:///Standard.csys.Headless(\"#{uploaded_file.path}.odt\",\"#{uploaded_file.path}\")'"
+        command = "/usr/bin/soffice --invisible --nofirststartwizard --headless --norestore  'macro:///Standard.csys.Headless(\"#{uploaded_file.path}.odt\",\"#{uploaded_file.path}\",\"#{project + " requirements"}\",\"#{code}\",\"#{project}\")'"
         puts command
         output = `#{command} 2>&1`
 

@@ -158,7 +158,7 @@ function applyTableStylesToAllTables(containerElement) {
   });
 }
 
-async function offerDownloadFile(title, file_or_blob, extension, callback) {
+async function offerDownloadFile(title, code, file_or_blob, extension, callback) {
   // Create an object URL for the blob or file and create a link element to trigger the download
   let link = document.createElement('a');
   link.href = window.URL.createObjectURL(file_or_blob);
@@ -178,15 +178,15 @@ async function offerDownloadFile(title, file_or_blob, extension, callback) {
   }, 0);
 }
 
-async function downloadFile(title, file, exportFormat, callback) {
+async function downloadFile(title, code, file, exportFormat, callback) {
   if (exportFormat == "html") {
-    offerDownloadFile(title, file, exportFormat, callback);
+    offerDownloadFile(title, code, file, exportFormat, callback);
   } else {
     let formData = new FormData();
     formData.append('file', file);
 
     let xhr = new XMLHttpRequest();
-    xhr.open('POST', '/cosmosys/convert_to/' + exportFormat, true);
+    xhr.open('POST', '/cosmosys/convert_to/' + exportFormat + "/"+ title + "/" + code, true);
 
     // When the request is loaded
     xhr.onload = function () {
@@ -194,7 +194,7 @@ async function downloadFile(title, file, exportFormat, callback) {
         // Convert the response to a Blob
         let blob = new Blob([xhr.response], { type: xhr.getResponseHeader('Content-Type') });
 
-        offerDownloadFile(title, blob, exportFormat, callback);
+        offerDownloadFile(title, code, blob, exportFormat, callback);
       } else {
         // Handle the error
         console.error('Server responded with an error:', xhr.statusText);
@@ -214,7 +214,7 @@ async function downloadFile(title, file, exportFormat, callback) {
   }
 }
 
-async function downloadReport(title) {
+async function downloadReport(title,code) {
   let bakupElement = document.querySelector('.cSysProject').cloneNode(true);
   let projectElement = document.querySelector('.cSysProject')
 
@@ -305,7 +305,7 @@ async function downloadReport(title) {
       let selectElement = document.querySelector('select[name="format"]');
       let exportFormat = selectElement.value;
 
-      downloadFile(title, file, exportFormat, () => {
+      downloadFile(title, code, file, exportFormat, () => {
         projectElement.parentElement.insertBefore(bakupElement, projectElement);
         projectElement.parentNode.removeChild(projectElement);
       });

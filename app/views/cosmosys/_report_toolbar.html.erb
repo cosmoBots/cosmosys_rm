@@ -56,6 +56,6 @@
         <option value="docx">Docx</option>
       </select>
     </label>
-    <button onClick="<%= "downloadReport('#{@project.name}')" %>">Download</button>
+    <button onClick="<%= "downloadReport('#{@project.name}','#{@project.csys.code}')" %>">Download</button>
   </div>
 </div>
