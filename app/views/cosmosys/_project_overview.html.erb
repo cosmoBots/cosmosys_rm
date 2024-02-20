@@ -29,6 +29,6 @@
 
 
 <h2>Show diagrams</h2>
-<%= link_to 'Dependences', { :controller => 'cosmosys', :action => 'dep_gv', :format => 'svg'}, :method => :get %>       <%= link_to 'Hierarchy', { :controller => 'cosmosys', :action => 'hie_gv', :format => 'svg'}, :method => :get %>   
+<%= link_to 'Dependences', { :controller => 'cosmosys', :action => 'dep_gv', :format => 'svg'}, :method => :get, target: :_blank %>       <%= link_to 'Hierarchy', { :controller => 'cosmosys', :action => 'hie_gv', :format => 'svg'}, :method => :get, target: :_blank %>   
 </div>
 <%= javascript_include_tag 'cosmosys', :plugin => 'cosmosys' %>
