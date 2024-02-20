@@ -222,7 +222,20 @@ draw_items = lambda {|item, recursion, current_level|
     end
 
 %></div><%
-  item.children.select{|obj| obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}.each {|subitem| recursion.(subitem, recursion,current_level+1)}
+    excluded_titles = [
+      "Applicable documents",
+      "Reference documents",
+      "Compliance documents",
+      "Compliance matrix"
+    ]
+    if not excluded_titles.include?(item.subject) then 
+      item.children.select{|obj| obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}.each {|subitem|
+        recursion.(subitem, recursion,current_level+1)
+      }
+    else %>
+      <%= render partial: "cosmosys/excluded_titles/" + item.subject.gsub(" ", "_").downcase, locals: { item: item } %>
+    <%
+    end
 }
 %>
 
@@ -245,7 +258,9 @@ draw_items = lambda {|item, recursion, current_level|
     if not excluded_titles.include?(title) then
       roots.each {|i| draw_items.(i, draw_items,1)}
     else
-      render partial: "cosmosys/excluded_titles/" + title.gsub(" ", "_").downcase, locals: { item: item }
+    %>
+      <%= render partial: "cosmosys/excluded_titles/" + title.gsub(" ", "_").downcase, locals: { item: item } %>
+    <%
     end
   %>
 </div>
