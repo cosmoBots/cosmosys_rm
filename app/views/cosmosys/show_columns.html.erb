@@ -144,7 +144,7 @@ end
     roots.each { |i| 
     draw_items.(i, draw_items,1) }
   %>
-  <div style="text-align: right;"><button onClick="<%= "downloadReport('#{@project.name}')" %>">Download</button></div>
+  <div style="text-align: right;"><button onClick="<%= "downloadReport('#{@project.name}','#{@project.csys.code}')" %>">Download</button></div>
 </tbody>
 </table>
 </div>
