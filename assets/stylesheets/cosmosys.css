@@ -194,3 +194,7 @@ h6 {
 figure {
   text-align: right;
 }
+
+p {
+  text-align: justify;
+}
