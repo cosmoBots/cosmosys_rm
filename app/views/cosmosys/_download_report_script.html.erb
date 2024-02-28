@@ -114,17 +114,13 @@ function convertHeadingClassToElement(element) {
   });
 }
 
-function applyImageStyles(imageElement) {
+function applyImageStyles(imageElement, maxWidth, maxHeight) {
   imageElement.setAttribute('style', "");
 
   let naturalWidth = imageElement.naturalWidth;
   let naturalHeight = imageElement.naturalHeight;
   let newHeight = naturalHeight;
   let newWidth = naturalWidth;
-  //let maxWidth = 917;
-  //let maxHeight = 525;
-  let maxWidth = 588;
-  let maxHeight = 1000;
 
   if (newWidth > maxWidth) {
     newWidth = maxWidth;
@@ -216,7 +212,7 @@ async function downloadFile(title, code, file, exportFormat, callback) {
   }
 }
 
-async function downloadReport(title,code) {
+async function downloadReport(title, code, maxWidth, maxHeight) {
   let bakupElement = document.querySelector('.cSysProject').cloneNode(true);
   let projectElement = document.querySelector('.cSysProject')
 
@@ -271,7 +267,7 @@ async function downloadReport(title,code) {
       })
       .then((dataURL) => {
         img.src = dataURL;
-        applyImageStyles(img);
+        applyImageStyles(img, maxWidth, maxHeight);
       });
   });
 

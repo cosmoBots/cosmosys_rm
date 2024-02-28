@@ -1,0 +1,8 @@
+<p>
+  <label><%= "report_format" %></label>
+  <%= select_tag "settings[report_format]", options_for_select(["A4","A3"], @settings['report_format']) %>
+</p>
+<p>
+  <label><%= "report_orientation" %></label>
+  <%= select_tag "settings[report_orientation]", options_for_select(["Portrait","Landscape"], @settings['report_orientation']) %>
+</p>

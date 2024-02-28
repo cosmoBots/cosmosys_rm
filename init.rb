@@ -30,6 +30,8 @@ Redmine::Plugin.register :cosmosys do
   #menu :project_menu, :cosmosys_issues_index, {:controller => 'cosmosys_issues', :action => 'index' }, :caption => 'cSysIssues', :after => :issues, :param => :id
 
   settings :default => {
+    "report_format"=>"A4",
+    "report_orientation"=>"Portrait",
   }, :partial => 'settings/cosmosys_settings'
 
 

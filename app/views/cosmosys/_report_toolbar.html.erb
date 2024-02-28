@@ -51,11 +51,40 @@
   <div style="flex: 1; flex-shrink: 0; text-align: right;">
     <label for="format">Format:
       <select name="format">
-        <option value="html">HTML</option>
-        <option value="odt" selected>Odt</option>
-        <option value="docx">Docx</option>
+        <option value="html">html</option>
+        <option value="odt" >odt</option>
+        <option value="docx" selected>docx</option>
       </select>
     </label>
-    <button onClick="<%= "downloadReport('#{@project.name}','#{@project.csys.code}')" %>">Download</button>
+    <%
+      s = Setting.find_by_name("plugin_cosmosys")
+      report_format = s.value["report_format"]
+      report_orientation = s.value["report_orientation"]
+      if (report_format == "A3") then
+        if (report_orientation == "Landscape") then
+          # TODO: Remove magic numbers from code
+          maxWidth = 917*2
+          maxHeight = 525*2
+        else
+          # By default, portrait
+          # TODO: Remove magic numbers from code
+          maxWidth = 588*2
+          maxHeight = 1000*2
+        end
+      else
+          # By default, A4
+        if (report_orientation == "Landscape") then
+          # TODO: Remove magic numbers from code
+          maxWidth = 917
+          maxHeight = 525
+        else
+          # By default, portrait
+          # TODO: Remove magic numbers from code
+          maxWidth = 588
+          maxHeight = 1000
+        end
+      end
+    %>
+    <button onClick="<%= "downloadReport('#{@project.name}','#{@project.csys.code}',#{maxWidth},#{maxHeight})" %>">Download</button>
   </div>
 </div>
