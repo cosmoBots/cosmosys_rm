@@ -229,8 +229,6 @@ class CosmosysController < ApplicationController
     # Do nothing if the request is not a GET
     return unless request.get?
 
-    print("GET!!!!!") # TODO: Remove this trace
-
     respond_to do |format|
       format.html {
         # calculate
