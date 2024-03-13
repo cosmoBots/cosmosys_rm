@@ -58,33 +58,50 @@
     </label>
     <%
       s = Setting.find_by_name("plugin_cosmosys")
-      report_format = s.value["report_format"]
-      report_orientation = s.value["report_orientation"]
-      if (report_format == "A3") then
-        if (report_orientation == "Landscape") then
-          # TODO: Remove magic numbers from code
-          maxWidth = 917*2
-          maxHeight = 525*2
+      puts("********** HERE **************")
+      if (s != nil) then
+        puts("********** HERE ************1**")
+        report_format = s.value["report_format"]
+        report_orientation = s.value["report_orientation"]
+        if (report_format == "A3") then
+          puts("********** HERE ************2**")
+          if (report_orientation == "Landscape") then
+            # TODO: Remove magic numbers from code
+            maxWidth = 917*2
+            maxHeight = 525*2
+          else
+            # By default, portrait
+            # TODO: Remove magic numbers from code
+            maxWidth = 588*2
+            maxHeight = 1000*2
+          end
         else
-          # By default, portrait
-          # TODO: Remove magic numbers from code
-          maxWidth = 588*2
-          maxHeight = 1000*2
+          puts("********** HERE ************3**")
+
+            # By default, A4
+          if (report_orientation == "Landscape") then
+            # TODO: Remove magic numbers from code
+            maxWidth = 917
+            maxHeight = 525
+            puts("********** HERE ************4**")
+
+          else
+            puts("********** HERE ************5**")
+            # By default, portrait
+            # TODO: Remove magic numbers from code
+            maxWidth = 588
+            maxHeight = 1000
+          end
         end
       else
-          # By default, A4
-        if (report_orientation == "Landscape") then
-          # TODO: Remove magic numbers from code
-          maxWidth = 917
-          maxHeight = 525
-        else
-          # By default, portrait
-          # TODO: Remove magic numbers from code
-          maxWidth = 588
-          maxHeight = 1000
-        end
+        puts("********** HERE ************6**")
+        # By default, portrait
+            # TODO: Remove magic numbers from code
+            maxWidth = 588
+            maxHeight = 1000
       end
-    %>
+      puts("width: "+maxWidth.to_s+" height: "+maxHeight.to_s)
+      %>
     <button onClick="<%= "downloadReport('#{@project.name}','#{@project.csys.code}',#{maxWidth},#{maxHeight})" %>">Download</button>
   </div>
 </div>
