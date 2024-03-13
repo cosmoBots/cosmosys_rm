@@ -102,6 +102,6 @@
       end
       puts("width: "+maxWidth.to_s+" height: "+maxHeight.to_s)
       %>
-    <button onClick="<%= "downloadReport('#{@project.name}','#{@project.csys.code}',#{maxWidth},#{maxHeight})" %>">Download</button>
+    <button onClick="<%= "downloadReport('#{@project.identifier}','#{@project.name}','#{@project.csys.code}',#{maxWidth},#{maxHeight})" %>">Download</button>
   </div>
 </div>

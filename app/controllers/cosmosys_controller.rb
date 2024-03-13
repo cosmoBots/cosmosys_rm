@@ -338,6 +338,7 @@ class CosmosysController < ApplicationController
 
   def convert_to
     project = params[:project]
+    title = params[:title]
     code = params[:code]
     uploaded_file = params[:file]
     destination_format = params[:format]
