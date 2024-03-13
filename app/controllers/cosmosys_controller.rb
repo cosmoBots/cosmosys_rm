@@ -375,18 +375,29 @@ class CosmosysController < ApplicationController
         puts command
         output = `#{command} 2>&1`
 
+        s = Setting.find_by_name("plugin_cosmosys")
+        puts("********** HERE **************")
+        if (s != nil) then
+          puts("********** HERE ************1**")
+          report_format = s.value["report_format"]
+          report_orientation = s.value["report_orientation"]
+        else
+          report_format = "A4"
+          report_orientation = "Landscape"
+        end
+
         # Copy the template as the base for the LibreOffice management
         # Check first if there is a custom template to use
         # TODO: We are using the "public" folder for uploading an alternative document template for the repos
         # Obviously this is not a good idea, we should find a better way to allow users to change their templates
-        command = "cp ./public/report_template.odt #{uploaded_file.path}.odt"
+        command = "cp ./public/csys/template/#{project}/#{report_format}/#{report_orientation}/report_template.odt #{uploaded_file.path}.odt"
         puts command
         output = `#{command} 2>&1`
         success = $?.success?
         if (!success) then
           # There were no template document in public folder
           # copyin the one from the plugin
-          command = "cp ./plugins/cosmosys/assets/template/report_template.odt #{uploaded_file.path}.odt"
+          command = "cp ./plugins/cosmosys/assets/template/#{report_format}/#{report_orientation}/report_template.odt #{uploaded_file.path}.odt"
           puts command
           output = `#{command} 2>&1`
         end
