@@ -6,3 +6,7 @@
   <label><%= "report_orientation" %></label>
   <%= select_tag "settings[report_orientation]", options_for_select(["Portrait","Landscape"], @settings['report_orientation']) %>
 </p>
+<p>
+  <label><%= "repo_redmine_path" %></label>
+  <%= text_field_tag 'settings[metadata_list]', @settings['repo_redmine_path'] %>
+</p>

@@ -65,6 +65,44 @@
     cfdepgraph = IssueCustomField.find_by_name("depGrahInReports")            #
     cfratio = IssueCustomField.find_by_name("rqRationale")                    #
     cfverif = IssueCustomField.find_by_name("rqVerif")                        #
+
+
+    metadata_dict = {}
+    cf = ProjectCustomField.find_by_name("csReportMetadata")
+    if cf != nil then
+      cv = @project.custom_values.find_by(custom_field_id: cf.id)
+      if cv != nil then
+        metadata_json = JSON.parse(cv.value)
+        if (metadata_json != nil) then
+          metadata_json.keys.each { |metadatum_key|
+
+            metadatum_dict = {}
+            # Setting the default visibility and labels
+            metadatum_dict[:default_visibility] = false
+            metadatum_dict[:label_to_display] = metadatum_key
+
+            # Check if there is a descriptor, if parsed probably it will always exist something
+            metadatum_descriptor = metadata_json[metadatum_key]
+            if (metadatum_descriptor == nil) then
+              puts "warning: No metadatum descriptor for " + metadatum_key
+            else
+              # obtaining visibility
+              aux = metadatum_descriptor['visible']
+              if (aux != nil) then
+                metadatum_dict[:default_visibility] = aux
+              end
+              # obtaining label
+              aux = metadatum_descriptor['label']
+              if (aux != nil) then
+                metadatum_dict[:label_to_display] = aux
+              end
+            end
+            metadata_dict[metadatum_key] = metadatum_dict
+          }
+        end
+      end
+    end
+    puts metadata_dict
     #                                                                         #
     ###########################################################################
 
@@ -113,77 +151,78 @@ draw_items = lambda {|item, recursion, current_level|
     if not (item.csys.is_chapter?) then                                                 #
     # TODO: if it is not a requirement, the status could be shown in a chapter          #
     if (flags[:status]) then                                                            #
-    %>                                                                                  
-    <b>s</b>:<%= item.status %>                                                         
+    %>
+    <b>s</b>:<%= item.status %>
     <%                                                                                  #
     end # status                                                                        #
     %>
-    <%                                                                               
+    <%
     if (flags[:rqtype]) then                                                            #
-    %>                                                                                  
-    <%= sanitize thistype %>                                                         
+    %>
+    <%= sanitize thistype %>
     <%                                                                                  #
     end # rqtype                                                                        #
-    %>                                                                                  
-    <%                                                                               
+    %>
+    <%
     if (flags[:rqlevel]) then                                                           #
-    %>                                                                                  
-    <%= sanitize thislevel %>                                                        
+    %>
+    <%= sanitize thislevel %>
     <%                                                                                  #
     end # rqlevel                                                                       #
-    %>                                                                                  
+    %>
     <%                                                                                  #
     if (flags[:verif]) then                                                             #
-    %>                                                                                  
-    <%= sanitize thisverif %>  
+    %>
+    <%= sanitize thisverif %>
     <%                                                                                  #
     end # verif                                                                         #
-    %>                                                                                  
+    %>
     <div class="<%= classdiv %>descr"><%= textilizable item, :description %></div>
     <% #TODO: BEGIN check if there is a better way to solve https://csys.cosmobots.eu:8443/issues/6613 %>
     <br/>
     <% #TODO: END check if there is a better way to solve https://csys.cosmobots.eu:8443/issues/6613 %>
     <%                                                                                  #
     if (flags[:ration]) and (thisrationale.length > 0) then                             #
-    %>                                                                                  
-    <p><b>Rationale</b>:<br/>                                                           
+    %>
+    <p><b>Rationale</b>:<br/>
     <div class="<%= classdiv %>ration"><%= textilizable(thisrationale)%></div>
     <% #TODO: BEGIN check if there is a better way to solve https://csys.cosmobots.eu:8443/issues/6613 %>
     <br/>
     <% #TODO: END check if there is a better way to solve https://csys.cosmobots.eu:8443/issues/6613 %>
-    </p>                                                                                
+    </p>
     <%                                                                                  #
     end # ration                                                                        #
-    %>                                                                                  
+    %>
     <%                                                                                  #
     if (flags[:compl]) then                                                             #
-    %>                                                                                  
-    <p><b>Compliance</b>:<br/></p>                                                          
+    %>
+    <p><b>Compliance</b>:<br/></p>
     <%                                                                                  #
     end # compl                                                                         #
-    %>                                                                                  
+    %>
     <%                                                                                  #
     if (flags[:refdoc]) then                                                            #
-    %>                                                                                  
-    <p><b>RefDocs</b>:<br/></p>                                                             
+    %>
+    <p><b>RefDocs</b>:<br/></p>
     <%                                                                                  #
-    end # refdoc                                                                        #
-    %>                                                                                  
+    end # refdoc                                                                    #
+    %>
     <%                                                                                  #
     if (flags[:appldoc]) then                                                           #
-    %>                                                                                  
-    <p><b>ApplDocs</b>:<br/></p>                                                            
+    %>
+    <p><b>ApplDocs</b>:<br/></p>
     <%                                                                                  #
-    end # appldoc                                                                       #
-    %>                                                                                  
+    end # appldoc
+
+    %>
     <%                                                                                  #
     # TODO: if it is not a requirement, the assigned could be shown in a chapter        #
     if (flags[:assigned]) then                                                          #
-    %>                                                                                  
-    <p> Showing the assigned </p>                                                       
+    %>
+    <p> Showing the assigned </p>
     <%                                                                                  #
     end # assigned                                                                      #
-    else # not(item.csys.is_chapter?)%>                                                 
+    else # not(item.csys.is_chapter?)%>
     <div class="<%= classdiv %>descr"><%= textilizable item, :description %></div>
     <% #TODO: BEGIN check if there is a better way to solve https://csys.cosmobots.eu:8443/issues/6613 %>
     <br/>
@@ -192,7 +231,7 @@ draw_items = lambda {|item, recursion, current_level|
     end # not(item.csys.is_chapter?)                                                    #
   #                                                                                     #
   #######################################################################################
-    %>                                                                                  
+    %>
     <%
     if (item.csys.shall_show_dependences?) then
       imagesrc = "/cosmosys_issues/"+item.id.to_s+"/dep_gv.svg"
@@ -221,14 +260,77 @@ draw_items = lambda {|item, recursion, current_level|
       end
     end
 
-%></div><%
+%>
+<p>
+<table style="width:50%;border-style:none !important;table-layout:auto">
+<%                                                                                  #
+
+
+if (metadata_dict != nil) then
+  metadata_dict.keys.each { |metadatum_key|
+
+    label_to_display = metadata_dict[metadatum_key][:label_to_display]
+    default_visibility = metadata_dict[metadatum_key][:default_visibility]
+
+    # parsing the key to know where to obtain the metadatum
+    done = false
+
+    if !done and metadatum_key == "assigned" then
+      value_to_display = item.assigned_to
+      if (value_to_display != nil) then
+        value_to_display_str = value_to_display.name
+      end
+    end
+
+    if !done and metadatum_key == "status" then
+      value_to_display = item.status
+      if (value_to_display != nil) then
+        value_to_display_str = value_to_display.name
+      end
+    end
+
+    if !done then
+      # Maybe the value is a custom_value
+      # cfi = IssueCustomField.find_by_name(metadatum_key)
+      cvis = item.custom_field_values
+      if (cvis != nil) then
+        value_to_display = cvis.detect { |cvi| cvi.custom_field.name == metadatum_key }
+        if (value_to_display != nil) then
+          if value_to_display.value.kind_of?(Array) then
+            value_to_display_str = value_to_display.value.join(', ')
+          else
+            value_to_display_str = value_to_display.value.to_s
+          end
+
+
+        end
+      else
+        puts "The issue " + item.id + ": " + item.subject + " does not have custom_field_values"
+      end
+    end
+    if value_to_display_str != nil and value_to_display_str != "" then
+    %>
+    <tr>
+    <th style="border-style:none !important;width:1px;white-space:nowrap"><%= label_to_display%></th>
+    <td style="width:auto;border-style:none !important"><%= textilizable(value_to_display_str)%></td>
+    </tr>
+    <%
+    end
+  }
+end
+
+#
+%>
+</table></p>
+
+</div><%
     excluded_titles = [
       "Applicable documents",
       "Reference documents",
       "Compliance documents",
       "Compliance matrix"
     ]
-    if not excluded_titles.include?(item.subject) then 
+    if not excluded_titles.include?(item.subject) then
       item.children.select{|obj| obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}.each {|subitem|
         recursion.(subitem, recursion,current_level+1)
       }
