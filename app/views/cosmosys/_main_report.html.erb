@@ -72,9 +72,14 @@
     if cf != nil then
       cv = @project.custom_values.find_by(custom_field_id: cf.id)
       if cv != nil then
-        metadata_json = JSON.parse(cv.value)
-        if (metadata_json != nil) then
-          metadata_json.keys.each { |metadatum_key|
+        puts cv.value
+        begin
+          metadata_yaml = YAML.load(cv.value)
+        rescue Exception
+          puts "Error: could not validate the YAML metadata descriptor, continuing without it"
+        end
+        if (metadata_yaml != nil) then
+          metadata_yaml.keys.each { |metadatum_key|
 
             metadatum_dict = {}
             # Setting the default visibility and labels
@@ -82,7 +87,7 @@
             metadatum_dict[:label_to_display] = metadatum_key
 
             # Check if there is a descriptor, if parsed probably it will always exist something
-            metadatum_descriptor = metadata_json[metadatum_key]
+            metadatum_descriptor = metadata_yaml[metadatum_key]
             if (metadatum_descriptor == nil) then
               puts "warning: No metadatum descriptor for " + metadatum_key
             else
