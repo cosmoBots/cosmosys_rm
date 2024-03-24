@@ -72,7 +72,6 @@
     if cf != nil then
       cv = @project.custom_values.find_by(custom_field_id: cf.id)
       if cv != nil then
-        puts cv.value
         begin
           metadata_yaml = YAML.load(cv.value)
         rescue Exception
@@ -107,7 +106,6 @@
         end
       end
     end
-    puts metadata_dict
     #                                                                         #
     ###########################################################################
 

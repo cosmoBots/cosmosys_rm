@@ -83,15 +83,11 @@ module ProjectPatch
       if cf != nil then
         cv = self.custom_field_values.select{|a| a.custom_field_id == cf.id }.first
         if cv != nil then
-          puts "validaremos " + cv.value
           begin
             metadata_yaml = YAML.load(cv.value)
           rescue Exception
-            puts "ERRORORRRRORRRRQ!!!"
             errors.add(:csReportMetadata,"Invalid YAML description")
           end
-          puts "mostramos lo parseado:"
-          puts metadata_yaml.to_yaml
         end
       end
     end
