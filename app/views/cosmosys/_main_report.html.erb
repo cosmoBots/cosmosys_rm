@@ -283,6 +283,53 @@ if (metadata_dict != nil) then
       end
     end
 
+    if !done and metadatum_key == "version" then
+      value_to_display = item.fixed_version
+      if (value_to_display != nil) then
+        value_to_display_str = value_to_display.name
+      end
+    end
+
+
+    if !done and metadatum_key == "priority" then
+      value_to_display = item.priority
+      if (value_to_display != nil) then
+        value_to_display_str = value_to_display.name
+      end
+    end
+
+
+    if !done and metadatum_key == "start_date" then
+      value_to_display = item.start_date
+      if (value_to_display != nil) then
+        value_to_display_str = value_to_display.to_s
+      end
+    end
+
+
+    if !done and metadatum_key == "due_date" then
+      value_to_display = item.due_date
+      if (value_to_display != nil) then
+        value_to_display_str = value_to_display.to_s
+      end
+    end
+
+        
+    if !done and metadatum_key == "done_ratio" then
+      value_to_display = item.done_ratio
+      if (value_to_display != nil) then
+        value_to_display_str = value_to_display.to_s
+      end
+    end
+
+        
+    if !done and metadatum_key == "estimated_hours" then
+      value_to_display = item.estimated_hours
+      if (value_to_display != nil) then
+        value_to_display_str = value_to_display.to_s
+      end
+    end    
+
     if !done then
       # Maybe the value is a custom_value
       # cfi = IssueCustomField.find_by_name(metadatum_key)
