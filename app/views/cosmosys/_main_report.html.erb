@@ -47,13 +47,13 @@
         if prevchar == "\n" then
           #ret += "ł"
           if not nuevalinea then
-            if c == "\r" or c == "-" or c == "|" or c.to_i.to_s == c then
+            if c == "\r" or c == "\n" or c == "-" or c == "|" or c.to_i.to_s == c then
               nuevalinea = true
             else
               ret += "\r\n"
             end
           else
-            if c != "\r" then
+            if c != "\r" and c != "\n" then
               nuevalinea = false
             end
           end
