@@ -35,6 +35,36 @@
       end
     end
 
+    def process_text(txt)
+      descr = txt.split('')
+      ret = ""
+      prevchar = nil
+      nuevalinea = false
+      descr.each{ |c|
+        if prevchar == "\r" then
+          #ret += "€"
+        end
+        if prevchar == "\n" then
+          #ret += "ł"
+          if not nuevalinea then
+            if c == "\r" or c == "-" or c == "|" or c.to_i.to_s == c then
+              nuevalinea = true
+            else
+              ret += "\r\n"
+            end
+          else
+            if c != "\r" then
+              nuevalinea = false
+            end
+          end
+        end
+        ret += c
+        prevchar = c
+      }
+      return ret
+    end
+
+
     # Flag handling ###########################################################
 
     flags = {}
@@ -110,7 +140,7 @@
     ###########################################################################
 
 %>
-<%
+<% 
 # This is a recursive lambda that draws the items and their children.
 draw_items = lambda {|item, recursion, current_level|
   chapstr, classdiv = calculate_heading(flags[:chapnums], item)
@@ -121,26 +151,12 @@ draw_items = lambda {|item, recursion, current_level|
   # TODO: This should not be in cosmosys, but in cosmosys_req.              #
   #       We need a callback.                                               #
   #                                                                         #
-  if (rqtracker != nil and item.tracker == rqtracker) then                  #
-    thistype = item.custom_values.where(custom_field: cftype).first.value   #
-    thistype = "<b>t</b>:"+thistype if thistype != nil and thistype.size > 0       #
-                                                                            #
-    thislevel = item.custom_values.where(custom_field: cflevel).first.value #
-    thislevel = "<b>l</b>:"+thislevel if thislevel != nil and thislevel.size > 0   #
-                                                                            #
-    thisverif = item.custom_values.where(custom_field: cfverif).first.value #
-    thisverif = "<b>v</b>:"+thisverif if thisverif != nil and thisverif.size > 0   #
-                                                                            #
-    thisvar = item.custom_values.where(custom_field: cfvar).first.value     #
-    thisvar = "<b>var</b>:"+thisvar if thisvar != nil and thisvar.size > 0          #
-                                                                            #
-    thisvalue = item.custom_values.where(custom_field: cfvalue).first.value #
-    thisvalue = "<b>val</b>:"+thisvalue if thisvalue != nil and thisvalue.size > 0  #
-                                                                            #
-    thisrationale = item.custom_values.where(custom_field: cfratio).first.value             #
-                                                                            #
-  end unless item.csys.is_chapter?                                          #
-  #                                                                         #
+
+  if (rqtracker != nil and item.tracker == rqtracker) then                  
+    thisrationale = process_text(item.custom_values.where(custom_field: cfratio).first.value)
+
+  end unless item.csys.is_chapter?
+    #                                                                         #
   ###########################################################################
 %>
 <div class="<%= classdiv %>">
@@ -151,36 +167,11 @@ draw_items = lambda {|item, recursion, current_level|
   # TODO: This should not be in cosmosys, but in cosmosys_req.                          #
   #       We need a callback.                                                           #
   #                                                                                     #
-    if not (item.csys.is_chapter?) then                                                 #
-    # TODO: if it is not a requirement, the status could be shown in a chapter          #
-    if (flags[:status]) then                                                            #
+    if not (item.csys.is_chapter?) then
+      thisdescription = process_text(item.description)
+
     %>
-    <b>s</b>:<%= item.status %>
-    <%                                                                                  #
-    end # status                                                                        #
-    %>
-    <%
-    if (flags[:rqtype]) then                                                            #
-    %>
-    <%= sanitize thistype %>
-    <%                                                                                  #
-    end # rqtype                                                                        #
-    %>
-    <%
-    if (flags[:rqlevel]) then                                                           #
-    %>
-    <%= sanitize thislevel %>
-    <%                                                                                  #
-    end # rqlevel                                                                       #
-    %>
-    <%                                                                                  #
-    if (flags[:verif]) then                                                             #
-    %>
-    <%= sanitize thisverif %>
-    <%                                                                                  #
-    end # verif                                                                         #
-    %>
-    <div class="<%= classdiv %>descr"><%= textilizable item, :description %></div>
+    <div class="<%= classdiv %>descr"><%= textilizable(thisdescription) %></div>
     <% #TODO: BEGIN check if there is a better way to solve https://csys.cosmobots.eu:8443/issues/6613 %>
     <br/>
     <% #TODO: END check if there is a better way to solve https://csys.cosmobots.eu:8443/issues/6613 %>
@@ -315,7 +306,7 @@ if (metadata_dict != nil) then
     %>
     <tr>
     <th style="border-style:none !important;width:1px;white-space:nowrap"><%= label_to_display%></th>
-    <td style="width:auto;border-style:none !important"><%= textilizable(value_to_display_str)%></td>
+    <td style="width:auto;border-style:none !important"><%= textilizable(process_text(value_to_display_str))%></td>
     </tr>
     <%
     end
