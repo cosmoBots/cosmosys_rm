@@ -266,96 +266,100 @@ if (metadata_dict != nil) then
     label_to_display = metadata_dict[metadatum_key][:label_to_display]
     default_visibility = metadata_dict[metadatum_key][:default_visibility]
 
-    # parsing the key to know where to obtain the metadatum
-    done = false
 
-    if !done and metadatum_key == "assigned" then
-      value_to_display = item.assigned_to
-      if (value_to_display != nil) then
-        value_to_display_str = value_to_display.name
-      end
-    end
+    if default_visibility then
 
-    if !done and metadatum_key == "status" then
-      value_to_display = item.status
-      if (value_to_display != nil) then
-        value_to_display_str = value_to_display.name
-      end
-    end
+      # parsing the key to know where to obtain the metadatum
+      done = false
 
-    if !done and metadatum_key == "version" then
-      value_to_display = item.fixed_version
-      if (value_to_display != nil) then
-        value_to_display_str = value_to_display.name
-      end
-    end
-
-
-    if !done and metadatum_key == "priority" then
-      value_to_display = item.priority
-      if (value_to_display != nil) then
-        value_to_display_str = value_to_display.name
-      end
-    end
-
-
-    if !done and metadatum_key == "start_date" then
-      value_to_display = item.start_date
-      if (value_to_display != nil) then
-        value_to_display_str = value_to_display.to_s
-      end
-    end
-
-
-    if !done and metadatum_key == "due_date" then
-      value_to_display = item.due_date
-      if (value_to_display != nil) then
-        value_to_display_str = value_to_display.to_s
-      end
-    end
-
-        
-    if !done and metadatum_key == "done_ratio" then
-      value_to_display = item.done_ratio
-      if (value_to_display != nil) then
-        value_to_display_str = value_to_display.to_s
-      end
-    end
-
-        
-    if !done and metadatum_key == "estimated_hours" then
-      value_to_display = item.estimated_hours
-      if (value_to_display != nil) then
-        value_to_display_str = value_to_display.to_s
-      end
-    end    
-
-    if !done then
-      # Maybe the value is a custom_value
-      # cfi = IssueCustomField.find_by_name(metadatum_key)
-      cvis = item.custom_field_values
-      if (cvis != nil) then
-        value_to_display = cvis.detect { |cvi| cvi.custom_field.name == metadatum_key }
+      if !done and metadatum_key == "assigned" then
+        value_to_display = item.assigned_to
         if (value_to_display != nil) then
-          if value_to_display.value.kind_of?(Array) then
-            value_to_display_str = value_to_display.value.join(', ')
-          else
-            value_to_display_str = value_to_display.value.to_s
-          end
-
-
+          value_to_display_str = value_to_display.name
         end
-      else
-        puts "The issue " + item.id + ": " + item.subject + " does not have custom_field_values"
       end
-    end
-    if value_to_display_str != nil and value_to_display_str != "" then
-    %>
-    <tr>
-    <th style="border-style:none !important;width:1px;white-space:nowrap"><%= label_to_display%></th>
-    <td style="width:auto;border-style:none !important"><%= textilizable(process_text(value_to_display_str))%></td>
-    </tr>
-    <%
+
+      if !done and metadatum_key == "status" then
+        value_to_display = item.status
+        if (value_to_display != nil) then
+          value_to_display_str = value_to_display.name
+        end
+      end
+
+      if !done and metadatum_key == "version" then
+        value_to_display = item.fixed_version
+        if (value_to_display != nil) then
+          value_to_display_str = value_to_display.name
+        end
+      end
+
+
+      if !done and metadatum_key == "priority" then
+        value_to_display = item.priority
+        if (value_to_display != nil) then
+          value_to_display_str = value_to_display.name
+        end
+      end
+
+
+      if !done and metadatum_key == "start_date" then
+        value_to_display = item.start_date
+        if (value_to_display != nil) then
+          value_to_display_str = value_to_display.to_s
+        end
+      end
+
+
+      if !done and metadatum_key == "due_date" then
+        value_to_display = item.due_date
+        if (value_to_display != nil) then
+          value_to_display_str = value_to_display.to_s
+        end
+      end
+
+          
+      if !done and metadatum_key == "done_ratio" && item.tracker.core_fields.include?("done_ratio")  then
+        value_to_display = item.done_ratio
+        if (value_to_display != nil) then
+          value_to_display_str = value_to_display.to_s
+        end
+      end
+
+          
+      if !done and metadatum_key == "estimated_hours" then
+        value_to_display = item.estimated_hours
+        if (value_to_display != nil) then
+          value_to_display_str = value_to_display.to_s
+        end
+      end    
+
+      if !done then
+        # Maybe the value is a custom_value
+        # cfi = IssueCustomField.find_by_name(metadatum_key)
+        cvis = item.custom_field_values
+        if (cvis != nil) then
+          value_to_display = cvis.detect { |cvi| cvi.custom_field.name == metadatum_key }
+          if (value_to_display != nil) then
+            if value_to_display.value.kind_of?(Array) then
+              value_to_display_str = value_to_display.value.join(', ')
+            else
+              value_to_display_str = value_to_display.value.to_s
+            end
+
+
+          end
+        else
+          puts "The issue " + item.id + ": " + item.subject + " does not have custom_field_values"
+        end
+      end
+      if value_to_display_str != nil and value_to_display_str != "" then
+      %>
+      <tr>
+      <th style="border-style:none !important;width:1px;white-space:nowrap"><%= label_to_display%></th>
+      <td style="width:auto;border-style:none !important"><%= textilizable(process_text(value_to_display_str))%></td>
+      </tr>
+      <%
+      end
     end
   }
 end
