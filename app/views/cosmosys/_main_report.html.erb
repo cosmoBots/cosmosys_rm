@@ -217,7 +217,7 @@ draw_items = lambda {|item, recursion, current_level|
     <%                                                                                  #
     end # assigned                                                                      #
     else # not(item.csys.is_chapter?)%>
-    <div class="<%= classdiv %>descr"><%= textilizable item, :description %></div>
+    <div class="<%= classdiv %>descr"><%= textilizable(process_text(item.description)) %></div>
     <% #TODO: BEGIN check if there is a better way to solve https://csys.cosmobots.eu:8443/issues/6613 %>
     <br/>
     <% #TODO: END check if there is a better way to solve https://csys.cosmobots.eu:8443/issues/6613 %>
