@@ -90,7 +90,8 @@ class CosmosysIssue < ActiveRecord::Base
   end
 
   def is_chapter?
-    self.issue.children.size > 0
+    tn = self.issue.tracker.name
+    self.issue.children.size > 0 || tn == "csInfo" || tn == "csRefDoc"
   end
 
   def shall_show_dependences?
@@ -98,7 +99,8 @@ class CosmosysIssue < ActiveRecord::Base
   end
 
   def shall_show_id
-    true
+    tn = self.issue.tracker.name
+    return (tn != "csInfo" && tn != "csRefDoc")
   end
 
   ################## TreeView support #######################
