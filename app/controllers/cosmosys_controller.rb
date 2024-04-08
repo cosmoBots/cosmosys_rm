@@ -156,6 +156,9 @@ class CosmosysController < ApplicationController
     cftitlevalue = current_issue.subject
     cfchapterstring = current_issue.chapter_str
     childrentypevector = CosmosysIssue.get_childrentype(current_issue,current_issue.tracker)
+    if current_issue.tracker.name != "rq" then
+      childrentypevector += ["rqInfo","rqComplex","rqOpt","rqMech","rqHw","rqSw"] if childrentypevector.include?("rq")
+    end
     currentnodetype = CosmosysIssue.get_nodetype(current_issue,current_issue.tracker)
 
     infobox = [

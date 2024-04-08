@@ -36,32 +36,36 @@
     end
 
     def process_text(txt)
-      descr = txt.split('')
-      ret = ""
-      prevchar = nil
-      nuevalinea = false
-      descr.each{ |c|
-        if prevchar == "\r" then
-          #ret += "€"
-        end
-        if prevchar == "\n" then
-          #ret += "ł"
-          if not nuevalinea then
-            if c == "\r" or c == "\n" or c == "-" or c == "|" or c.to_i.to_s == c then
-              nuevalinea = true
+      if txt != nil then
+        descr = txt.split('')
+        ret = ""
+        prevchar = nil
+        nuevalinea = false
+        descr.each{ |c|
+          if prevchar == "\r" then
+            #ret += "€"
+          end
+          if prevchar == "\n" then
+            #ret += "ł"
+            if not nuevalinea then
+              if c == "\r" or c == "\n" or c == "-" or c == "|" or c.to_i.to_s == c then
+                nuevalinea = true
+              else
+                ret += "\r\n"
+              end
             else
-              ret += "\r\n"
-            end
-          else
-            if c != "\r" and c != "\n" then
-              nuevalinea = false
+              if c != "\r" and c != "\n" then
+                nuevalinea = false
+              end
             end
           end
-        end
-        ret += c
-        prevchar = c
-      }
-      return ret
+          ret += c
+          prevchar = c
+        }
+        return ret
+      else
+        return ""
+      end
     end
 
 
