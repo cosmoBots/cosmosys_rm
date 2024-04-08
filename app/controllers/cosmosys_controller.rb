@@ -343,6 +343,8 @@ class CosmosysController < ApplicationController
     uploaded_file = params[:file]
     destination_format = params[:format]
 
+    p = Project.find(project)
+
     if uploaded_file.blank? || destination_format.blank?
       render json: { error: 'Missing file or format' }, status: :bad_request
       return
@@ -404,7 +406,12 @@ class CosmosysController < ApplicationController
         end
 
         # Execute LibreOffice command to process the file
-        command = "/usr/bin/soffice --invisible --nofirststartwizard --headless --norestore  'macro:///Standard.csys.Headless(\"#{uploaded_file.path}.odt\",\"#{uploaded_file.path}\",\"#{project + " requirements"}\",\"#{code}\",\"#{project}\")'"
+        if p != nil then
+          command = "/usr/bin/soffice --invisible --nofirststartwizard --headless --norestore  'macro:///Standard.csys.Headless(\"#{uploaded_file.path}.odt\",\"#{uploaded_file.path}\",\"#{p.name + " requirements"}\",\"#{code}\",\"#{p.name}\")'"
+        else
+          command = "/usr/bin/soffice --invisible --nofirststartwizard --headless --norestore  'macro:///Standard.csys.Headless(\"#{uploaded_file.path}.odt\",\"#{uploaded_file.path}\",\"#{project + " requirements"}\",\"#{code}\",\"#{project}\")'"
+        end
+
         puts command
         output = `#{command} 2>&1`
 
