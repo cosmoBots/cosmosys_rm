@@ -301,7 +301,7 @@ class CosmosysIssue < ActiveRecord::Base
     if (baseproj != self.issue.project) then
       prependstr = "+"
     end
-    self.class.word_wrap(prependstr+self.issue.subject, line_width: 12)
+    self.class.word_wrap(prependstr + self.chapter_str + self.issue.subject, line_width: 12)
   end
 
   def inner_get_label_issue(baseproj,boundary_node=false)
