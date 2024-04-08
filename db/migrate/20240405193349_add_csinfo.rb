@@ -12,7 +12,7 @@ class AddCsinfo < ActiveRecord::Migration[5.2]
     t.description = "Entries to add complementary information to the database, and to serve as a chapter"
     t.is_in_chlog = false
     t.is_in_roadmap = false
-    t.fields_bits = 255
+    t.fields_bits = 247
     t.default_status = st
     cfs = []
 		cf = IssueCustomField.find_by_name("csOldCode")

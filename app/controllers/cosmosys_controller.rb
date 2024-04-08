@@ -181,7 +181,7 @@ class CosmosysController < ApplicationController
       titlestring = cfchapterstring + " : " + cftitlevalue
     else
       # TODO: CHANGE THESE PATCHES BY A CALLBACK OR SOME PROPERTY, SO COSMOSYS DOES NOT KNOW ANYTHING ABOUT CSYSREQ
-      if currentnodetype == "rqInfo" then
+      if currentnodetype == "rqInfo" or current_issue.tracker.name == "csInfo" then
         titlestring = cfchapterstring + " " + cftitlevalue
       else
         titlestring = cfchapterstring + " " + current_issue.csys.get_identifier  + ": " + cftitlevalue
