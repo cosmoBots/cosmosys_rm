@@ -140,7 +140,7 @@
     ###########################################################################
 
 %>
-<% 
+<%
 # This is a recursive lambda that draws the items and their children.
 draw_items = lambda {|item, recursion, current_level|
   chapstr, classdiv = calculate_heading(flags[:chapnums], item)
@@ -152,7 +152,7 @@ draw_items = lambda {|item, recursion, current_level|
   #       We need a callback.                                               #
   #                                                                         #
 
-  if (rqtracker != nil and item.tracker == rqtracker) then                  
+  if (rqtracker != nil and item.tracker == rqtracker) then
     thisrationale = process_text(item.custom_values.where(custom_field: cfratio).first.value)
 
   end unless item.csys.is_chapter?
@@ -168,10 +168,8 @@ draw_items = lambda {|item, recursion, current_level|
   #       We need a callback.                                                           #
   #                                                                                     #
     if not (item.csys.is_chapter?) then
-      thisdescription = process_text(item.description)
-
     %>
-    <div class="<%= classdiv %>descr"><%= textilizable(thisdescription) %></div>
+    <div class="<%= classdiv %>descr"><%= textilizable(process_text(item.description),{:object => item}) %></div>
     <% #TODO: BEGIN check if there is a better way to solve https://csys.cosmobots.eu:8443/issues/6613 %>
     <br/>
     <% #TODO: END check if there is a better way to solve https://csys.cosmobots.eu:8443/issues/6613 %>
@@ -217,7 +215,7 @@ draw_items = lambda {|item, recursion, current_level|
     <%                                                                                  #
     end # assigned                                                                      #
     else # not(item.csys.is_chapter?)%>
-    <div class="<%= classdiv %>descr"><%= textilizable(process_text(item.description)) %></div>
+    <div class="<%= classdiv %>descr"><%= textilizable(process_text(item.description),{:object => item}) %></div>
     <% #TODO: BEGIN check if there is a better way to solve https://csys.cosmobots.eu:8443/issues/6613 %>
     <br/>
     <% #TODO: END check if there is a better way to solve https://csys.cosmobots.eu:8443/issues/6613 %>
@@ -317,7 +315,7 @@ if (metadata_dict != nil) then
         end
       end
 
-          
+
       if !done and metadatum_key == "done_ratio" && item.tracker.core_fields.include?("done_ratio")  then
         value_to_display = item.done_ratio
         if (value_to_display != nil) then
@@ -325,13 +323,13 @@ if (metadata_dict != nil) then
         end
       end
 
-          
+
       if !done and metadatum_key == "estimated_hours" then
         value_to_display = item.estimated_hours
         if (value_to_display != nil) then
           value_to_display_str = value_to_display.to_s
         end
-      end    
+      end
 
       if !done then
         # Maybe the value is a custom_value
