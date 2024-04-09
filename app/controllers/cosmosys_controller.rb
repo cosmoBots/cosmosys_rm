@@ -156,6 +156,9 @@ class CosmosysController < ApplicationController
     cftitlevalue = current_issue.subject
     cfchapterstring = current_issue.chapter_str
     childrentypevector = CosmosysIssue.get_childrentype(current_issue,current_issue.tracker)
+    if current_issue.tracker.name != "rq" then
+      childrentypevector += ["rqInfo","rqComplex","rqOpt","rqMech","rqHw","rqSw"] if childrentypevector.include?("rq")
+    end
     currentnodetype = CosmosysIssue.get_nodetype(current_issue,current_issue.tracker)
 
     infobox = [
@@ -181,7 +184,7 @@ class CosmosysController < ApplicationController
       titlestring = cfchapterstring + " : " + cftitlevalue
     else
       # TODO: CHANGE THESE PATCHES BY A CALLBACK OR SOME PROPERTY, SO COSMOSYS DOES NOT KNOW ANYTHING ABOUT CSYSREQ
-      if currentnodetype == "rqInfo" then
+      if currentnodetype == "rqInfo" or current_issue.tracker.name == "csInfo" then
         titlestring = cfchapterstring + " " + cftitlevalue
       else
         titlestring = cfchapterstring + " " + current_issue.csys.get_identifier  + ": " + cftitlevalue
@@ -343,6 +346,8 @@ class CosmosysController < ApplicationController
     uploaded_file = params[:file]
     destination_format = params[:format]
 
+    p = Project.find(project)
+
     if uploaded_file.blank? || destination_format.blank?
       render json: { error: 'Missing file or format' }, status: :bad_request
       return
@@ -404,7 +409,12 @@ class CosmosysController < ApplicationController
         end
 
         # Execute LibreOffice command to process the file
-        command = "/usr/bin/soffice --invisible --nofirststartwizard --headless --norestore  'macro:///Standard.csys.Headless(\"#{uploaded_file.path}.odt\",\"#{uploaded_file.path}\",\"#{project + " requirements"}\",\"#{code}\",\"#{project}\")'"
+        if p != nil then
+          command = "/usr/bin/soffice --invisible --nofirststartwizard --headless --norestore  'macro:///Standard.csys.Headless(\"#{uploaded_file.path}.odt\",\"#{uploaded_file.path}\",\"#{p.name + " requirements"}\",\"#{code}\",\"#{p.name}\")'"
+        else
+          command = "/usr/bin/soffice --invisible --nofirststartwizard --headless --norestore  'macro:///Standard.csys.Headless(\"#{uploaded_file.path}.odt\",\"#{uploaded_file.path}\",\"#{project + " requirements"}\",\"#{code}\",\"#{project}\")'"
+        end
+
         puts command
         output = `#{command} 2>&1`
 

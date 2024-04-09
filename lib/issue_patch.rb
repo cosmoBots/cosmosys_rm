@@ -7,10 +7,10 @@ module IssuePatch
 
     base.send(:include, InstanceMethods)
 
-    # Same as typing in the class 
+    # Same as typing in the class
     base.class_eval do
       unloadable # Send unloadable so it will not be unloaded in development
-      
+
       has_one :cosmosys_issue
       after_save :csys_save_post_process
       before_save :csys_save_pre_process
@@ -18,10 +18,10 @@ module IssuePatch
     end
 
   end
-  
+
   module ClassMethods
   end
-  
+
   module InstanceMethods
     def reenumerate_children(updatecf = false)
       # chs = self.children.where.not(cosmosys_issue_id: nil)
@@ -40,7 +40,7 @@ module IssuePatch
           if (updatecf) then
             puts("-----------")
             ch.update_cschapter
-          end     
+          end
           ch.save
         end
         # puts("+++++++++")
@@ -48,7 +48,7 @@ module IssuePatch
       }
       return i
     end
-    
+
     def reenumerate_group(updatecf = false)
       if (self.parent) then
         next_chapter = self.parent.reenumerate_children(updatecf)
@@ -57,7 +57,7 @@ module IssuePatch
       end
       return next_chapter
     end
-    
+
     def csys
       if self.cosmosys_issue == nil then
                 if (self.id != nil) then
@@ -65,10 +65,10 @@ module IssuePatch
         end
         chapter = self.reenumerate_group
         CosmosysIssue.create!(issue:self,chapter_order:chapter)
-      end      
+      end
       self.cosmosys_issue
     end
-    
+
     def chapter_order
       self.csys.chapter_order
     end
@@ -86,7 +86,7 @@ module IssuePatch
 
       is_changed = false
       if (self.tracker != dest.tracker) then
-        if not dest.project.include?(self.tracker) then
+        if not dest.project.trackers.include?(self.tracker) then
           dest.project.trackers << self.tracker;
           notes += "* Adding tracker "+self.tracker.to_s+" to project project#"+dest.project.id.to_s+"\n"
         end
@@ -103,7 +103,7 @@ module IssuePatch
             mb.roles << r
             mb.user = self.assigned_to
             notes += "* Adding membership for user#"+self.assigned_to.id.to_s+" with role '"+r.to_s+"' to project project#"+dest.project.id.to_s+"\n"
-            mb.save            
+            mb.save
           end
         end
         is_changed = true
@@ -144,7 +144,7 @@ module IssuePatch
               if (cfv.value != dcfv.value) then
                 is_changed = true
                 notes += "* Updating custom field '"+cf.name+"' from '"+ dcfv.value.to_s+"' to '"+cfv.value.to_s+"'\n"
-                dcfv.value = cfv.value     
+                dcfv.value = cfv.value
               end
               break
             end
@@ -218,9 +218,8 @@ module IssuePatch
       end
     end
 
-  end    
+  end
 
 end
 # Add module to Issue
 Issue.send(:include, IssuePatch)
-
