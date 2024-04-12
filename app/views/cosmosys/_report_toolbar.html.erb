@@ -15,11 +15,11 @@
     # We are only interested in keys from the metadata_dict that contains a
     # hash with the key "visible" and whose value is a boolean
     metadata_dict = metadata_dict.transform_keys(&:downcase)
-    button_keys = metadata_dict.select {|k, v| v.is_a?(Hash) &&
+    option_keys = metadata_dict.select {|k, v| v.is_a?(Hash) &&
                                         (v["visible"].is_a?(TrueClass) ||
                                          v["visible"].is_a?(FalseClass))}.keys
 
-    button_keys = ["chapnums", "depdiag", "refdoc", "appldoc"] + button_keys
+    option_keys = ["chapnums", "depdiag", "refdoc", "appldoc"] + option_keys
 
     flags = flags.transform_keys(&:to_s).transform_keys(&:downcase)
 
@@ -48,18 +48,22 @@
 <div style="width: 100%; display: flex; justify-content: space-between; flex-wrap: wrap;">
   <div style="flex: 1; flex-shrink: 0;">
 
-    <% for button_key in button_keys do %>
-      <%
-          button = {
-            target: current_status?(button_key, flags, metadata_dict) ? "false" : "true",
-            label: (current_status?(button_key, flags, metadata_dict) ? "-" : "+") + current_label(toolbar_hardcoded_labels, button_key, metadata_dict)
-          }
-        %>
-      <button onClick="s = new URLSearchParams(window.location.search); s.set('<%= button_key.to_s %>','<%= button[:target] %>'); window.location.search = s.toString();">
-        <%= button[:label] %>
-      </button>
+    <form
+      onsubmit="event.preventDefault(); s = new URLSearchParams(window.location.search); Array.from(this.querySelectorAll('input[type=checkbox]')).forEach(e => s.set(e.name, e.checked)); window.location.search = s.toString();"
+      style="padding: 1em; display: flex; flex-direction: row; justify-content: space-between;"
+    >
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;">
+    <% for option_key in option_keys do %>
+      <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
+        <label for="<%= option_key.to_s %>"><%= current_label(toolbar_hardcoded_labels, option_key, metadata_dict) %></label>
+        <input type="checkbox" name="<%= option_key.to_s %>" <%= "checked" if current_status?(option_key, flags, metadata_dict) %>>
+      </div>
     <% end %>
-
+    </div>
+    <div style="padding: 1em; display: flex; justify-content: space-between; align-items: center;">
+      <input type="submit" value="Apply">
+    </div>
+  </form>
   </div>
 
   <div style="flex: 1; flex-shrink: 0; text-align: right;">
