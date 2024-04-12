@@ -3,6 +3,7 @@
       "chapnums" => "Chapters",
       "depdiag" => "DepGraphs",
 # TODO: BEGIN ---------- This has to be moved to cosmosys_req!!! --------------
+      "compl" => "Compliance",
       "refdoc" => "RefDoc",
       "appldoc" => "ApplDoc"
 # TODO: END   ---------- This has to be moved to cosmosys_req!!! --------------
@@ -19,7 +20,7 @@
                                         (v["visible"].is_a?(TrueClass) ||
                                          v["visible"].is_a?(FalseClass))}.keys
 
-    option_keys = ["chapnums", "depdiag", "refdoc", "appldoc"] + option_keys
+    option_keys = ["chapnums", "depdiag", "compl", "refdoc", "appldoc"] + option_keys
 
     flags = flags.transform_keys(&:to_s).transform_keys(&:downcase)
 
