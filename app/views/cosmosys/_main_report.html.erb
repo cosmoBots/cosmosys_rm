@@ -79,7 +79,7 @@
 
       # Return early if the custom value does not exist
       return nil if custom_values == nil
-
+      return nil if custom_values == ""
       begin
         metadata_yaml = YAML.load(custom_values.value)
       rescue Exception
@@ -89,6 +89,7 @@
 
       # Return early if the metadata yaml is nil
       return nil if metadata_yaml == nil
+      return nil if metadata_yaml == false
 
       metadata_dict = metadata_yaml.keys.map { |metadatum_key|
         metadatum_descriptor = metadata_yaml[metadatum_key]
