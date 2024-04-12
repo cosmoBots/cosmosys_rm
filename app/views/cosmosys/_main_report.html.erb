@@ -101,10 +101,12 @@
           # Setting the default visibility and labels
           metadatum_descriptor = {
             "visible" => false,
+            "selectable" => true,
             "label" => metadatum_key
           }
         else
           metadatum_descriptor["visible"] = false if metadatum_descriptor["visible"] == nil
+          metadatum_descriptor["selectable"] = true if metadatum_descriptor["selectable"] == nil
           metadatum_descriptor["label"] = metadatum_key.to_s if metadatum_descriptor["label"] == nil
           metadatum_descriptor["cf_name"] = metadatum_key
         end
@@ -141,11 +143,11 @@
 <%
 # This is a recursive lambda that draws the items and their children.
 draw_items = lambda {|item, recursion, current_level|
-  chapstr, classdiv = calculate_heading(flags[:chapnums], item)
+  chapstr, classdiv = calculate_heading(flags["chapnums"], item)
   title = item.subject
 %>
 <div class="<%= classdiv %>">
-  <<%= if current_level + 1 > 6 then "span"; else "h" + (current_level + 1).to_s end %> class="heading_<%= current_level %>"><%= calculate_complete_title(flags[:chapnums], item, chapstr) %> <%= title %></<%= if current_level + 1 > 6 then "span"; else "h" + (current_level + 1).to_s end %>>
+  <<%= if current_level + 1 > 6 then "span"; else "h" + (current_level + 1).to_s end %> class="heading_<%= current_level %>"><%= calculate_complete_title(flags["chapnums"], item, chapstr) %> <%= title %></<%= if current_level + 1 > 6 then "span"; else "h" + (current_level + 1).to_s end %>>
     <div class="<%= classdiv %>descr"><%= textilizable(process_text(item.description),{:object => item}) %></div>
     <% #TODO: BEGIN check if there is a better way to solve https://csys.cosmobots.eu:8443/issues/6613 %>
     <br/>
@@ -153,7 +155,7 @@ draw_items = lambda {|item, recursion, current_level|
     <%
     if (item.csys.shall_show_dependences?) then
       imagesrc = "/cosmosys_issues/"+item.id.to_s+"/dep_gv.svg"
-      if flags[:depdiag] then
+      if flags["depdiag"] then
         show_this_image = false
         thisdepgraphflag = item.custom_field_values.select{|a| a.custom_field_id == cfdepgraph.id }.first
         if (thisdepgraphflag != nil) then
@@ -313,7 +315,7 @@ end
 
 <%= render partial: "cosmosys/report_toolbar", locals: { flags: flags, metadata_dict: metadata_dict } %>
 <div class="<%= "cSysProject" %>">
-  <% if flags[:chapnums] %><h1><%= @project.csys.code %>: <%= @project.name %></h1><% end %>
+  <% if flags["chapnums"] %><h1><%= @project.csys.code %>: <%= @project.name %></h1><% end %>
   <%
   roots = @project.issues.select{|obj| obj.parent == nil and obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}
     if roots.size == 0 then

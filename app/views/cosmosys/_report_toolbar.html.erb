@@ -56,10 +56,18 @@
     <p>
     Document options: 
     <div style="margin-left: 7px; display: flex; flex-wrap: wrap; border-width: 1px; border-style: solid; margin-right: 12px">
-    <% for option_key in doc_option_keys do %>
+    <% for option_key in doc_option_keys do 
+      if metadata_dict[option_key] == nil or metadata_dict[option_key]["selectable"] then
+        shall_show_input = true
+      else
+        shall_show_input = false
+      end %>
       <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
-        <input type="checkbox" name="<%= option_key.to_s %>" <%= "checked" if current_status?(option_key, flags, metadata_dict) %>>
-        <label for="<%= option_key.to_s %>"><%= current_label(toolbar_hardcoded_labels, option_key, metadata_dict) %></label>
+      <% if shall_show_input then %>
+        <label><input type="checkbox" name="<%= option_key.to_s %>" <%= "checked" if current_status?(option_key, flags, metadata_dict) %>><%= current_label(toolbar_hardcoded_labels, option_key, metadata_dict) %></label>
+      <% else %>
+        <label><input type="checkbox" name="<%= option_key.to_s %>" disabled <%= "checked" if current_status?(option_key, flags, metadata_dict) %>><%= current_label(toolbar_hardcoded_labels, option_key, metadata_dict) %></label>
+      <% end %>
       </div>
     <% end %>
     </div>
@@ -67,11 +75,21 @@
     <p>
     Item attributes: 
     <div style="margin-left: 7px; display: flex; flex-wrap: wrap; border-width: 1px; border-style: solid">
-    <% for option_key in item_option_keys do %>
-      <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
-        <input type="checkbox" name="<%= option_key.to_s %>" <%= "checked" if current_status?(option_key, flags, metadata_dict) %>>
-        <label for="<%= option_key.to_s %>"><%= current_label(toolbar_hardcoded_labels, option_key, metadata_dict) %></label>
-      </div>
+    <% for option_key in item_option_keys do
+      if not doc_option_keys.include?(option_key) then
+        if metadata_dict[option_key] == nil or metadata_dict[option_key]["selectable"] then
+          shall_show_input = true
+        else
+          shall_show_input = false
+        end %>
+        <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
+        <% if shall_show_input then %>
+          <label><input type="checkbox" name="<%= option_key.to_s %>" <%= "checked" if current_status?(option_key, flags, metadata_dict) %>><%= current_label(toolbar_hardcoded_labels, option_key, metadata_dict) %></label>
+        <% else %>
+          <label><input type="checkbox" name="<%= option_key.to_s %>" disabled <%= "checked" if current_status?(option_key, flags, metadata_dict) %>><%= current_label(toolbar_hardcoded_labels, option_key, metadata_dict) %></label>
+        <% end %>
+        </div>
+      <% end %>
     <% end %>
     </div>
     </p>
