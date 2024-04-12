@@ -106,11 +106,13 @@
         else
           metadatum_descriptor["visible"] = false if metadatum_descriptor["visible"] == nil
           metadatum_descriptor["label"] = metadatum_key.to_s if metadatum_descriptor["label"] == nil
+          metadatum_descriptor["cf_name"] = metadatum_key
         end
 
         [metadatum_key, metadatum_descriptor]
       }.to_h
 
+      metadata_dict = metadata_dict.transform_keys(&:downcase)
       return metadata_dict
     end
 
@@ -182,6 +184,7 @@ if (metadata_dict != nil) then
 
     label_to_display = metadata_dict[metadatum_key]["label"]
     default_visibility = metadata_dict[metadatum_key]["visible"]
+    cf_name = metadata_dict[metadatum_key]["cf_name"]
 
 
     if default_visibility then
@@ -189,21 +192,21 @@ if (metadata_dict != nil) then
       # parsing the key to know where to obtain the metadatum
       done = false
 
-      if !done and metadatum_key == "assigned" then
+      if !done and cf_name == "assigned" then
         value_to_display = item.assigned_to
         if (value_to_display != nil) then
           value_to_display_str = value_to_display.name
         end
       end
 
-      if !done and metadatum_key == "status" then
+      if !done and cf_name == "status" then
         value_to_display = item.status
         if (value_to_display != nil) then
           value_to_display_str = value_to_display.name
         end
       end
 
-      if !done and metadatum_key == "version" then
+      if !done and cf_name == "version" then
         value_to_display = item.fixed_version
         if (value_to_display != nil) then
           value_to_display_str = value_to_display.name
@@ -211,7 +214,7 @@ if (metadata_dict != nil) then
       end
 
 
-      if !done and metadatum_key == "priority" then
+      if !done and cf_name == "priority" then
         value_to_display = item.priority
         if (value_to_display != nil) then
           value_to_display_str = value_to_display.name
@@ -219,7 +222,7 @@ if (metadata_dict != nil) then
       end
 
 
-      if !done and metadatum_key == "start_date" then
+      if !done and cf_name == "start_date" then
         value_to_display = item.start_date
         if (value_to_display != nil) then
           value_to_display_str = value_to_display.to_s
@@ -227,7 +230,7 @@ if (metadata_dict != nil) then
       end
 
 
-      if !done and metadatum_key == "due_date" then
+      if !done and cf_name == "due_date" then
         value_to_display = item.due_date
         if (value_to_display != nil) then
           value_to_display_str = value_to_display.to_s
@@ -235,7 +238,7 @@ if (metadata_dict != nil) then
       end
 
 
-      if !done and metadatum_key == "done_ratio" && item.tracker.core_fields.include?("done_ratio")  then
+      if !done and cf_name == "done_ratio" && item.tracker.core_fields.include?("done_ratio")  then
         value_to_display = item.done_ratio
         if (value_to_display != nil) then
           value_to_display_str = value_to_display.to_s
@@ -243,7 +246,7 @@ if (metadata_dict != nil) then
       end
 
 
-      if !done and metadatum_key == "estimated_hours" then
+      if !done and cf_name == "estimated_hours" then
         value_to_display = item.estimated_hours
         if (value_to_display != nil) then
           value_to_display_str = value_to_display.to_s
@@ -252,10 +255,10 @@ if (metadata_dict != nil) then
 
       if !done then
         # Maybe the value is a custom_value
-        # cfi = IssueCustomField.find_by_name(metadatum_key)
+        # cfi = IssueCustomField.find_by_name(cf_name)
         cvis = item.custom_field_values
         if (cvis != nil) then
-          value_to_display = cvis.detect { |cvi| cvi.custom_field.name == metadatum_key }
+          value_to_display = cvis.detect { |cvi| cvi.custom_field.name == cf_name }
           if (value_to_display != nil) then
             if value_to_display.value.kind_of?(Array) then
               value_to_display_str = value_to_display.value.join(', ')
