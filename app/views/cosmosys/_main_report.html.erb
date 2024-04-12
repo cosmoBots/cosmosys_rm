@@ -118,20 +118,25 @@
 
 
     # Flag handling ###########################################################
-
-    flags = {}
-    # Reduce the atom list and store the value in the flags variable:
-    # Txinto 2024-02-18 I've undertood this is the correct way to set the default values for the params
-    [:chapnums].each {|key| flags[key] = truthy?(params[key], true)}
-    [:depdiag].each {|key| flags[key] = truthy?(params[key], false)}
-    #####################################################################################################
-    #                                                                                                   #
-    [:compl, :refdoc, :appldoc].each {|key| flags[key] = truthy?(params[key], false)}                   #
-    #                                                                                                   #
-    #####################################################################################################
-
+    
     cfdepgraph = IssueCustomField.find_by_name("depGrahInReports")            #
+
+    # Let's prepare the flags for computing the current URL params and
+    flags = {}
+
+    # Firstable, the flags depend on the default values of the metadata_dict
     metadata_dict = get_project_custom_YAML_field(@project, "csReportMetadata")
+    metadata_dict.keys.each { |k| 
+      if (metadata_dict[k]["visible"]) then
+        flags[k] = true;
+      else
+        flags[k] = false;
+      end  
+    }  
+    # Then, in case a param exist in the current URL, the flag will be taken from the URL
+    params.keys.each { |k|
+      flags[k] = truthy?(params[k],false);
+    }
 %>
 <%
 # This is a recursive lambda that draws the items and their children.
@@ -182,12 +187,12 @@ draw_items = lambda {|item, recursion, current_level|
 if (metadata_dict != nil) then
   metadata_dict.keys.each { |metadatum_key|
 
-    label_to_display = metadata_dict[metadatum_key]["label"]
-    default_visibility = metadata_dict[metadatum_key]["visible"]
-    cf_name = metadata_dict[metadatum_key]["cf_name"]
+    visibility = flags[metadatum_key]
 
+    if visibility then
 
-    if default_visibility then
+      label_to_display = metadata_dict[metadatum_key]["label"]
+      cf_name = metadata_dict[metadatum_key]["cf_name"]
 
       # parsing the key to know where to obtain the metadatum
       done = false
