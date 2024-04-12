@@ -3,10 +3,10 @@
       "chapnums" => "Chapters",
       "depdiag" => "DepGraphs",
 # TODO: BEGIN ---------- This has to be moved to cosmosys_req!!! --------------
-      "compl" => "Compliance",
-      "refdoc" => "RefDoc",
-      "appldoc" => "ApplDoc"
+      "compl" => "Compliance Matrix",
 # TODO: END   ---------- This has to be moved to cosmosys_req!!! --------------
+      "refdoc" => "References",
+      "appldoc" => "Applicables"
     }
 
     # The metadata_dict we receive is inconsistent and has the keys with mixed
@@ -16,11 +16,11 @@
     # We are only interested in keys from the metadata_dict that contains a
     # hash with the key "visible" and whose value is a boolean
     metadata_dict = metadata_dict.transform_keys(&:downcase)
-    option_keys = metadata_dict.select {|k, v| v.is_a?(Hash) &&
+    item_option_keys = metadata_dict.select {|k, v| v.is_a?(Hash) &&
                                         (v["visible"].is_a?(TrueClass) ||
                                          v["visible"].is_a?(FalseClass))}.keys
 
-    option_keys = ["chapnums", "depdiag", "compl", "refdoc", "appldoc"] + option_keys
+    doc_option_keys = ["chapnums", "depdiag", "refdoc", "appldoc", "compl"]
 
     flags = flags.transform_keys(&:to_s).transform_keys(&:downcase)
 
@@ -46,21 +46,35 @@
       return label_hash[key] || key.to_s
     end
 %>
+
 <div style="width: 100%; display: flex; justify-content: space-between; flex-wrap: wrap;">
   <div style="flex: 1; flex-shrink: 0;">
-
     <form
       onsubmit="event.preventDefault(); s = new URLSearchParams(window.location.search); Array.from(this.querySelectorAll('input[type=checkbox]')).forEach(e => s.set(e.name, e.checked)); window.location.search = s.toString();"
       style="padding: 1em; display: flex; flex-direction: row; justify-content: space-between;"
     >
-    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;">
-    <% for option_key in option_keys do %>
+    <p>
+    Document options: 
+    <div style="margin-left: 7px; display: flex; flex-wrap: wrap; border-width: 1px; border-style: solid; margin-right: 12px">
+    <% for option_key in doc_option_keys do %>
       <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
-        <label for="<%= option_key.to_s %>"><%= current_label(toolbar_hardcoded_labels, option_key, metadata_dict) %></label>
         <input type="checkbox" name="<%= option_key.to_s %>" <%= "checked" if current_status?(option_key, flags, metadata_dict) %>>
+        <label for="<%= option_key.to_s %>"><%= current_label(toolbar_hardcoded_labels, option_key, metadata_dict) %></label>
       </div>
     <% end %>
     </div>
+    </p>
+    <p>
+    Item options: 
+    <div style="margin-left: 7px; display: flex; flex-wrap: wrap; border-width: 1px; border-style: solid">
+    <% for option_key in item_option_keys do %>
+      <div style="display: flex; flex-direction: row; justify-content: space-between; align-items: center;">
+        <input type="checkbox" name="<%= option_key.to_s %>" <%= "checked" if current_status?(option_key, flags, metadata_dict) %>>
+        <label for="<%= option_key.to_s %>"><%= current_label(toolbar_hardcoded_labels, option_key, metadata_dict) %></label>
+      </div>
+    <% end %>
+    </div>
+    </p>
     <div style="padding: 1em; display: flex; justify-content: space-between; align-items: center;">
       <input type="submit" value="Apply">
     </div>
