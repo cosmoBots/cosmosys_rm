@@ -1,50 +1,62 @@
+<%
+    toolbar_buttons = {
+      "chapnums" => "Chapters",
+      "depdiag" => "DepGraphs",
+      "status" => "Status",
+# TODO: BEGIN ---------- This has to be moved to cosmosys_req!!! --------------
+      "rqtype" => "RqType",
+      "rqlevel" => "RqLevel",
+      "ration" => "Rationale",
+      "verif" => "Verif",
+      "compl" => "Compliance",
+      "refdoc" => "RefDoc",
+      "appldoc" => "ApplDoc",
+# TODO: END   ---------- This has to be moved to cosmosys_req!!! --------------
+      "assigned" => "Assigned"
+    }
+
+    # The metadata_dict we receive is inconsistent and has the keys with mixed
+    # case. We need to convert them to lowercase:, and thus we have to do the
+    # same with the flag keys we are going to use.
+    metadata_dict = metadata_dict.transform_keys(&:downcase)
+    flags = flags.transform_keys(&:to_s).transform_keys(&:downcase)
+
+    def current_status?(key, flags, metadata_dict)
+      key = key.to_s.downcase
+
+      return to_bool(flags[key]) if flags[key] != nil
+
+      return to_bool(metadata_dict[key][:default_visibility]) if metadata_dict[key] != nil and metadata_dict[key][:default_visibility] != nil
+
+      return true
+    end
+
+    def to_bool(value)
+      return [1, "1", true, "true", "t","yes","y"].include?(value)
+    end
+
+    def current_label(label_hash, key, metadata_dict)
+      key = key.to_s.downcase
+
+      return metadata_dict[key][:label_to_display] if metadata_dict[key] != nil and metadata_dict[key][:label_to_display] != nil
+
+      return label_hash[key] || key.to_s
+    end
+%>
 <div style="width: 100%; display: flex; justify-content: space-between; flex-wrap: wrap;">
   <div style="flex: 1; flex-shrink: 0;">
 
-    <button onClick="s = new URLSearchParams(window.location.search); s.set('chapnums','<%= flags[:chapnums] ? "false" : "true" %>'); window.location.search = s.toString();">
-      <%= flags[:chapnums] ? "-Chapters" : "+Chapters" %>
-    </button>
-
-    <button onClick="s = new URLSearchParams(window.location.search); s.set('depdiag','<%= flags[:depdiag] ? "false" : "true" %>'); window.location.search = s.toString();">
-      <%= flags[:depdiag] ? "-DepGraphs" : "+DepGraphs" %>
-    </button>
-
-    <button onClick="s = new URLSearchParams(window.location.search); s.set('status','<%= flags[:status] ? "false" : "true" %>'); window.location.search = s.toString();">
-      <%= flags[:status] ? "-Status" : "+Status" %>
-    </button>
-<!--   TODO: BEGIN ---------------------------------------------------- This has to be moved to cosmosys_req!!! ----------------------------------------------------------- -->
-    <button onClick="s = new URLSearchParams(window.location.search); s.set('rqtype','<%= flags[:rqtype] ? "false" : "true" %>'); window.location.search = s.toString();">
-      <%= flags[:rqtype] ? "-RqType" : "+RqType" %>
-    </button>
-
-    <button onClick="s = new URLSearchParams(window.location.search); s.set('rqlevel','<%= flags[:rqlevel] ? "false" : "true" %>'); window.location.search = s.toString();">
-      <%= flags[:rqlevel] ? "-RqLevel" : "+RqLevel" %>
-    </button>
-
-    <button onClick="s = new URLSearchParams(window.location.search); s.set('ration','<%= flags[:ration] ? "false" : "true" %>'); window.location.search = s.toString();">
-      <%= flags[:ration] ? "-Rationale" : "+Rationale" %>
-    </button>
-
-    <button onClick="s = new URLSearchParams(window.location.search); s.set('verif','<%= flags[:verif] ? "false" : "true" %>'); window.location.search = s.toString();">
-      <%= flags[:verif] ? "-Verif" : "+Verif" %>
-    </button>
-
-    <button onClick="s = new URLSearchParams(window.location.search); s.set('compl','<%= flags[:compl] ? "false" : "true" %>'); window.location.search = s.toString();">
-      <%= flags[:compl] ? "-Compliance" : "+Compliance" %>
-    </button>
-
-    <button onClick="s = new URLSearchParams(window.location.search); s.set('refdoc','<%= flags[:refdoc] ? "false" : "true" %>'); window.location.search = s.toString();">
-      <%= flags[:refdoc] ? "-RefDoc" : "+RefDoc" %>
-    </button>
-
-    <button onClick="s = new URLSearchParams(window.location.search); s.set('appldoc','<%= flags[:appldoc] ? "false" : "true" %>'); window.location.search = s.toString();">
-      <%= flags[:appldoc] ? "-ApplDoc" : "+ApplDoc" %>
-    </button>
-<!--   TODO: END   ---------------------------------------------------- This has to be moved to cosmosys_req!!! ----------------------------------------------------------- -->
-
-    <button onClick="s = new URLSearchParams(window.location.search); s.set('assigned','<%= flags[:assigned] ? "false" : "true" %>'); window.location.search = s.toString();">
-      <%= flags[:assigned] ? "-Assigned" : "+Assigned" %>
-    </button>
+    <% for button_key in toolbar_buttons.keys do %>
+      <%
+          button = {
+            target: current_status?(button_key, flags, metadata_dict) ? "false" : "true",
+            label: (current_status?(button_key, flags, metadata_dict) ? "-" : "+") + current_label(toolbar_buttons, button_key, metadata_dict)
+          }
+        %>
+      <button onClick="s = new URLSearchParams(window.location.search); s.set('<%= button_key.to_s %>','<%= button[:target] %>'); window.location.search = s.toString();">
+        <%= button[:label] %>
+      </button>
+    <% end %>
 
   </div>
 
@@ -57,50 +69,37 @@
       </select>
     </label>
     <%
-      s = Setting.find_by_name("plugin_cosmosys")
-      puts("********** HERE **************")
-      if (s != nil) then
-        puts("********** HERE ************1**")
-        report_format = s.value["report_format"]
-        report_orientation = s.value["report_orientation"]
-        if (report_format == "A3") then
-          puts("********** HERE ************2**")
-          if (report_orientation == "Landscape") then
-            # TODO: Remove magic numbers from code
-            maxWidth = 917*2
-            maxHeight = 525*2
-          else
-            # By default, portrait
-            # TODO: Remove magic numbers from code
-            maxWidth = 588*2
-            maxHeight = 1000*2
-          end
-        else
-          puts("********** HERE ************3**")
+      known_formats = {"A4" => {"Portrait" => [588, 1000], "Landscape" => [917, 525]}}
+      # The DIN A series formats are multiples of the A0 format, so we can calculate the dimensions
+      # of the other formats by halving or doubling the dimensions of the base format.
+      known_formats["A3"] = {
+        "Portrait" => [
+          known_formats["A4"]["Portrait"][0] * 2,
+          known_formats["A4"]["Portrait"][1] * 2
+        ],
+        "Landscape" => [
+          known_formats["A4"]["Landscape"][0] * 2,
+          known_formats["A4"]["Landscape"][1] * 2
+        ]
+      }
 
-            # By default, A4
-          if (report_orientation == "Landscape") then
-            # TODO: Remove magic numbers from code
-            maxWidth = 917
-            maxHeight = 525
-            puts("********** HERE ************4**")
+      # Get the settings for the plugin with default values if not found
+      cosmosys_settings = Setting.find_by_name("plugin_cosmosys")
+      cosmosys_settings = cosmosys_settings == nil ? {
+        "report_format" => "A4",
+        "report_orientation" => "Portrait"
+      } : cosmosys_settings.value
 
-          else
-            puts("********** HERE ************5**")
-            # By default, portrait
-            # TODO: Remove magic numbers from code
-            maxWidth = 588
-            maxHeight = 1000
-          end
-        end
-      else
-        puts("********** HERE ************6**")
-        # By default, portrait
-            # TODO: Remove magic numbers from code
-            maxWidth = 588
-            maxHeight = 1000
-      end
-      puts("width: "+maxWidth.to_s+" height: "+maxHeight.to_s)
+      # report_format by default is A4, unless the value in cosmosys_settings is a key of known_formats
+      report_format = known_formats[cosmosys_settings["report_format"]] ? cosmosys_settings["report_format"] : "A4"
+
+      # report_orientation by default is Portrait, unless the value in cosmosys_settings is "Landscape"
+      report_orientation = cosmosys_settings["report_orientation"] == "Landscape" ? "Landscape" : "Portrait"
+
+      # Get the width and height for the selected format and orientation
+      # If the orientation is Landscape, swap the values
+      maxWidth, maxHeight = known_formats[report_format][report_orientation]
+      maxWidth, maxHeight = maxHeight, maxWidth if report_orientation == "Landscape"
       %>
     <button onClick="<%= "downloadReport('#{@project.identifier}','#{@project.name}','#{@project.csys.code}',#{maxWidth},#{maxHeight})" %>">Download</button>
   </div>
