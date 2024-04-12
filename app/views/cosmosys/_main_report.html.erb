@@ -3,6 +3,16 @@
   <%= stylesheet_link_tag 'cosmosys', :plugin => 'cosmosys', :media => "print" %>
 <% end %>
 <%
+    toolbar_hardcoded_labels = {
+      "chapnums" => "Chapters",
+      "depdiag" => "DepGraphs",
+# TODO: BEGIN ---------- This has to be moved to cosmosys_req!!! --------------
+      "compl" => "Compliance Matrix",
+# TODO: END   ---------- This has to be moved to cosmosys_req!!! --------------
+      "refdoc" => "References",
+      "appldoc" => "Applicables"
+    }
+
     # Helper functions ########################################################
 
     def truthy?(value, nilistrue = false)
@@ -142,6 +152,11 @@
     # Then, in case a param exist in the current URL, the flag will be taken from the URL
     params.keys.each { |k|
       flags[k] = truthy?(params[k],false);
+    }
+    toolbar_hardcoded_labels.keys.each { |k|
+      if flags[k] == nil then
+        flags[k] = true
+      end
     }
 %>
 <%
