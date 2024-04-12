@@ -68,6 +68,60 @@
       end
     end
 
+    def get_project_custom_YAML_field(project, field_name)
+      # Find the custom field by name
+      custom_field = ProjectCustomField.find_by_name(field_name)
+
+      # Return early if the custom field does not exist
+      return nil if custom_field == nil
+
+      custom_values = project.custom_values.find_by(custom_field_id: custom_field.id)
+
+      # Return early if the custom value does not exist
+      return nil if custom_values == nil
+
+      begin
+        metadata_yaml = YAML.load(custom_values.value)
+      rescue Exception
+        puts "Error: could not validate the YAML metadata descriptor, continuing without it"
+        metadata_yaml = nil # Deal with scope gotchas
+      end
+
+      # Return early if the metadata yaml is nil
+      return nil if metadata_yaml == nil
+
+      metadata_dict = metadata_yaml.keys.map { |metadatum_key|
+        metadatum_dict = {}
+        metadatum_descriptor = metadata_yaml[metadatum_key]
+
+        # Check if there is a descriptor, if parsed probably it should always
+        # contain something, hence the warning if it is nil
+        if (metadatum_descriptor == nil) then
+          puts "warning: No metadatum descriptor for " + metadatum_key
+
+          # Setting the default visibility and labels
+          metadatum_dict = {
+            default_visibility: false,
+            label_to_display: metadatum_key
+          }
+        else
+          metadatum_dict = {
+            default_visibility: metadatum_descriptor['visible'] != nil ?
+            metadatum_descriptor['visible'] :
+            false,
+
+            label_to_display: metadatum_descriptor['label'] != nil ?
+            metadatum_descriptor['label'] :
+            metadatum_key
+          }
+        end
+
+        [metadatum_key, metadatum_dict]
+      }.to_h
+
+      return metadata_dict
+    end
+
 
     # Flag handling ###########################################################
 
@@ -81,7 +135,7 @@
     # TODO: This should not be in cosmosys, but in cosmosys_req.                                        #
     #       We need a callback.                                                                         #
     #                                                                                                   #
-    [:rqtype, :rqlevel].each {|key| flags[key] = truthy?(params[key], true)}
+    [:rqtype, :rqlevel].each {|key| flags[key] = truthy?(params[key], true)}                            #
     [:verif, :ration, :compl, :refdoc, :appldoc].each {|key| flags[key] = truthy?(params[key], false)}  #
     #                                                                                                   #
     #####################################################################################################
@@ -100,46 +154,8 @@
     cfratio = IssueCustomField.find_by_name("rqRationale")                    #
     cfverif = IssueCustomField.find_by_name("rqVerif")                        #
 
+    metadata_dict = get_project_custom_YAML_field(@project, "csReportMetadata")
 
-    metadata_dict = {}
-    cf = ProjectCustomField.find_by_name("csReportMetadata")
-    if cf != nil then
-      cv = @project.custom_values.find_by(custom_field_id: cf.id)
-      if cv != nil then
-        begin
-          metadata_yaml = YAML.load(cv.value)
-        rescue Exception
-          puts "Error: could not validate the YAML metadata descriptor, continuing without it"
-        end
-        if (metadata_yaml != nil) then
-          metadata_yaml.keys.each { |metadatum_key|
-
-            metadatum_dict = {}
-            # Setting the default visibility and labels
-            metadatum_dict[:default_visibility] = false
-            metadatum_dict[:label_to_display] = metadatum_key
-
-            # Check if there is a descriptor, if parsed probably it will always exist something
-            metadatum_descriptor = metadata_yaml[metadatum_key]
-            if (metadatum_descriptor == nil) then
-              puts "warning: No metadatum descriptor for " + metadatum_key
-            else
-              # obtaining visibility
-              aux = metadatum_descriptor['visible']
-              if (aux != nil) then
-                metadatum_dict[:default_visibility] = aux
-              end
-              # obtaining label
-              aux = metadatum_descriptor['label']
-              if (aux != nil) then
-                metadatum_dict[:label_to_display] = aux
-              end
-            end
-            metadata_dict[metadatum_key] = metadatum_dict
-          }
-        end
-      end
-    end
     #                                                                         #
     ###########################################################################
 
@@ -160,7 +176,7 @@ draw_items = lambda {|item, recursion, current_level|
     thisrationale = process_text(item.custom_values.where(custom_field: cfratio).first.value)
 
   end unless item.csys.is_chapter?
-    #                                                                         #
+  #                                                                         #
   ###########################################################################
 %>
 <div class="<%= classdiv %>">
@@ -388,7 +404,7 @@ end
 }
 %>
 
-<%= render partial: "cosmosys/report_toolbar", locals: { flags: flags } %>
+<%= render partial: "cosmosys/report_toolbar", locals: { flags: flags, metadata_dict: metadata_dict } %>
 <div class="<%= "cSysProject" %>">
   <% if flags[:chapnums] %><h1><%= @project.csys.code %>: <%= @project.name %></h1><% end %>
   <%
