@@ -128,6 +128,9 @@
 
     # Firstable, the flags depend on the default values of the metadata_dict
     metadata_dict = get_project_custom_YAML_field(@project, "csReportMetadata")
+    if metadata_dict == nil then
+      metadata_dict = {}
+    end
     metadata_dict.keys.each { |k| 
       if (metadata_dict[k]["visible"]) then
         flags[k] = true;
