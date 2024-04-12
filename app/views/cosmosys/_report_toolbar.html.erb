@@ -1,24 +1,26 @@
 <%
-    toolbar_buttons = {
+    toolbar_hardcoded_labels = {
       "chapnums" => "Chapters",
       "depdiag" => "DepGraphs",
-      "status" => "Status",
 # TODO: BEGIN ---------- This has to be moved to cosmosys_req!!! --------------
-      "rqtype" => "RqType",
-      "rqlevel" => "RqLevel",
-      "ration" => "Rationale",
-      "verif" => "Verif",
-      "compl" => "Compliance",
       "refdoc" => "RefDoc",
-      "appldoc" => "ApplDoc",
+      "appldoc" => "ApplDoc"
 # TODO: END   ---------- This has to be moved to cosmosys_req!!! --------------
-      "assigned" => "Assigned"
     }
 
     # The metadata_dict we receive is inconsistent and has the keys with mixed
     # case. We need to convert them to lowercase:, and thus we have to do the
     # same with the flag keys we are going to use.
+    #
+    # We are only interested in keys from the metadata_dict that contains a
+    # hash with the key "visible" and whose value is a boolean
     metadata_dict = metadata_dict.transform_keys(&:downcase)
+    button_keys = metadata_dict.select {|k, v| v.is_a?(Hash) &&
+                                        (v["visible"].is_a?(TrueClass) ||
+                                         v["visible"].is_a?(FalseClass))}.keys
+
+    button_keys = ["chapnums", "depdiag", "refdoc", "appldoc"] + button_keys
+
     flags = flags.transform_keys(&:to_s).transform_keys(&:downcase)
 
     def current_status?(key, flags, metadata_dict)
@@ -26,7 +28,7 @@
 
       return to_bool(flags[key]) if flags[key] != nil
 
-      return to_bool(metadata_dict[key][:default_visibility]) if metadata_dict[key] != nil and metadata_dict[key][:default_visibility] != nil
+      return to_bool(metadata_dict[key]["visible"]) if metadata_dict[key] != nil and metadata_dict[key]["visible"] != nil
 
       return true
     end
@@ -38,7 +40,7 @@
     def current_label(label_hash, key, metadata_dict)
       key = key.to_s.downcase
 
-      return metadata_dict[key][:label_to_display] if metadata_dict[key] != nil and metadata_dict[key][:label_to_display] != nil
+      return metadata_dict[key]["label"] if metadata_dict[key] != nil and metadata_dict[key]["label"] != nil
 
       return label_hash[key] || key.to_s
     end
@@ -46,11 +48,11 @@
 <div style="width: 100%; display: flex; justify-content: space-between; flex-wrap: wrap;">
   <div style="flex: 1; flex-shrink: 0;">
 
-    <% for button_key in toolbar_buttons.keys do %>
+    <% for button_key in button_keys do %>
       <%
           button = {
             target: current_status?(button_key, flags, metadata_dict) ? "false" : "true",
-            label: (current_status?(button_key, flags, metadata_dict) ? "-" : "+") + current_label(toolbar_buttons, button_key, metadata_dict)
+            label: (current_status?(button_key, flags, metadata_dict) ? "-" : "+") + current_label(toolbar_hardcoded_labels, button_key, metadata_dict)
           }
         %>
       <button onClick="s = new URLSearchParams(window.location.search); s.set('<%= button_key.to_s %>','<%= button[:target] %>'); window.location.search = s.toString();">

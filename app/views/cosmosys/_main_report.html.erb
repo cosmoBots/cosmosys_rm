@@ -91,7 +91,6 @@
       return nil if metadata_yaml == nil
 
       metadata_dict = metadata_yaml.keys.map { |metadatum_key|
-        metadatum_dict = {}
         metadatum_descriptor = metadata_yaml[metadatum_key]
 
         # Check if there is a descriptor, if parsed probably it should always
@@ -100,23 +99,16 @@
           puts "warning: No metadatum descriptor for " + metadatum_key
 
           # Setting the default visibility and labels
-          metadatum_dict = {
-            default_visibility: false,
-            label_to_display: metadatum_key
+          metadatum_descriptor = {
+            "visible" => false,
+            "label" => metadatum_key
           }
         else
-          metadatum_dict = {
-            default_visibility: metadatum_descriptor['visible'] != nil ?
-            metadatum_descriptor['visible'] :
-            false,
-
-            label_to_display: metadatum_descriptor['label'] != nil ?
-            metadatum_descriptor['label'] :
-            metadatum_key
-          }
+          metadatum_descriptor["visible"] = false if metadatum_descriptor["visible"] == nil
+          metadatum_descriptor["label"] = metadatum_key.to_s if metadatum_descriptor["label"] == nil
         end
 
-        [metadatum_key, metadatum_dict]
+        [metadatum_key, metadatum_descriptor]
       }.to_h
 
       return metadata_dict
@@ -188,8 +180,8 @@ draw_items = lambda {|item, recursion, current_level|
 if (metadata_dict != nil) then
   metadata_dict.keys.each { |metadatum_key|
 
-    label_to_display = metadata_dict[metadatum_key][:label_to_display]
-    default_visibility = metadata_dict[metadatum_key][:default_visibility]
+    label_to_display = metadata_dict[metadatum_key]["label"]
+    default_visibility = metadata_dict[metadatum_key]["visible"]
 
 
     if default_visibility then
