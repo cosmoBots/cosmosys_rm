@@ -316,12 +316,12 @@ end
 <br/>
 </div><%
     excluded_titles = [
-      "Applicable documents",
-      "Reference documents",
-      "Compliance documents",
-      "Compliance matrix"
+      "applicable documents",
+      "reference documents",
+      "compliance documents",
+      "compliance matrix"
     ]
-    if not excluded_titles.include?(item.subject) then
+    if not excluded_titles.include?(item.subject.downcase) then
       item.children.select{|obj| obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}.each {|subitem|
         recursion.(subitem, recursion,current_level+1)
       }
@@ -342,13 +342,13 @@ end
     end
 
     excluded_titles = [
-      "Applicable documents",
-      "Reference documents",
-      "Compliance documents",
-      "Compliance matrix"
+      "applicable documents",
+      "reference documents",
+      "compliance documents",
+      "compliance matrix"
     ]
 
-    if not excluded_titles.include?(title) then
+    if not excluded_titles.include?(title.downcase) then
       roots.each {|i| draw_items.(i, draw_items,1)}
     else    
     %>
