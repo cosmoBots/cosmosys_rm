@@ -154,6 +154,6 @@
       maxWidth, maxHeight = known_formats[report_format][report_orientation]
       maxWidth, maxHeight = maxHeight, maxWidth if report_orientation == "Landscape"
       %>
-    <button onClick="<%= "downloadReport('#{@project.identifier}','#{@project.name}','#{@project.csys.code}','#{@project.name}','#{"EST-XXYY-OOO-TTT-NNN1"}',#{maxWidth},#{maxHeight})" %>">Download</button>
+    <button onClick="<%= "downloadReport('#{@project.identifier}','#{@project.name}','#{@project.csys.code}','#{@project.name}','#{@project.csys.doccode}',#{maxWidth},#{maxHeight})" %>">Download</button>
     </div>
 </div>

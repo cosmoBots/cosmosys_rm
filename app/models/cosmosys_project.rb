@@ -254,10 +254,20 @@ class CosmosysProject < ActiveRecord::Base
   end
 
   @@cfcscode = ProjectCustomField.find_by_name('csCode')
+  @@cfcsdoccode = ProjectCustomField.find_by_name('csDocCode')
 
   def code
     ret = nil
     supid = self.project.custom_values.find_by_custom_field_id(@@cfcscode.id)
+    if supid != nil then
+      ret = supid.value
+    end
+    return ret
+  end
+
+  def doccode
+    ret = nil
+    supid = self.project.custom_values.find_by_custom_field_id(@@cfcsdoccode.id)
     if supid != nil then
       ret = supid.value
     end
