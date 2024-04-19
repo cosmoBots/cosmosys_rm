@@ -160,7 +160,7 @@ function applyTableStylesToAllTables(containerElement) {
   });
 }
 
-async function offerDownloadFile(identifier, title, code, file_or_blob, extension, callback) {
+async function offerDownloadFile(identifier, title, swp, swptitle, code, file_or_blob, extension, callback) {
   // Create an object URL for the blob or file and create a link element to trigger the download
   let link = document.createElement('a');
   link.href = window.URL.createObjectURL(file_or_blob);
@@ -180,15 +180,15 @@ async function offerDownloadFile(identifier, title, code, file_or_blob, extensio
   }, 0);
 }
 
-async function downloadFile(identifier, title, code, file, exportFormat, callback) {
+async function downloadFile(identifier, title, swp, swptitle, code, file, exportFormat, callback) {
   if (exportFormat == "html") {
-    offerDownloadFile(identifier, title, code, file, exportFormat, callback);
+    offerDownloadFile(identifier, title, swp, swptitle, code, file, exportFormat, callback);
   } else {
     let formData = new FormData();
     formData.append('file', file);
 
     let xhr = new XMLHttpRequest();
-    xhr.open('POST', '/cosmosys/convert_to/' + exportFormat + "/"+ identifier + "/" + code + "/"+ title, true);
+    xhr.open('POST', '/cosmosys/convert_to/' + exportFormat + "/"+ identifier + "/" + swp + "/" + swptitle + "/" + code + "/"+ title, true);
 
     // When the request is loaded
     xhr.onload = function () {
@@ -196,7 +196,7 @@ async function downloadFile(identifier, title, code, file, exportFormat, callbac
         // Convert the response to a Blob
         let blob = new Blob([xhr.response], { type: xhr.getResponseHeader('Content-Type') });
 
-        offerDownloadFile(identifier, title, code, blob, exportFormat, callback);
+        offerDownloadFile(identifier, title, swp, swptitle, code, blob, exportFormat, callback);
       } else {
         // Handle the error
         console.error('Server responded with an error:', xhr.statusText);
@@ -216,7 +216,7 @@ async function downloadFile(identifier, title, code, file, exportFormat, callbac
   }
 }
 
-async function downloadReport(identifier, title, code, maxWidth, maxHeight) {
+async function downloadReport(identifier, title, swp, swptitle, code, maxWidth, maxHeight) {
   let bakupElement = document.querySelector('.cSysProject').cloneNode(true);
   let projectElement = document.querySelector('.cSysProject')
 
@@ -307,7 +307,7 @@ async function downloadReport(identifier, title, code, maxWidth, maxHeight) {
       let selectElement = document.querySelector('select[name="format"]');
       let exportFormat = selectElement.value;
 
-      downloadFile(identifier, title, code, file, exportFormat, () => {
+      downloadFile(identifier, title, swp, swptitle, code, file, exportFormat, () => {
         projectElement.parentElement.insertBefore(bakupElement, projectElement);
         projectElement.parentNode.removeChild(projectElement);
       });

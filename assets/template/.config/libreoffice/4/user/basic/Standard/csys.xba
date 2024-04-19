@@ -15,7 +15,7 @@ Sub UpdateAll(oDoc)
     Next
 End Sub
 
-Sub Main(oDoc, HTMLPath as String, Title as String, sWP as String, sWPTitle as String) 
+Sub Main(oDoc, HTMLPath as String, Title as String, sWP as String, sWPTitle as String, DocCode as String) 
 
 dim oSearch as object
 dim oResult as object
@@ -27,6 +27,7 @@ oText = oDoc.getText
 oDoc.DocumentProperties.Title = Title
 oDoc.DocumentProperties.UserDefinedProperties.setPropertyValue("sWP",sWP)
 oDoc.DocumentProperties.UserDefinedProperties.setPropertyValue("sWPTitle",sWPTitle)
+oDoc.DocumentProperties.UserDefinedProperties.setPropertyValue("DocCode",DocCode)
 
 oCursor = oText.createTextCursor()
 rem oCursor=oDoc.CurrentController.getViewCursor()
@@ -65,9 +66,9 @@ function OpenSilent(FilePath as String) as Object
   OpenSilent = StarDesktop.loadComponentFromURL(&quot;file://&quot; &amp; FilePath, &quot;_blank&quot;, 0, FileProperties())
 end function
 
-sub Headless(FilePath as String, HTMLPath as String, Title as String, sWP as String, sWPTitle as String) 
+sub Headless(FilePath as String, HTMLPath as String, Title as String, sWP as String, sWPTitle as String, DocCode as String) 
   Document = OpenSilent(FilePath)
-  call Main(Document,HTMLPath, Title, sWP, sWPTitle)
+  call Main(Document,HTMLPath, Title, sWP, sWPTitle, DocCode)
 	
   call Document.store()
   call Document.close(True)

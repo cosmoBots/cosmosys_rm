@@ -16,4 +16,4 @@ post 'cosmosys/:id/treeview', :to => 'cosmosys#treeview_commit'
 post 'cosmosys/:id/up', :to => 'cosmosys#up'
 post 'cosmosys/:id/down', :to => 'cosmosys#down'
 
-post 'cosmosys/convert_to/:format/:project/:code/:title', :to => 'cosmosys#convert_to'
+post 'cosmosys/convert_to/:format/:project/:swp/:swptitle/:code/:title', :to => 'cosmosys#convert_to'
