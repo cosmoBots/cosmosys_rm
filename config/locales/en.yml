@@ -1,3 +1,197 @@
-# English strings go here for Rails i18n
 en:
-  # my_label: "My label"
+  activerecord:
+    errors:
+      template:
+        header:
+          one:    "1 error prohibited this %{model} from being saved"
+          other:  "%{count} errors prohibited this %{model} from being saved"
+      messages:
+        inclusion: "is not included in the list"
+        exclusion: "is reserved"
+        invalid: "is invalid"
+        confirmation: "doesn't match confirmation"
+        accepted: "must be accepted"
+        empty: "cannot be empty"
+        blank: "cannot be blank"
+        too_long: "is too long (maximum is %{count} characters)"
+        too_short: "is too short (minimum is %{count} characters)"
+        wrong_length: "is the wrong length (should be %{count} characters)"
+        taken: "has already been taken"
+        not_a_number: "is not a number"
+        not_a_date: "is not a valid date"
+        greater_than: "must be greater than %{count}"
+        greater_than_or_equal_to: "must be greater than or equal to %{count}"
+        equal_to: "must be equal to %{count}"
+        less_than: "must be less than %{count}"
+        less_than_or_equal_to: "must be less than or equal to %{count}"
+        odd: "must be odd"
+        even: "must be even"
+        greater_than_start_date: "must be greater than start date"
+        not_same_project: "doesn't belong to the same project"
+        circular_dependency: "This relation would create a circular dependency"
+        cant_link_an_issue_with_a_descendant: "An item cannot be linked to one of its subitems"
+        earlier_than_minimum_start_date: "cannot be earlier than %{date} because of preceding items"
+        not_a_regexp: "is not a valid regular expression"
+        open_issue_with_closed_parent: "An open item cannot be attached to a closed parent item"
+        must_contain_uppercase: "must contain uppercase letters (A-Z)"
+        must_contain_lowercase: "must contain lowercase letters (a-z)"
+        must_contain_digits: "must contain digits (0-9)"
+        must_contain_special_chars: "must contain special characters (!, $, %, ...)"
+
+
+  notice_failed_to_save_issues: "Failed to save %{count} item(s) on %{total} selected: %{ids}."
+  notice_issue_done_ratios_updated: Item done ratios updated.
+  notice_gantt_chart_truncated: "The chart was truncated because it exceeds the maximum number of items that can be displayed (%{max})"
+  notice_issue_successful_create: "Item %{id} created."
+  notice_issue_update_conflict: "The item has been updated by an other user while you were editing it."
+  notice_import_finished: "%{count} items have been imported"
+  notice_import_finished_with_errors: "%{count} out of %{total} items could not be imported"
+  notice_issue_not_closable_by_open_tasks: "This item cannot be closed because it has at least one open subitem."
+  notice_issue_not_closable_by_blocking_issue: "This item cannot be closed because it is blocked by at least one open item."
+  notice_issue_not_reopenable_by_closed_parent_issue: "This item cannot be reopened because its parent item is closed."
+  error_issue_not_found_in_project: 'The item was not found or does not belong to this project'
+  error_no_tracker_in_project: 'No class is associated to this project. Please check the Project settings.'
+  error_no_default_issue_status: 'No default item status is defined. Please check your configuration (Go to "Administration -> Item statuses").'
+  error_can_not_delete_tracker: "This class contains items and cannot be deleted."
+  error_can_not_reopen_issue_on_closed_version: 'An item assigned to a closed release cannot be reopened'
+  error_issue_done_ratios_not_updated: "Item done ratios not updated."
+  error_workflow_copy_source: 'Please select a source class or role'
+  error_workflow_copy_target: 'Please select target class(s) and role(s)'
+  error_unable_delete_issue_status: 'Unable to delete item status (%{value})'
+  error_no_tracker_allowed_for_new_issue_in_project: "The project doesn't have any classes for which you can create an item"
+  error_no_projects_with_tracker_allowed_for_new_issue: "There are no projects with classes for which you can create an item"
+  error_move_of_child_not_possible: "Subitem %{child} could not be moved to the new project: %{errors}"
+  error_cannot_reassign_time_entries_to_an_issue_about_to_be_deleted: "Spent time cannot be reassigned to an item that is about to be deleted"
+  mail_subject_reminder: "%{count} item(s) due in the next %{days} days"
+  mail_body_reminder: "%{count} item(s) that are assigned to you are due in the next %{days} days:"
+  field_issue: Item
+  field_is_closed: Item closed
+  field_tracker: Class
+  field_fixed_version: Target release
+  field_is_in_roadmap: Items displayed in roadmap
+  field_version: Release
+  field_issue_to: Related item
+  field_assignable: Items can be assigned to users with this role
+  field_parent_issue_subject: Parent item subject
+  field_issues_visibility: Items visibility
+  field_default_version: Default release
+  field_history_default_tab: Item's history default tab
+  setting_issues_export_limit: Items export limit
+  setting_cross_project_issue_relations: Allow cross-project item relations
+  setting_cross_project_subtasks: Allow cross-project subitems
+  setting_issue_list_default_columns: Items list defaults
+  setting_display_subprojects_issues: Display subprojects items on main projects by default
+  setting_issue_done_ratio: Calculate the item done ratio with
+  setting_issue_done_ratio_issue_field: Use the item field
+  setting_issue_done_ratio_issue_status: Use the item status
+  setting_issue_group_assignment: Allow item assignment to groups
+  setting_default_issue_start_date_to_creation_date: Use current date as start date for new items
+  setting_commit_cross_project_ref: Allow items of all the other projects to be referenced and fixed
+  setting_default_projects_tracker_ids: Default classes for new projects
+  setting_link_copied_issue: Link items on copy
+  setting_close_duplicate_issues: Close duplicate items automatically
+  setting_show_status_changes_in_mail_subject: Show status changes in item mail notifications subject
+  permission_manage_versions: Manage releases
+  permission_manage_categories: Manage item categories
+  permission_view_issues: View Items
+  permission_add_issues: Add items
+  permission_edit_issues: Edit items
+  permission_edit_own_issues: Edit own items
+  permission_copy_issues: Copy items
+  permission_manage_issue_relations: Manage item relations
+  permission_set_issues_private: Set items public or private
+  permission_set_own_issues_private: Set own items public or private
+  permission_delete_issues: Delete items
+  permission_manage_subtasks: Manage subitems
+  permission_manage_related_issues: Manage related items
+  permission_import_issues: Import items
+
+  project_module_issue_tracking: Item tracking
+  label_issue: Item
+  label_issue_new: New item
+  label_issue_plural: Items
+  label_issue_view_all: View all items
+  label_issues_by: "Items by %{value}"
+  label_issue_added: Item added
+  label_issue_updated: Item updated
+  label_issue_fixed_version_updated: Target release updated
+  label_tracker: Class
+  label_tracker_plural: Classes
+  label_tracker_all: All classes
+  label_tracker_new: New class
+  label_issue_status: Item status
+  label_issue_status_plural: Item statuses
+  label_issue_category: Item category
+  label_issue_category_plural: Item categories
+  label_reported_issues: Reported items
+  label_assigned_issues: Assigned items
+  label_assigned_to_me_issues: Items assigned to me
+  label_updated_issues: Updated items
+  label_version: Release
+  label_version_new: New release
+  label_version_plural: Releases
+  label_version_and_files: Releases (%{count}) and Files
+  label_close_versions: Close completed releases
+  label_x_issues:
+    zero:  0 items
+    one:   1 item
+    other: "%{count} items"
+
+  label_any_issues_in_project: any items in project
+  label_any_issues_not_in_project: any items not in project
+  label_no_issues_in_project: no items in project
+  label_any_open_issues: any open items
+  label_no_open_issues: no open items
+  label_roadmap_no_issues: No items for this release
+  label_current_version: Current release
+  label_issue_tracking: Item tracking
+  label_watched_issues: Watched items
+  label_related_issues: Related items
+  label_delete_link_to_subtask: Delete link to subitem
+  label_show_completed_versions: Show completed releases
+  label_bulk_edit_selected_issues: Bulk edit selected items
+  label_user_mail_notify_about_high_priority_issues_html: "Also notify me about items with a priority of <em>%{prio}</em> or higher"
+  label_update_issue_done_ratios: Update item done ratios
+  label_display_used_statuses_only: Only display statuses that are used by this class
+  label_subtask_plural: Subitems
+  label_issues_visibility_all: All items
+  label_issues_visibility_public: All non private items
+  label_issues_visibility_own: Items created by or assigned to the user
+  label_copy_subtasks: Copy subitems
+  label_completed_versions: Completed releases
+  label_attribute_of_issue: "Item's %{name}"
+  label_attribute_of_fixed_version: "Target release's %{name}"
+  label_latest_compatible_version: Latest compatible release
+  label_link_copied_issue: Link copied item
+  label_search_open_issues_only: Open items only
+  label_parent_task_attributes: Parent items attributes
+  label_parent_task_attributes_derived: Calculated from subitems
+  label_parent_task_attributes_independent: Independent of subitems
+  label_import_issues: Import items
+  label_new_project_issue_tab_enabled: Display the "New item" tab
+  label_trackers_description: Classes description
+  label_open_trackers_description: View all classes description
+  button_rollback: Rollback to this release
+  button_add_subtask: Add subitem
+  text_workflow_edit: Select a role and a class to edit the workflow
+  text_tip_issue_begin_day: item beginning this day
+  text_tip_issue_end_day: item ending this day
+  text_tip_issue_begin_end_day: item beginning and ending this day
+  text_tracker_no_workflow: No workflow defined for this class
+  text_status_no_workflow: No class uses this status in the workflows
+  text_issues_ref_in_commit_messages: Referencing and fixing items in commit messages
+  text_issue_added: "Item %{id} has been reported by %{author}."
+  text_issue_updated: "Item %{id} has been updated by %{author}."
+  text_issue_category_destroy_question: "Some items (%{count}) are assigned to this category. What do you want to do?"
+  text_issue_category_reassign_to: Reassign items to this category
+  text_user_mail_option: "For unselected projects, you will only receive notifications about things you watch or you're involved in (eg. items you're the author or assignee)."
+  text_no_configuration_data: "Roles, classes, item statuses and workflow have not been configured yet.\nIt is highly recommended to load the default configuration. You will be able to modify it once loaded."
+  text_issues_destroy_confirmation: 'Are you sure you want to delete the selected item(s)?'
+  text_issues_destroy_descendants_confirmation: "This will also delete %{count} subitem(s)."
+  text_destroy_time_entries_question: "%{hours} hours were reported on the items you are about to delete. What do you want to do?"
+  text_reassign_time_entries: 'Reassign reported hours to this item:'
+  text_scm_command_version: Release
+  text_select_apply_tracker: "Select class"
+
+  enumeration_issue_priorities: Item priorities
+  description_issue_category_reassign: Choose item category
