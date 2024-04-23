@@ -228,6 +228,9 @@ class CosmosysController < ApplicationController
     u = (params[:key] != nil) ? User.find_by_api_key(params[:key]) : User.current
 
     # Block access if the user is not allowed to see the project
+    raise ::Unauthorized unless u != nil
+    raise ::Unauthorized unless u.class.name == "User" || params[:key] != nil
+    raise ::Unauthorized unless u.class.name == "User" || params[:key] != ""
     raise ::Unauthorized unless u.allowed_to?(:csys_treeview, @project)
 
     # Do nothing if the request is not a GET
