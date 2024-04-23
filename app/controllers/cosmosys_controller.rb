@@ -2,6 +2,7 @@ class CosmosysController < ApplicationController
   before_action :find_this_project
   before_action :authorize, :except => [:find_this_project, :treeview,:treeview_commit,:dep_gv,:hie_gv, :convert_to]
   skip_before_action :verify_authenticity_token, only: [:convert_to]
+  skip_before_action :check_if_login_required, only: [:treeview, :treeview_commit]
 
   @@tmpdir = './tmp/csys_plugin/'
 
