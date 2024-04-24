@@ -7,6 +7,8 @@
     rqstatefield = IssueCustomField.find_by_name('rqComplanceState')          #
     rqjustiffield = IssueCustomField.find_by_name('rqComplianceJustif')       #
     rqrefdocfield = IssueCustomField.find_by_name('rqComplianceDocs')         #
+    rqverif = IssueCustomField.find_by_name('rqVerif')                        #
+    rqverifdescr = IssueCustomField.find_by_name('rqVerifDescr')                        #
     #                                                                         #
     ###########################################################################
 %>
@@ -16,10 +18,12 @@
       <tr>
         <th>csID</th>
         <th>Chapter</th>
-        <th>Subject</th>
+        <th>Title</th>
+        <th>Verif. type</th>
+        <th>Verif. description</th>
         <th>Sta of Compl</th>
         <th>Justification</th>
-        <th>RefDoc</th>
+        <th>Compliance Docs</th>
       </tr>
     </thead>
     <tbody>
@@ -28,6 +32,8 @@
 <%
 puts i.subject
 if (i.csys.shall_draw) and not i.csys.is_chapter? then
+    compl_rqverif = i.custom_field_values.select{|a| a.custom_field_id == rqverif.id }.first
+    compl_rqverifdescr = i.custom_field_values.select{|a| a.custom_field_id == rqverifdescr.id }.first
     compl_state = i.custom_field_values.select{|a| a.custom_field_id == rqstatefield.id }.first
     compl_justif = i.custom_field_values.select{|a| a.custom_field_id == rqjustiffield.id }.first
     compl_refdocs = i.custom_field_values.select{|a| a.custom_field_id == rqrefdocfield.id }.first
@@ -35,6 +41,8 @@ if (i.csys.shall_draw) and not i.csys.is_chapter? then
         <td><%= link_to i.csys.get_identifier, issue_path(i.id) %></td>
         <td><%= i.csys.chapter_str %></td>
         <td><%= i.subject %></td>
+        <td><%= compl_rqverif != nil ? textilizable(compl_rqverif.value.join(", ")) : "" %></td>
+        <td><%= compl_rqverifdescr != nil ? textilizable(compl_rqverifdescr.value.to_s) : "" %></td>
         <td><%= compl_state != nil ? compl_state.value.to_s : "" %></td>
         <td><%= compl_justif != nil ? textilizable(compl_justif.value.to_s) : "" %></td>
         <td>
