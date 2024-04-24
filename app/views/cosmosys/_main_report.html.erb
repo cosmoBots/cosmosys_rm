@@ -10,7 +10,8 @@
       "compl" => "Compliance Matrix",
 # TODO: END   ---------- This has to be moved to cosmosys_req!!! --------------
       "refdoc" => "References",
-      "appldoc" => "Applicables"
+      "appldoc" => "Applicables",
+      "deleted" => "Deleted"
     }
 
     # Helper functions ########################################################
@@ -319,10 +320,11 @@ end
       "applicable documents",
       "reference documents",
       "compliance documents",
-      "compliance matrix"
+      "compliance matrix",
+      "deleted requirements"
     ]
     if not excluded_titles.include?(item.subject.downcase) then
-      item.children.select{|obj| obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}.each {|subitem|
+      item.children.select{|obj| obj.csys.shall_report}.sort_by{|obj| obj.chapter_order}.each {|subitem|
         recursion.(subitem, recursion,current_level+1)
       }
     else %>
@@ -336,21 +338,22 @@ end
 <div class="<%= "cSysProject" %>">
   <% if flags["chapnums"] %><h1><%= @project.csys.code %>: <%= @project.name %></h1><% end %>
   <%
-  roots = @project.issues.select{|obj| obj.parent == nil and obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}
+  roots = @project.issues.select{|obj| obj.parent == nil and obj.csys.shall_report}.sort_by{|obj| obj.chapter_order}
     if roots.size == 0 then
-      roots = @project.issues.select { |n| n.parent.project != @project and n.csys.shall_draw}
+      roots = @project.issues.select { |n| n.parent.project != @project and n.csys.shall_report}
     end
 
     excluded_titles = [
       "applicable documents",
       "reference documents",
       "compliance documents",
-      "compliance matrix"
+      "compliance matrix",
+      "deleted requirements"
     ]
 
     if not excluded_titles.include?(title.downcase) then
       roots.each {|i| draw_items.(i, draw_items,1)}
-    else    
+    else
     %>
       <%= render partial: "cosmosys/excluded_titles/" + title.gsub(" ", "_").downcase, locals: { item: item } %>
     <%

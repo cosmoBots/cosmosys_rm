@@ -144,7 +144,7 @@ class CosmosysController < ApplicationController
 
     childrenitems = thisproject.issues.select { |n| n.parent.project != thisproject } if childrenitems.size == 0
 
-    childrenitems.each {|c| tree_node[:children] << create_tree(c,root_url,false,thisproject,thiskey) if c.csys.shall_draw}
+    childrenitems.each {|c| tree_node[:children] << create_tree(c,root_url,false,thisproject,thiskey) if c.csys.shall_report}
 
     thisproject.csys.update_cschapters
 
@@ -210,7 +210,7 @@ class CosmosysController < ApplicationController
 
     childrenitems = current_issue.children.sort_by {|obj| obj.csys.chapter_order}
 
-    childrenitems.each {|c| tree_node[:children] << create_tree(c,root_url,false,thisproject,thiskey) if c.csys.shall_draw}
+    childrenitems.each {|c| tree_node[:children] << create_tree(c,root_url,false,thisproject,thiskey) if c.csys.shall_report}
 
     return tree_node
   end

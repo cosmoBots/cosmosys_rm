@@ -6,7 +6,8 @@
       "compl" => "Compliance Matrix",
 # TODO: END   ---------- This has to be moved to cosmosys_req!!! --------------
       "refdoc" => "References",
-      "appldoc" => "Applicables"
+      "appldoc" => "Applicables",
+      "deleted" => "Deleted"
     }
 
     # The metadata_dict we receive is inconsistent and has the keys with mixed
@@ -20,7 +21,7 @@
                                         (v["visible"].is_a?(TrueClass) ||
                                          v["visible"].is_a?(FalseClass))}.keys
 
-    doc_option_keys = ["chapnums", "depdiag", "refdoc", "appldoc", "compl"]
+    doc_option_keys = ["chapnums", "depdiag", "refdoc", "appldoc", "compl", "deleted"]
 
     flags = flags.transform_keys(&:to_s).transform_keys(&:downcase)
 
