@@ -14,6 +14,13 @@
       "deleted" => "Deleted"
     }
 
+    excluded_titles = {
+      "applicable documents" => "appldoc",
+      "reference documents" => "refdoc",
+      "compliance matrix" => "compl",
+      "deleted requirements" => "deleted"
+    }
+
     # Helper functions ########################################################
 
     def truthy?(value, nilistrue = false)
@@ -167,7 +174,17 @@ draw_items = lambda {|item, recursion, current_level|
   title = item.subject
 %>
 <div class="<%= classdiv %>">
-  <<%= if current_level + 1 > 6 then "span"; else "h" + (current_level + 1).to_s end %> class="heading_<%= current_level %>"><%= calculate_complete_title(flags["chapnums"], item, chapstr) %> <%= title %></<%= if current_level + 1 > 6 then "span"; else "h" + (current_level + 1).to_s end %>>
+    <% 
+    shall_print_subtree = true
+
+    if excluded_titles.keys.include?(title.downcase) then
+      thisparam = excluded_titles[item.subject.downcase]
+      shall_print_subtree = flags[thisparam]
+    end
+
+    %>
+    <% if shall_print_subtree then %>
+    <<%= if current_level + 1 > 6 then "span"; else "h" + (current_level + 1).to_s end %> class="heading_<%= current_level %>"><%= calculate_complete_title(flags["chapnums"], item, chapstr) %> <%= title %></<%= if current_level + 1 > 6 then "span"; else "h" + (current_level + 1).to_s end %>>
     <div class="<%= classdiv %>descr"><%= textilizable(process_text(item.description),{:object => item}) %></div>
     <% #TODO: BEGIN check if there is a better way to solve https://csys.cosmobots.eu:8443/issues/6613 %>
     <br/>
@@ -315,21 +332,19 @@ end
 %>
 </table></p>
 <br/>
+    <% end %>
 </div><%
-    excluded_titles = [
-      "applicable documents",
-      "reference documents",
-      "compliance documents",
-      "compliance matrix",
-      "deleted requirements"
-    ]
-    if not excluded_titles.include?(item.subject.downcase) then
+    if not excluded_titles.keys.include?(item.subject.downcase) then
       item.children.select{|obj| obj.csys.shall_report}.sort_by{|obj| obj.chapter_order}.each {|subitem|
         recursion.(subitem, recursion,current_level+1)
       }
-    else %>
+    else 
+      thisparam = excluded_titles[item.subject.downcase]
+      if flags[thisparam] then
+    %>
       <%= render partial: "cosmosys/excluded_titles/" + item.subject.gsub(" ", "_").downcase, locals: { item: item } %>
     <%
+      end
     end
 }
 %>
@@ -343,20 +358,15 @@ end
       roots = @project.issues.select { |n| n.parent.project != @project and n.csys.shall_report}
     end
 
-    excluded_titles = [
-      "applicable documents",
-      "reference documents",
-      "compliance documents",
-      "compliance matrix",
-      "deleted requirements"
-    ]
-
-    if not excluded_titles.include?(title.downcase) then
+    if not excluded_titles.keys.include?(title.downcase) then
       roots.each {|i| draw_items.(i, draw_items,1)}
     else
+      thisparam = excluded_titles[item.subject.downcase]
+      if flags[thisparam] then
     %>
       <%= render partial: "cosmosys/excluded_titles/" + title.gsub(" ", "_").downcase, locals: { item: item } %>
     <%
+      end
     end
   %>
 </div>
