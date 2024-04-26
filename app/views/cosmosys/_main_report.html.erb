@@ -13,7 +13,8 @@
       "appldoc" => "Applicables",
       "compldoc" => "Compliance",
       "abbrev" => "Abbreviations",
-      "deleted" => "Deleted"
+      "deleted" => "Deleted",
+      "link" => "Links"
     }
 
     excluded_titles = {
@@ -226,7 +227,6 @@ draw_items = lambda {|item, recursion, current_level|
 <table style="width:50%;border-style:none !important;table-layout:auto; margin-right:0px; margin-left:auto">
 <%                                                                                  #
 
-
 if (metadata_dict != nil) then
   metadata_dict.keys.each { |metadatum_key|
 
@@ -236,9 +236,20 @@ if (metadata_dict != nil) then
 
       label_to_display = metadata_dict[metadatum_key]["label"]
       cf_name = metadata_dict[metadatum_key]["cf_name"]
+      shall_textilizable = true
+      value_to_display_str = nil
 
       # parsing the key to know where to obtain the metadatum
       done = false
+
+
+      if !done and cf_name == "link" then 
+        value_to_display = item.assigned_to
+        if (value_to_display != nil) then
+          value_to_display_str = calculate_complete_title(true, item, item.csys.get_identifier)
+          shall_textilizable = false
+        end
+      end
 
       if !done and cf_name == "assigned" then
         value_to_display = item.assigned_to
@@ -324,7 +335,7 @@ if (metadata_dict != nil) then
       %>
       <tr>
       <th style="border-style:none !important;width:1px;white-space:nowrap"><%= label_to_display%></th>
-      <td style="width:auto;border-style:none !important"><%= textilizable(process_text(value_to_display_str))%></td>
+      <td style="width:auto;border-style:none !important"><%= if shall_textilizable then textilizable(process_text(value_to_display_str)) else value_to_display_str end %></td>
       </tr>
       <%
       end
