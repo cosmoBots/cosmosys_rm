@@ -1,6 +1,6 @@
 class CosmosysProject < ActiveRecord::Base
   belongs_to :project
-  
+
   before_create :init_attr
 
   def get_descendents
@@ -27,7 +27,7 @@ class CosmosysProject < ActiveRecord::Base
   end
 
   def versions_list(p,td)
-      p.versions.each { |v| 
+      p.versions.each { |v|
       if v.project == p then
         td[:targets][v.id.to_s] = {}
         td[:targets][v.id.to_s][:name] = v.name
@@ -58,7 +58,7 @@ class CosmosysProject < ActiveRecord::Base
     if (issue_id != nil) then
       thisnode = Issue.find(issue_id)
       roots = [thisnode]
-    else    
+    else
       roots = self.get_project_root_issues(include_subprojects)
     end
 
@@ -74,19 +74,19 @@ class CosmosysProject < ActiveRecord::Base
     treedata[:members] = {}
     treedata[:issues] = []
 
-    IssueStatus.all.each { |st| 
+    IssueStatus.all.each { |st|
       treedata[:statuses][st.id.to_s] = st.name
     }
 
-    Tracker.all.each { |tr| 
+    Tracker.all.each { |tr|
       treedata[:trackers][tr.id.to_s] = tr.name
     }
 
-    self.project.memberships.all.each { |mb| 
+    self.project.memberships.all.each { |mb|
       if mb.principal.class == Group then
         treedata[:members][mb.principal.lastname.to_s] = {}
         treedata[:members][mb.principal.lastname.to_s][:firstname] = mb.principal.lastname
-        treedata[:members][mb.principal.lastname.to_s][:lastname] = "group" 
+        treedata[:members][mb.principal.lastname.to_s][:lastname] = "group"
         treedata[:members][mb.principal.lastname.to_s][:class] = mb.principal.class.name
       else
         treedata[:members][mb.user.login.to_s] = mb.user.attributes.slice("firstname","lastname")
@@ -95,7 +95,7 @@ class CosmosysProject < ActiveRecord::Base
     }
 
     versions_list(self.project,treedata)
-    
+
     roots.each { |r|
       thisnode=r
       tree_node = thisnode.csys.to_treeview_json(root_url,true)
@@ -108,29 +108,47 @@ class CosmosysProject < ActiveRecord::Base
     return " {{graphviz_link()\n" + dg.to_s + "\n}}"
   end
   def show_hiegraphs_pr(hg)
-    return "{{graphviz_link()\n" + hg.to_s + "\n}}"   
+    return "{{graphviz_link()\n" + hg.to_s + "\n}}"
   end
   def calculate_graphs(root_url)
     # Create a new dependence graph
     if self.project.issues.first != nil then
       # Create a new hierarchy graph
       hg = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "3000,3000", :strict => true, :rankdir => self.project.issues.first.csys.get_hierankdir, :layout => :fdp)
-      hcl = hg.add_graph(:clusterD, :label => 'Hierarchy', :labeljust => 'l', :labelloc=>'t', :margin=> '5', :fontsize => 10) 
+      hcl = hg.add_graph(:clusterD, :label => 'Hierarchy', :labeljust => 'l', :labelloc=>'t', :margin=> '5', :fontsize => 10)
       dg = GraphViz.new( :G, :type => :digraph,:margin => 0, :ratio => 'compress', :size => "3000,3000", :strict => true, :rankdir => self.project.issues.first.csys.get_deprankdir, :layout => :dot)
-      dcl = dg.add_graph(:clusterD, :label => 'Dependences', :labeljust => 'l', :labelloc=>'t', :margin=> '5', :fontsize => 10) 
+      dcl = dg.add_graph(:clusterD, :label => 'Dependences', :labeljust => 'l', :labelloc=>'t', :margin=> '5', :fontsize => 10)
 
       # First we will draw the hierarchy diagram
       roots = self.get_project_root_issues(false)
       roots.each{|n|
         if n.csys.shall_draw then
-          labelstr = n.csys.get_label_noid(n.project)
-          fontnamestr = 'times italic'
-          scl = hcl.add_graph(("cluster"+n.id.to_s).to_sym, :label => labelstr, :fontname => fontnamestr, :penwidth => 1,
-          :URL => root_url + "/issues/" + n.id.to_s,:fontsize => 10, :margin => 4, :tooltip => n.description, 
-          :labeljust => 'l', :labelloc=>'t',:rankdir => "TD")
-          n.children.each{|dwn|
-            scl,torecalc=n.csys.to_graphviz_hiedwn(scl,nil,dwn,true,{},root_url,99,99)
-          }
+          colorstr = n.csys.get_border_color
+          if (n.children.size == 0) then
+            if not(n.csys.shall_show_id) then
+              shapestr =  n.tracker.csys.paint_pref[:chapter_shape]
+              labelstr = n.csys.get_label_noid(self.project)
+              fontnamestr = 'times italic'
+            else
+              shapestr = n.tracker.csys.paint_pref[:issue_shape]
+              labelstr = n.csys.get_label_issue(self.project)
+              fontnamestr = 'times'
+            end
+            fillstr = n.csys.get_fill_color
+            dwn_node = hcl.add_nodes( n.id.to_s, :label => labelstr, :fontname => fontnamestr,
+              :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
+              :URL => root_url + "/issues/" + n.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => n.description)
+
+          else
+            labelstr = n.csys.get_label_noid(n.project)
+            fontnamestr = 'times italic'
+            scl = hcl.add_graph(("cluster"+n.id.to_s).to_sym, :label => labelstr, :fontname => fontnamestr, :penwidth => 1,
+            :URL => root_url + "/issues/" + n.id.to_s,:fontsize => 10, :margin => 4, :tooltip => n.description,
+            :labeljust => 'l', :labelloc=>'t',:rankdir => "TD")
+            n.children.each{|dwn|
+              scl,torecalc=n.csys.to_graphviz_hiedwn(scl,nil,dwn,true,{},root_url,99,99)
+            }
+          end
         end
       }
       # Then we will draw the dependences
@@ -140,7 +158,7 @@ class CosmosysProject < ActiveRecord::Base
           if not(n.csys.shall_show_id) then
             shapestr =  n.tracker.csys.paint_pref[:chapter_shape]
             labelstr = n.csys.get_label_noid(self.project)
-            fontnamestr = 'times italic'            
+            fontnamestr = 'times italic'
           else
             shapestr =  n.tracker.csys.paint_pref[:issue_shape]
             labelstr = n.csys.get_label_issue(self.project)
@@ -156,7 +174,7 @@ class CosmosysProject < ActiveRecord::Base
                 if not(c.csys.shall_show_id) then
                   shapestr =  c.tracker.csys.paint_pref[:chapter_shape]
                   labelstr = c.csys.get_label_noid(self.project)
-                  fontnamestr = 'times italic'            
+                  fontnamestr = 'times italic'
                 else
                   shapestr =  c.tracker.csys.paint_pref[:issue_shape]
                   labelstr = c.csys.get_label_issue(self.project)
@@ -168,15 +186,15 @@ class CosmosysProject < ActiveRecord::Base
           if (n.relations.size>0) then
             dn_node = nil
             n.relations_from.each {|r|
-              if (CosmosysIssue.shall_draw_relation(r,n.tracker)) then          
+              if (CosmosysIssue.shall_draw_relation(r,n.tracker)) then
                 rissue = r.issue_to
                 if rissue.csys.shall_draw then
                   if (rissue != n) then
                     if dn_node == nil then
-                      dn_node = dcl.add_nodes( n.id.to_s, :label => labelstr, :fontname => fontnamestr,   
+                      dn_node = dcl.add_nodes( n.id.to_s, :label => labelstr, :fontname => fontnamestr,
                         :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
                         :URL => root_url + "/issues/" + n.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => n.description)
-                    end                
+                    end
                     # In case a relation does not belong to the project
                     # it must be drawn as an "external" node
                     if (rissue.project != self.project) then
@@ -184,13 +202,13 @@ class CosmosysProject < ActiveRecord::Base
                       if not(rissue.csys.shall_show_id) then
                         shapestr =  rissue.tracker.csys.paint_pref[:chapter_shape]
                         labelstr = rissue.csys.get_label_noid(self.project)
-                        fontnamestr = 'times italic'            
+                        fontnamestr = 'times italic'
                       else
                         shapestr =  rissue.tracker.csys.paint_pref[:issue_shape]
                         labelstr = rissue.csys.get_label_issue(self.project)
                         fontnamestr = 'times'
                       end
-                      relnode_node = dcl.add_nodes( rissue.id.to_s, :label => labelstr, :fontname => fontnamestr, 
+                      relnode_node = dcl.add_nodes( rissue.id.to_s, :label => labelstr, :fontname => fontnamestr,
                         :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
                         :URL => root_url + "/issues/" + rissue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => rissue.description)
                       colorstr = CosmosysIssue.get_relation_color(r,n.tracker)
@@ -209,10 +227,10 @@ class CosmosysProject < ActiveRecord::Base
                 if rissue.csys.shall_draw then
                   if (rissue != n) then
                     if dn_node == nil then
-                      dn_node = dcl.add_nodes( n.id.to_s, :label => labelstr, :fontname => fontnamestr,   
+                      dn_node = dcl.add_nodes( n.id.to_s, :label => labelstr, :fontname => fontnamestr,
                         :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
                         :URL => root_url + "/issues/" + n.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => n.description)
-                    end              
+                    end
                     # In case a relation does not belong to the project
                     # it must be drawn as an "external" node
                     if (rissue.project != self.project) then
@@ -220,31 +238,31 @@ class CosmosysProject < ActiveRecord::Base
                       if not(rissue.csys.shall_show_id) then
                         shapestr =  rissue.tracker.csys.paint_pref[:chapter_shape]
                         labelstr = rissue.csys.get_label_noid(self.project)
-                        fontnamestr = 'times italic'            
+                        fontnamestr = 'times italic'
                       else
                         shapestr =  rissue.tracker.csys.paint_pref[:issue_shape]
                         labelstr = rissue.csys.get_label_issue(self.project)
                         fontnamestr = 'times'
                       end
-                      relnode_node = dcl.add_nodes( rissue.id.to_s, :label => labelstr, :fontname => fontnamestr, 
+                      relnode_node = dcl.add_nodes( rissue.id.to_s, :label => labelstr, :fontname => fontnamestr,
                         :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
                         :URL => root_url + "/issues/" + rissue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => rissue.description)
-                    end          
+                    end
                     colorstr = CosmosysIssue.get_relation_color(r,n.tracker)
                     dcl.add_edges(rissue.id.to_s, dn_node, :color => colorstr,:arrowsize => 0.5)
                   end
                 end
               end
-            }        
+            }
           end
         end
       }
       return dg,hg
     else
       return nil,nil
-    end  
+    end
   end
-  
+
   def show_graphs_pr(dg,hg)
 
     result = "{{graphviz_link()\n" + hg.to_s + "\n}}"
@@ -327,9 +345,9 @@ class CosmosysProject < ActiveRecord::Base
   end
 
   private
-  
+
   def init_attr
-    
-  end  
+
+  end
 
 end
