@@ -410,11 +410,19 @@ class CosmosysController < ApplicationController
         output = `#{command} 2>&1`
         success = $?.success?
         if (!success) then
-          # There were no template document in public folder
-          # copyin the one from the plugin
-          command = "cp ./plugins/cosmosys/assets/template/#{report_format}/#{report_orientation}/report_template.odt #{uploaded_file.path}.odt"
+          # There were no template document in public folder for the current project
+          # copying the default one from the public folder
+          command = "cp ./public/csys/template/default/#{report_format}/#{report_orientation}/report_template.odt #{uploaded_file.path}.odt"
           puts command
           output = `#{command} 2>&1`
+          success = $?.success?
+          if (!success) then
+            # There were no template document in public folder
+            # copyin the one from the plugin
+            command = "cp ./plugins/cosmosys/assets/template/#{report_format}/#{report_orientation}/report_template.odt #{uploaded_file.path}.odt"
+            puts command
+            output = `#{command} 2>&1`
+          end
         end
 
         # Execute LibreOffice command to process the file
