@@ -9,7 +9,8 @@
       "appldoc" => "Applicables",
       "abbrev" => "Abbreviations",
       "compldoc" => "Compliance",
-      "deleted" => "Deleted"
+      "deleted" => "Deleted",
+      "link" => "Links"
     }
 
     # The metadata_dict we receive is inconsistent and has the keys with mixed
@@ -23,7 +24,7 @@
                                         (v["visible"].is_a?(TrueClass) ||
                                          v["visible"].is_a?(FalseClass))}.keys
 
-    doc_option_keys = ["chapnums", "depdiag", "refdoc", "appldoc", "compldoc", "abbrev", "compl", "deleted"]
+    doc_option_keys = ["chapnums", "depdiag", "refdoc", "appldoc", "compldoc", "abbrev", "compl", "deleted", "link"]
 
     flags = flags.transform_keys(&:to_s).transform_keys(&:downcase)
 
