@@ -365,7 +365,7 @@ class CosmosysIssue < ActiveRecord::Base
 
       end
       cl.add_edges(upn_node, n_node, :color => colordep,:arrowsize => 0.5, :dir => dirdep)
-      if upn.project == self.issue.project then
+      if dirdep != :none and upn.project == self.issue.project then
         if not(force_end) then
           if (levels_counter < max_graph_levels) then
             relup = []
@@ -433,7 +433,7 @@ class CosmosysIssue < ActiveRecord::Base
           :URL => root_url + "/issues/" + dwn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => dwn.description)
       end
       cl.add_edges(n_node, dwn_node, :color => colordep,:arrowsize => 0.5, :dir => dirdep)
-      if dwn.project == self.issue.project then
+      if dirdep != :none and dwn.project == self.issue.project then
         if not(force_end) then
           if (levels_counter < max_graph_levels) then
             reldown = []
