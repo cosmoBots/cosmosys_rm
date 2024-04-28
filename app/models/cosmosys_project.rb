@@ -212,10 +212,12 @@ class CosmosysProject < ActiveRecord::Base
                         :style => 'filled', :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
                         :URL => root_url + "/issues/" + rissue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => rissue.description)
                       colorstr = CosmosysIssue.get_relation_color(r,n.tracker)
-                      dcl.add_edges(dn_node, relnode_node, :color => colorstr,:arrowsize => 0.5)
+                      depstr = CosmosysIssue.get_relation_dir(r,n.tracker)
+                      dcl.add_edges(dn_node, relnode_node, :color => colorstr,:arrowsize => 0.5, :dir => depstr)
                     else
                       colorstr = CosmosysIssue.get_relation_color(r,n.tracker)
-                      dcl.add_edges(dn_node, rissue.id.to_s, :color => colorstr,:arrowsize => 0.5)
+                      depstr = CosmosysIssue.get_relation_dir(r,n.tracker)
+                      dcl.add_edges(dn_node, rissue.id.to_s, :color => colorstr,:arrowsize => 0.5, :dir => depstr)
                     end
                   end
                 end
@@ -249,7 +251,8 @@ class CosmosysProject < ActiveRecord::Base
                         :URL => root_url + "/issues/" + rissue.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => rissue.description)
                     end
                     colorstr = CosmosysIssue.get_relation_color(r,n.tracker)
-                    dcl.add_edges(rissue.id.to_s, dn_node, :color => colorstr,:arrowsize => 0.5)
+                    depstr = CosmosysIssue.get_relation_dir(r,n.tracker)
+                    dcl.add_edges(rissue.id.to_s, dn_node, :color => colorstr,:arrowsize => 0.5, :dir => depstr)
                   end
                 end
               end

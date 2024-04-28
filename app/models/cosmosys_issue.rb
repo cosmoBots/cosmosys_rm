@@ -222,6 +222,10 @@ class CosmosysIssue < ActiveRecord::Base
     return t.csys.paint_pref[:relation_color][r.relation_type]
   end
 
+  def self.get_relation_dir(r,t)
+    return t.csys.paint_pref[:relation_dir][r.relation_type]
+  end
+
   def self.shall_draw_relation(r,t)
     return t.csys.paint_pref[:shall_draw_relation][r.relation_type]
   end
@@ -330,7 +334,7 @@ class CosmosysIssue < ActiveRecord::Base
   end
   # -----------------------------------
 
-  def to_graphviz_depupn(cl,n_node,upn,isfirst,torecalc,root_url,levels_counter,force_end,colordep, max_graph_siblings, max_graph_levels)
+  def to_graphviz_depupn(cl,n_node,upn,isfirst,torecalc,root_url,levels_counter,force_end,colordep, max_graph_siblings, max_graph_levels, dirdep)
     if upn.csys.shall_draw then
       if (levels_counter >= max_graph_levels)
         stylestr = 'dotted'
@@ -360,7 +364,7 @@ class CosmosysIssue < ActiveRecord::Base
           :URL => root_url + "/issues/" + upn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => upn.description)
 
       end
-      cl.add_edges(upn_node, n_node, :color => colordep,:arrowsize => 0.5)
+      cl.add_edges(upn_node, n_node, :color => colordep,:arrowsize => 0.5, :dir => dirdep)
       if upn.project == self.issue.project then
         if not(force_end) then
           if (levels_counter < max_graph_levels) then
@@ -375,12 +379,13 @@ class CosmosysIssue < ActiveRecord::Base
             upn.relations_to.each {|upn2|
               if (CosmosysIssue.shall_draw_relation(upn2,upn.tracker)) then
                 colordep2 = CosmosysIssue.get_relation_color(upn2,upn.tracker)
+                dirdep2 = CosmosysIssue.get_relation_dir(upn2,upn.tracker)
                 if not(relup.include?(upn2.issue_from.parent)) then
                   if (siblings_counter < max_graph_siblings) then
-                    cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn2.issue_from,isfirst,torecalc,root_url,levels_counter,force_end,colordep2,max_graph_siblings,max_graph_levels)
+                    cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn2.issue_from,isfirst,torecalc,root_url,levels_counter,force_end,colordep2,max_graph_siblings,max_graph_levels, dirdep2)
                   else
                     if (siblings_counter <= max_graph_siblings) then
-                      cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn2.issue_from,isfirst,torecalc,root_url,levels_counter,true,colordep2,max_graph_siblings,max_graph_levels)
+                      cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn2.issue_from,isfirst,torecalc,root_url,levels_counter,true,colordep2,max_graph_siblings,max_graph_levels, dirdep2)
                     end
                   end
                   siblings_counter += 1
@@ -399,7 +404,7 @@ class CosmosysIssue < ActiveRecord::Base
 
 
 
-  def to_graphviz_depdwn(cl,n_node,dwn,isfirst,torecalc,root_url,levels_counter,force_end,colordep,max_graph_siblings,max_graph_levels)
+  def to_graphviz_depdwn(cl,n_node,dwn,isfirst,torecalc,root_url,levels_counter,force_end,colordep,max_graph_siblings,max_graph_levels, dirdep)
     if dwn.csys.shall_draw then
       if (levels_counter >= max_graph_levels) then
         stylestr = 'dotted'
@@ -427,7 +432,7 @@ class CosmosysIssue < ActiveRecord::Base
           :style => stylestr, :color => colorstr, :fillcolor => fillstr, :shape => shapestr,
           :URL => root_url + "/issues/" + dwn.id.to_s,:fontsize => 10, :margin => 0.03, :width => 0, :height => 0, :penwidth => 0.5, :tooltip => dwn.description)
       end
-      cl.add_edges(n_node, dwn_node, :color => colordep,:arrowsize => 0.5)
+      cl.add_edges(n_node, dwn_node, :color => colordep,:arrowsize => 0.5, :dir => dirdep)
       if dwn.project == self.issue.project then
         if not(force_end) then
           if (levels_counter < max_graph_levels) then
@@ -443,12 +448,13 @@ class CosmosysIssue < ActiveRecord::Base
               #if dwn2.issue_to.project == self.issue.project then
                 if (CosmosysIssue.shall_draw_relation(dwn2,dwn.tracker)) then
                   colordep2 = CosmosysIssue.get_relation_color(dwn2,dwn.tracker)
+                  dirdep2 = CosmosysIssue.get_relation_dir(dwn2,dwn.tracker)
                   if not(reldown.include?(dwn2.issue_to.parent)) then
                     if (siblings_counter < max_graph_siblings) then
-                      cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn2.issue_to,isfirst,torecalc,root_url, levels_counter, force_end,colordep2,max_graph_siblings,max_graph_levels)
+                      cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn2.issue_to,isfirst,torecalc,root_url, levels_counter, force_end,colordep2,max_graph_siblings,max_graph_levels, depdir2)
                     else
                       if (siblings_counter <= max_graph_siblings) then
-                        cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn2.issue_to,isfirst,torecalc,root_url, levels_counter, true,colordep2,max_graph_siblings,max_graph_levels)
+                        cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn2.issue_to,isfirst,torecalc,root_url, levels_counter, true,colordep2,max_graph_siblings,max_graph_levels, depdir2)
                       end
                     end
                     siblings_counter += 1
@@ -511,7 +517,8 @@ class CosmosysIssue < ActiveRecord::Base
                     if (CosmosysIssue.shall_draw_relation(r,e.tracker)) then
                       if (desc+descbound).include?(r.issue_to) then
                         colorstr = CosmosysIssue.get_relation_color(r,e.tracker)
-                        cl.add_edges(e.id.to_s, r.issue_to_id.to_s, :color => colorstr, :arrowsize => 0.5)
+                        depstr = CosmosysIssue.get_relation_dir(r,e.tracker)
+                        cl.add_edges(e.id.to_s, r.issue_to_id.to_s, :color => colorstr, :arrowsize => 0.5, :dir => depstr)
                         anyrel = true
                       end
                     end
@@ -524,7 +531,8 @@ class CosmosysIssue < ActiveRecord::Base
                     if (CosmosysIssue.shall_draw_relation(r,e.tracker)) then
                       if (desc+descbound).include?(r.issue_from) then
                         colorstr = CosmosysIssue.get_relation_color(r,e.tracker)
-                        cl.add_edges(r.issue_from_id.to_s, e.id.to_s, :color => colorstr, :arrowsize => 0.5)
+                        depstr = CosmosysIssue.get_relation_dir(r,e.tracker)
+                        cl.add_edges(r.issue_from_id.to_s, e.id.to_s, :color => colorstr, :arrowsize => 0.5, :dir => depstr)
                         anyrel = true
                       end
                     end
@@ -576,12 +584,13 @@ class CosmosysIssue < ActiveRecord::Base
             #if dwn.issue_to.project == self.issue.project then
               if (CosmosysIssue.shall_draw_relation(dwn,self.issue.tracker)) then
                 colordep2 = CosmosysIssue.get_relation_color(dwn,self.issue.tracker)
+                depdir2 = CosmosysIssue.get_relation_dir(dwn,self.issue.tracker)
                 if not(dwnrel.include?(dwn.issue_to.parent)) then
                   if (siblings_counter < max_graph_siblings) then
-                    cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,false,colordep2,max_graph_siblings,max_graph_levels)
+                    cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,false,colordep2,max_graph_siblings,max_graph_levels, depdir2)
                   else
                     if (siblings_counter <= max_graph_siblings) then
-                      cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,true,colordep2,max_graph_siblings,max_graph_levels)
+                      cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,true,colordep2,max_graph_siblings,max_graph_levels, depdir2)
                     end
                   end
                   siblings_counter += 1
@@ -594,11 +603,12 @@ class CosmosysIssue < ActiveRecord::Base
             #if upn.issue_from.project == self.issue.project then
               if (CosmosysIssue.shall_draw_relation(upn,self.issue.tracker)) then
                 colordep2 = CosmosysIssue.get_relation_color(upn,self.issue.tracker)
+                depdir2 = CosmosysIssue.get_relation_dir(upn,self.issue.tracker)
                 if (siblings_counter < max_graph_siblings) then
-                  cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,false,colordep2,max_graph_siblings,max_graph_levels)
+                  cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,false,colordep2,max_graph_siblings,max_graph_levels, depdir2)
                 else
                   if (siblings_counter <= max_graph_siblings) then
-                    cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,true,colordep2,max_graph_siblings,max_graph_levels)
+                    cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,true,colordep2,max_graph_siblings,max_graph_levels, depdir2)
                   end
                 end
                 siblings_counter += 1
@@ -633,12 +643,13 @@ class CosmosysIssue < ActiveRecord::Base
           #if dwn.issue_to.project == self.issue.project then
             if (CosmosysIssue.shall_draw_relation(dwn,self.issue.tracker)) then
               colordep2 = CosmosysIssue.get_relation_color(dwn,self.issue.tracker)
+              depdir2 = CosmosysIssue.get_relation_dir(dwn,self.issue.tracker)
               if not(downrel.include?(dwn.issue_to.parent)) then
                 if (siblings_counter < max_graph_siblings) then
-                  cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,false,colordep2,max_graph_siblings,max_graph_levels)
+                  cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,false,colordep2,max_graph_siblings,max_graph_levels, depdir2)
                 else
                   if (siblings_counter <= max_graph_siblings) then
-                    cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,true,colordep2,max_graph_siblings,max_graph_levels)
+                    cl,torecalc=self.to_graphviz_depdwn(cl,n_node,dwn.issue_to,isfirst,torecalc,root_url,1,true,colordep2,max_graph_siblings,max_graph_levels, depdir2)
                   end
                 end
                 siblings_counter += 1
@@ -651,11 +662,12 @@ class CosmosysIssue < ActiveRecord::Base
           #if upn.issue_from.project == self.issue.project then
             if (CosmosysIssue.shall_draw_relation(upn,self.issue.tracker)) then
               colordep2 = CosmosysIssue.get_relation_color(upn,self.issue.tracker)
+              depdir2 = CosmosysIssue.get_relation_dir(upn,self.issue.tracker)
               if (siblings_counter < max_graph_siblings) then
-                cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,false,colordep2,max_graph_siblings,max_graph_levels)
+                cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,false,colordep2,max_graph_siblings,max_graph_levels, depdir2)
               else
                 if (siblings_counter <= max_graph_siblings) then
-                  cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,true,colordep2,max_graph_siblings,max_graph_levels)
+                  cl,torecalc=self.to_graphviz_depupn(cl,n_node,upn.issue_from,isfirst,torecalc,root_url,1,true,colordep2,max_graph_siblings,max_graph_levels, depdir2)
                 end
               end
               siblings_counter += 1
