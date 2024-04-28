@@ -379,13 +379,13 @@ class CosmosysIssue < ActiveRecord::Base
             upn.relations_to.each {|upn2|
               if (CosmosysIssue.shall_draw_relation(upn2,upn.tracker)) then
                 colordep2 = CosmosysIssue.get_relation_color(upn2,upn.tracker)
-                dirdep2 = CosmosysIssue.get_relation_dir(upn2,upn.tracker)
+                depdir2 = CosmosysIssue.get_relation_dir(upn2,upn.tracker)
                 if not(relup.include?(upn2.issue_from.parent)) then
                   if (siblings_counter < max_graph_siblings) then
-                    cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn2.issue_from,isfirst,torecalc,root_url,levels_counter,force_end,colordep2,max_graph_siblings,max_graph_levels, dirdep2)
+                    cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn2.issue_from,isfirst,torecalc,root_url,levels_counter,force_end,colordep2,max_graph_siblings,max_graph_levels, depdir2)
                   else
                     if (siblings_counter <= max_graph_siblings) then
-                      cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn2.issue_from,isfirst,torecalc,root_url,levels_counter,true,colordep2,max_graph_siblings,max_graph_levels, dirdep2)
+                      cl,torecalc=self.to_graphviz_depupn(cl,upn_node,upn2.issue_from,isfirst,torecalc,root_url,levels_counter,true,colordep2,max_graph_siblings,max_graph_levels, depdir2)
                     end
                   end
                   siblings_counter += 1
@@ -448,7 +448,7 @@ class CosmosysIssue < ActiveRecord::Base
               #if dwn2.issue_to.project == self.issue.project then
                 if (CosmosysIssue.shall_draw_relation(dwn2,dwn.tracker)) then
                   colordep2 = CosmosysIssue.get_relation_color(dwn2,dwn.tracker)
-                  dirdep2 = CosmosysIssue.get_relation_dir(dwn2,dwn.tracker)
+                  depdir2 = CosmosysIssue.get_relation_dir(dwn2,dwn.tracker)
                   if not(reldown.include?(dwn2.issue_to.parent)) then
                     if (siblings_counter < max_graph_siblings) then
                       cl,torecalc=self.to_graphviz_depdwn(cl,dwn_node,dwn2.issue_to,isfirst,torecalc,root_url, levels_counter, force_end,colordep2,max_graph_siblings,max_graph_levels, depdir2)
