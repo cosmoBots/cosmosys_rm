@@ -256,7 +256,7 @@ if (metadata_dict != nil) then
 
 
       if !done and cf_name == "link" then 
-        value_to_display = item.assigned_to
+        value_to_display = item.csys.get_identifier
         if (value_to_display != nil) then
           value_to_display_str = calculate_complete_title(true, item, item.csys.get_identifier)
           shall_textilizable = false
