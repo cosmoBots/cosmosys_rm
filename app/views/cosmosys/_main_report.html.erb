@@ -43,11 +43,22 @@
 
       chapstr += " " if showchap unless i.csys.is_chapter?
 
-      chapstr += i.csys.get_identifier unless i.csys.is_chapter?
+      # Moving these to calculate_title
+      # chapstr += i.csys.get_identifier unless i.csys.is_chapter?
 
-      chapstr += ':' if showchap
+      # chapstr += ':' if showchap
 
       return chapstr,classdiv
+    end
+
+    def calculate_title(showchap, i)
+      titlestr = ""
+      if not i.csys.is_chapter? then
+        titlestr += i.csys.get_identifier
+        titlestr += ': ' if showchap
+      end
+      titlestr += i.subject
+      return titlestr
     end
 
     def calculate_complete_title(showchap, i, chapstr)
@@ -175,14 +186,15 @@
 <%
 # This is a recursive lambda that draws the items and their children.
 draw_items = lambda {|item, recursion, current_level|
-  chapstr, classdiv = calculate_heading(flags["chapnums"], item)
-  title = item.subject
+  showchaps = flags["chapnums"]
+  chapstr, classdiv = calculate_heading(showchaps, item)
+  title = calculate_title(showchaps, item)
 %>
 <div class="<%= classdiv %>">
     <% 
     shall_print_subtree = true
 
-    if excluded_titles.keys.include?(title.downcase) then
+    if excluded_titles.keys.include?(item.subject.downcase) then
       thisparam = excluded_titles[item.subject.downcase]
       shall_print_subtree = flags[thisparam]
     end
@@ -244,7 +256,7 @@ if (metadata_dict != nil) then
 
 
       if !done and cf_name == "link" then 
-        value_to_display = item.assigned_to
+        value_to_display = item.csys.get_identifier
         if (value_to_display != nil) then
           value_to_display_str = calculate_complete_title(true, item, item.csys.get_identifier)
           shall_textilizable = false
