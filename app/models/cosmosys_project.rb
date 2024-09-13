@@ -13,13 +13,21 @@ class CosmosysProject < ActiveRecord::Base
   end
 
   def get_project_root_issues(include_subprojects)
-    roots = self.project.issues.where(:parent => nil)
+    roots = []
+    self.project.issues.each { |i|
+      if i.parent == nil || i.parent.project != self.project then
+        roots << i
+      end
+    }
+    puts("******** roots **************")
 	  if (include_subprojects) then
 	    self.project.children.each{ |p|
 			roots += p.csys.get_project_root_issues(include_subprojects)
 		}
 	  end
-	  return roots
+    puts("******** Extended roots **************")
+    puts roots
+    return roots
   end
 
   def show_as_json(issue_id,root_url,include_subprojects)
@@ -111,6 +119,7 @@ class CosmosysProject < ActiveRecord::Base
     return "{{graphviz_link()\n" + hg.to_s + "\n}}"
   end
   def calculate_graphs(root_url)
+    puts("calculate graphs")
     # Create a new dependence graph
     if self.project.issues.first != nil then
       # Create a new hierarchy graph
