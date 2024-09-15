@@ -1,6 +1,8 @@
 class CosmosysController < ApplicationController
   before_action :find_this_project
-  before_action :authorize, :except => [:find_this_project, :treeview,:treeview_commit,:dep_gv,:hie_gv, :convert_to]
+  # TODO: Understand how I could re-enable the "authorize" on dep_gv and hie_gv in this controller
+  # but I was not able to do the same in cosmosys_issues_controller
+  before_action :authorize, :except => [:find_this_project, :treeview,:treeview_commit, :convert_to]#,:dep_gv,:hie_gv]
   skip_before_action :verify_authenticity_token, only: [:convert_to]
   skip_before_action :check_if_login_required, only: [:treeview, :treeview_commit]
 
