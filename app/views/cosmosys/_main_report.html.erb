@@ -10,7 +10,20 @@
       "compl" => "Compliance Matrix",
 # TODO: END   ---------- This has to be moved to cosmosys_req!!! --------------
       "refdoc" => "References",
-      "appldoc" => "Applicables"
+      "appldoc" => "Applicables",
+      "compldoc" => "Compliance",
+      "abbrev" => "Abbreviations",
+      "deleted" => "Deleted",
+      "link" => "Links"
+    }
+
+    excluded_titles = {
+      "applicable documents" => "appldoc",
+      "reference documents" => "refdoc",
+      "compliance documents" => "compldoc",
+      "compliance matrix" => "compl",
+      "list of abbreviations" => "abbrev",
+      "deleted requirements" => "deleted"
     }
 
     # Helper functions ########################################################
@@ -30,11 +43,22 @@
 
       chapstr += " " if showchap unless i.csys.is_chapter?
 
-      chapstr += i.csys.get_identifier unless i.csys.is_chapter?
+      # Moving these to calculate_title
+      # chapstr += i.csys.get_identifier unless i.csys.is_chapter?
 
-      chapstr += ':' if showchap
+      # chapstr += ':' if showchap
 
       return chapstr,classdiv
+    end
+
+    def calculate_title(showchap, i)
+      titlestr = ""
+      if not i.csys.is_chapter? then
+        titlestr += i.csys.get_identifier
+        titlestr += ': ' if showchap
+      end
+      titlestr += i.subject
+      return titlestr
     end
 
     def calculate_complete_title(showchap, i, chapstr)
@@ -113,12 +137,14 @@
           metadatum_descriptor = {
             "visible" => false,
             "selectable" => true,
-            "label" => metadatum_key
+            "label" => metadatum_key,
+            "body" => false
           }
         else
           metadatum_descriptor["visible"] = false if metadatum_descriptor["visible"] == nil
           metadatum_descriptor["selectable"] = true if metadatum_descriptor["selectable"] == nil
           metadatum_descriptor["label"] = metadatum_key.to_s if metadatum_descriptor["label"] == nil
+          metadatum_descriptor["body"] = false if metadatum_descriptor["body"] == nil
           metadatum_descriptor["cf_name"] = metadatum_key
         end
 
@@ -135,7 +161,9 @@
     cfdepgraph = IssueCustomField.find_by_name("depGrahInReports")            #
 
     # Let's prepare the flags for computing the current URL params and
+    # body_flags to know the place to show the metadata
     flags = {}
+    body_flags = {}
 
     # Firstable, the flags depend on the default values of the metadata_dict
     metadata_dict = get_project_custom_YAML_field(@project, "csReportMetadata")
@@ -145,8 +173,10 @@
     metadata_dict.keys.each { |k| 
       if (metadata_dict[k]["visible"]) then
         flags[k] = true;
+        body_flags[k] = metadata_dict[k]["body"]
       else
         flags[k] = false;
+        body_flags[k] = false;
       end  
     }  
     # Then, in case a param exist in the current URL, the flag will be taken from the URL
@@ -162,11 +192,22 @@
 <%
 # This is a recursive lambda that draws the items and their children.
 draw_items = lambda {|item, recursion, current_level|
-  chapstr, classdiv = calculate_heading(flags["chapnums"], item)
-  title = item.subject
+  showchaps = flags["chapnums"]
+  chapstr, classdiv = calculate_heading(showchaps, item)
+  title = calculate_title(showchaps, item)
 %>
 <div class="<%= classdiv %>">
-  <<%= if current_level + 1 > 6 then "span"; else "h" + (current_level + 1).to_s end %> class="heading_<%= current_level %>"><%= calculate_complete_title(flags["chapnums"], item, chapstr) %> <%= title %></<%= if current_level + 1 > 6 then "span"; else "h" + (current_level + 1).to_s end %>>
+    <% 
+    shall_print_subtree = true
+
+    if excluded_titles.keys.include?(item.subject.downcase) then
+      thisparam = excluded_titles[item.subject.downcase]
+      shall_print_subtree = flags[thisparam]
+    end
+
+    %>
+    <% if shall_print_subtree then %>
+    <<%= if current_level + 1 > 6 then "span"; else "h" + (current_level + 1).to_s end %> class="heading_<%= current_level %>"><%= calculate_complete_title(flags["chapnums"], item, chapstr) %> <%= title %></<%= if current_level + 1 > 6 then "span"; else "h" + (current_level + 1).to_s end %>>
     <div class="<%= classdiv %>descr"><%= textilizable(process_text(item.description),{:object => item}) %></div>
     <% #TODO: BEGIN check if there is a better way to solve https://csys.cosmobots.eu:8443/issues/6613 %>
     <br/>
@@ -200,23 +241,29 @@ draw_items = lambda {|item, recursion, current_level|
     end
 
 %>
-<p>
-<table style="width:50%;border-style:none !important;table-layout:auto; margin-right:0px; margin-left:auto">
-<%                                                                                  #
-
-
+<% 
 if (metadata_dict != nil) then
   metadata_dict.keys.each { |metadatum_key|
-
-    visibility = flags[metadatum_key]
+    visibility = body_flags[metadatum_key] && flags[metadatum_key]
 
     if visibility then
 
       label_to_display = metadata_dict[metadatum_key]["label"]
       cf_name = metadata_dict[metadatum_key]["cf_name"]
+      shall_textilizable = true
+      value_to_display_str = nil
 
       # parsing the key to know where to obtain the metadatum
       done = false
+
+
+      if !done and cf_name == "link" then 
+        value_to_display = item.csys.get_identifier
+        if (value_to_display != nil) then
+          value_to_display_str = calculate_complete_title(true, item, item.csys.get_identifier)
+          shall_textilizable = false
+        end
+      end
 
       if !done and cf_name == "assigned" then
         value_to_display = item.assigned_to
@@ -289,7 +336,134 @@ if (metadata_dict != nil) then
             if value_to_display.value.kind_of?(Array) then
               value_to_display_str = value_to_display.value.join(', ')
             else
-              value_to_display_str = value_to_display.value.to_s
+              if cf_name == "rqRationale" then
+                value_to_display_str = value_to_display.value
+                else
+                value_to_display_str = value_to_display.value.to_s
+              end
+            end
+          end
+        else
+          puts "The issue " + item.id + ": " + item.subject + " does not have custom_field_values"
+        end
+      end
+      if value_to_display_str != nil and value_to_display_str != "" then
+      %>
+      <tr>
+      <p><b><u><%= label_to_display%></u></b></p>
+      <p><%= if shall_textilizable then textilizable(process_text(value_to_display_str),{:object => item}) else value_to_display_str end %></p>
+      <br/>
+      <br/>
+      <%
+      end
+    end
+  }
+end
+%>
+<p>
+<table style="width:50%;border-style:none !important;table-layout:auto; margin-right:0px; margin-left:auto">
+<%                                                                                  #
+
+if (metadata_dict != nil) then
+  metadata_dict.keys.each { |metadatum_key|
+
+    visibility = flags[metadatum_key] && !body_flags[metadatum_key]
+
+    if visibility then
+
+      label_to_display = metadata_dict[metadatum_key]["label"]
+      cf_name = metadata_dict[metadatum_key]["cf_name"]
+      shall_textilizable = true
+      value_to_display_str = nil
+
+      # parsing the key to know where to obtain the metadatum
+      done = false
+
+
+      if !done and cf_name == "link" then 
+        value_to_display = item.csys.get_identifier
+        if (value_to_display != nil) then
+          value_to_display_str = calculate_complete_title(true, item, item.csys.get_identifier)
+          shall_textilizable = false
+        end
+      end
+
+      if !done and cf_name == "assigned" then
+        value_to_display = item.assigned_to
+        if (value_to_display != nil) then
+          value_to_display_str = value_to_display.name
+        end
+      end
+
+      if !done and cf_name == "status" then
+        value_to_display = item.status
+        if (value_to_display != nil) then
+          value_to_display_str = value_to_display.name
+        end
+      end
+
+      if !done and cf_name == "version" then
+        value_to_display = item.fixed_version
+        if (value_to_display != nil) then
+          value_to_display_str = value_to_display.name
+        end
+      end
+
+
+      if !done and cf_name == "priority" then
+        value_to_display = item.priority
+        if (value_to_display != nil) then
+          value_to_display_str = value_to_display.name
+        end
+      end
+
+
+      if !done and cf_name == "start_date" then
+        value_to_display = item.start_date
+        if (value_to_display != nil) then
+          value_to_display_str = value_to_display.to_s
+        end
+      end
+
+
+      if !done and cf_name == "due_date" then
+        value_to_display = item.due_date
+        if (value_to_display != nil) then
+          value_to_display_str = value_to_display.to_s
+        end
+      end
+
+
+      if !done and cf_name == "done_ratio" && item.tracker.core_fields.include?("done_ratio")  then
+        value_to_display = item.done_ratio
+        if (value_to_display != nil) then
+          value_to_display_str = value_to_display.to_s
+        end
+      end
+
+
+      if !done and cf_name == "estimated_hours" then
+        value_to_display = item.estimated_hours
+        if (value_to_display != nil) then
+          value_to_display_str = value_to_display.to_s
+        end
+      end
+
+      if !done then
+        # Maybe the value is a custom_value
+        # cfi = IssueCustomField.find_by_name(cf_name)
+        cvis = item.custom_field_values
+        if (cvis != nil) then
+          value_to_display = cvis.detect { |cvi| cvi.custom_field.name == cf_name }
+          if (value_to_display != nil) then
+            if value_to_display.value.kind_of?(Array) then
+              value_to_display_str = value_to_display.value.join(', ')
+            else
+              if cf_name == "rqRationale" then
+                value_to_display_str = value_to_display.value
+                else
+                value_to_display_str = value_to_display.value.to_s
+              end
             end
 
 
@@ -302,7 +476,7 @@ if (metadata_dict != nil) then
       %>
       <tr>
       <th style="border-style:none !important;width:1px;white-space:nowrap"><%= label_to_display%></th>
-      <td style="width:auto;border-style:none !important"><%= textilizable(process_text(value_to_display_str))%></td>
+      <td style="width:auto;border-style:none !important"><%= if shall_textilizable then textilizable(process_text(value_to_display_str),{:object => item}) else value_to_display_str end %></td>
       </tr>
       <%
       end
@@ -314,20 +488,19 @@ end
 %>
 </table></p>
 <br/>
+    <% end %>
 </div><%
-    excluded_titles = [
-      "applicable documents",
-      "reference documents",
-      "compliance documents",
-      "compliance matrix"
-    ]
-    if not excluded_titles.include?(item.subject.downcase) then
-      item.children.select{|obj| obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}.each {|subitem|
+    if not excluded_titles.keys.include?(item.subject.downcase) then
+      item.children.select{|obj| obj.csys.shall_report}.sort_by{|obj| obj.chapter_order}.each {|subitem|
         recursion.(subitem, recursion,current_level+1)
       }
-    else %>
+    else 
+      thisparam = excluded_titles[item.subject.downcase]
+      if flags[thisparam] then
+    %>
       <%= render partial: "cosmosys/excluded_titles/" + item.subject.gsub(" ", "_").downcase, locals: { item: item } %>
     <%
+      end
     end
 }
 %>
@@ -336,24 +509,20 @@ end
 <div class="<%= "cSysProject" %>">
   <% if flags["chapnums"] %><h1><%= @project.csys.code %>: <%= @project.name %></h1><% end %>
   <%
-  roots = @project.issues.select{|obj| obj.parent == nil and obj.csys.shall_draw}.sort_by{|obj| obj.chapter_order}
+  roots = @project.issues.select{|obj| obj.parent == nil and obj.csys.shall_report}.sort_by{|obj| obj.chapter_order}
     if roots.size == 0 then
-      roots = @project.issues.select { |n| n.parent.project != @project and n.csys.shall_draw}
+      roots = @project.issues.select { |n| n.parent.project != @project and n.csys.shall_report}
     end
 
-    excluded_titles = [
-      "applicable documents",
-      "reference documents",
-      "compliance documents",
-      "compliance matrix"
-    ]
-
-    if not excluded_titles.include?(title.downcase) then
+    if not excluded_titles.keys.include?(title.downcase) then
       roots.each {|i| draw_items.(i, draw_items,1)}
-    else    
+    else
+      thisparam = excluded_titles[item.subject.downcase]
+      if flags[thisparam] then
     %>
       <%= render partial: "cosmosys/excluded_titles/" + title.gsub(" ", "_").downcase, locals: { item: item } %>
     <%
+      end
     end
   %>
 </div>

@@ -13,6 +13,12 @@ class CosmosysTracker < ActiveRecord::Base
           'relates' => 'grey',
           'copied_to' => 'orange'
         },
+        :relation_dir => {
+          'blocks' => :foward,
+          'precedes' => :forward,
+          'relates' => :none,
+          'copied_to' => :none
+        },
         :shall_draw_relation => {
           'blocks' => true,
           'precedes' => true,
@@ -36,6 +42,12 @@ class CosmosysTracker < ActiveRecord::Base
           'precedes' => 'green',
           'relates' => 'grey',
           'copied_to' => 'orange'
+        },
+        :relation_dir => {
+          'blocks' => :foward,
+          'precedes' => :forward,
+          'relates' => :none,
+          'copied_to' => :none
         },
         :shall_draw_relation => {
           'blocks' => true,

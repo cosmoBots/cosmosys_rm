@@ -1,0 +1,18 @@
+<div class="apldocstable">
+  <table>
+    <thead>
+      <tr>
+        <th>csID</th>
+        <th>Title</th>
+      </tr>
+    </thead>
+    <tbody>
+<% item.children.each{|i| %>
+      <tr>
+        <td><%= link_to i.csys.identifier, issue_path(i.id) %></td>
+        <td><%= i.subject %></td>
+      </tr>
+<% } %>
+    </tbody>
+  </table>
+</div>

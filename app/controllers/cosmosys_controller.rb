@@ -1,6 +1,8 @@
 class CosmosysController < ApplicationController
   before_action :find_this_project
-  before_action :authorize, :except => [:find_this_project, :treeview,:treeview_commit,:dep_gv,:hie_gv, :convert_to]
+  # TODO: Understand how I could re-enable the "authorize" on dep_gv and hie_gv in this controller
+  # but I was not able to do the same in cosmosys_issues_controller
+  before_action :authorize, :except => [:find_this_project, :treeview,:treeview_commit, :convert_to]#,:dep_gv,:hie_gv]
   skip_before_action :verify_authenticity_token, only: [:convert_to]
   skip_before_action :check_if_login_required, only: [:treeview, :treeview_commit]
 
@@ -144,7 +146,7 @@ class CosmosysController < ApplicationController
 
     childrenitems = thisproject.issues.select { |n| n.parent.project != thisproject } if childrenitems.size == 0
 
-    childrenitems.each {|c| tree_node[:children] << create_tree(c,root_url,false,thisproject,thiskey) if c.csys.shall_draw}
+    childrenitems.each {|c| tree_node[:children] << create_tree(c,root_url,false,thisproject,thiskey) if c.csys.shall_report}
 
     thisproject.csys.update_cschapters
 
@@ -210,7 +212,7 @@ class CosmosysController < ApplicationController
 
     childrenitems = current_issue.children.sort_by {|obj| obj.csys.chapter_order}
 
-    childrenitems.each {|c| tree_node[:children] << create_tree(c,root_url,false,thisproject,thiskey) if c.csys.shall_draw}
+    childrenitems.each {|c| tree_node[:children] << create_tree(c,root_url,false,thisproject,thiskey) if c.csys.shall_report}
 
     return tree_node
   end
@@ -410,11 +412,19 @@ class CosmosysController < ApplicationController
         output = `#{command} 2>&1`
         success = $?.success?
         if (!success) then
-          # There were no template document in public folder
-          # copyin the one from the plugin
-          command = "cp ./plugins/cosmosys/assets/template/#{report_format}/#{report_orientation}/report_template.odt #{uploaded_file.path}.odt"
+          # There were no template document in public folder for the current project
+          # copying the default one from the public folder
+          command = "cp ./public/csys/template/default/#{report_format}/#{report_orientation}/report_template.odt #{uploaded_file.path}.odt"
           puts command
           output = `#{command} 2>&1`
+          success = $?.success?
+          if (!success) then
+            # There were no template document in public folder
+            # copyin the one from the plugin
+            command = "cp ./plugins/cosmosys/assets/template/#{report_format}/#{report_orientation}/report_template.odt #{uploaded_file.path}.odt"
+            puts command
+            output = `#{command} 2>&1`
+          end
         end
 
         # Execute LibreOffice command to process the file
