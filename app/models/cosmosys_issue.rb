@@ -234,6 +234,10 @@ class CosmosysIssue < ActiveRecord::Base
     return true
   end
 
+  def shall_report
+    true
+  end
+
   def self.get_childrentype(i,t)
     return t.csys.childrentype(i)
   end
