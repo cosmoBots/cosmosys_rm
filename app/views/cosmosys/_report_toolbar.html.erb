@@ -8,6 +8,7 @@
       "refdoc" => "References",
       "appldoc" => "Applicables",
       "abbrev" => "Abbreviations",
+      "units" => "Units",
       "compldoc" => "Compliance",
       "deleted" => "Deleted",
       "link" => "Links"
@@ -24,7 +25,7 @@
                                         (v["visible"].is_a?(TrueClass) ||
                                          v["visible"].is_a?(FalseClass))}.keys
 
-    doc_option_keys = ["chapnums", "depdiag", "refdoc", "appldoc", "compldoc", "abbrev", "compl", "deleted", "link"]
+    doc_option_keys = ["chapnums", "depdiag", "refdoc", "appldoc", "compldoc", "abbrev", "units", "compl", "deleted", "link"]
 
     flags = flags.transform_keys(&:to_s).transform_keys(&:downcase)
 
