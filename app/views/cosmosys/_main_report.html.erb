@@ -355,14 +355,13 @@ if (metadata_dict != nil) then
       <p><b><u><%= label_to_display%></u></b></p>
       <p><%= if shall_textilizable then textilizable(process_text(value_to_display_str),{:object => item}) else value_to_display_str end %></p>
       <br/>
-      <br/>
       <%
       end
     end
   }
 end
 %>
-<p>
+
 <table style="width:50%;border-style:none !important;table-layout:auto; margin-right:0px; margin-left:auto">
 <%                                                                                  #
 
@@ -488,7 +487,7 @@ end
 
 #
 %>
-</table></p>
+</table>
 <br/>
     <% end %>
 </div><%
@@ -509,11 +508,10 @@ end
 
 <%= render partial: "cosmosys/report_toolbar", locals: { flags: flags, metadata_dict: metadata_dict } %>
 <div class="<%= "cSysProject" %>">
-  <% if flags["chapnums"] %><h1><%= @project.csys.code %>: <%= @project.name %></h1><% end %>
   <%
   roots = @project.issues.select{|obj| obj.parent == nil and obj.csys.shall_report}.sort_by{|obj| obj.chapter_order}
     if roots.size == 0 then
-      roots = @project.issues.select { |n| n.parent.project != @project and n.csys.shall_report}
+      roots = @project.issues.select { |n| n.parent.project != @project and n.csys.shall_report}.sort_by{|obj| obj.chapter_order}
     end
 
     if not excluded_titles.keys.include?(title.downcase) then
