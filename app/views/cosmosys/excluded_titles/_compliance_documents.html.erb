@@ -7,7 +7,7 @@
       </tr>
     </thead>
     <tbody>
-<% item.children.each{|i| %>
+<% item.children.sort_by{|obj| obj.chapter_order}.each{|i| %>
       <tr>
         <td><%= link_to i.subject, issue_path(i.id) %></td>
         <td><%= textilizable(i.description) %></td>
